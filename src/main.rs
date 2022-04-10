@@ -6,7 +6,7 @@ use tree_sitter::{Node, Query, QueryCursor};
 
 use crate::parsers::LemmyHelp;
 
-// const Q: &str = r#"
+// const QUERY: &str = r#"
 // (return_statement (expression_list (identifier) @export))
 // (
 //     (dot_index_expression (identifier) @ident)
@@ -21,7 +21,7 @@ const QUERY: &str = r#"
 )
 "#;
 
-// const Q: &str = r#"
+// const QUERY: &str = r#"
 // (
 //     (comment)+ @doc
 // )
@@ -74,6 +74,7 @@ fn main() {
             .collect::<String>();
 
         dbg!(LemmyHelp::parse(&doc).unwrap());
+        // dbg!(doc);
 
         // dbg!(ele
         //     .captures

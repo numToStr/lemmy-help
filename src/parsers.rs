@@ -23,15 +23,22 @@ impl_parse!(Brief, {
 
 /// ---@tag @comment
 #[derive(Debug)]
-pub struct Tag(pub Name);
+pub struct Tag {
+    pub name: Name,
+}
 
-impl_parse!(Tag, just("@tag").ignore_then(Name::parse()).map(Self));
+impl_parse!(
+    Tag,
+    just("@tag")
+        .ignore_then(Name::parse())
+        .map(|name| Self { name })
+);
 
 /// ---@class MY_TYPE[:PARENT_TYPE] [@comment]
 #[derive(Debug)]
 pub struct Class {
     pub name: Name,
-    pub desc: Comment,
+    pub desc: Option<Comment>,
     pub fields: Vec<Field>,
 }
 
@@ -48,7 +55,7 @@ impl_parse!(Class, {
 pub struct Field {
     pub name: Name,
     pub ty: Ty,
-    pub desc: Comment,
+    pub desc: Option<Comment>,
 }
 
 impl_parse!(Field, {
@@ -64,7 +71,7 @@ impl_parse!(Field, {
 pub struct Param {
     pub name: Name,
     pub ty: Ty,
-    pub desc: Comment,
+    pub desc: Option<Comment>,
 }
 
 impl_parse!(Param, {
@@ -79,7 +86,7 @@ impl_parse!(Param, {
 #[derive(Debug)]
 pub struct Type {
     pub name: Name,
-    pub desc: Comment,
+    pub desc: Option<Comment>,
 }
 
 impl_parse!(Type, {
@@ -94,7 +101,7 @@ impl_parse!(Type, {
 pub struct Alias {
     pub name: Name,
     pub ty: Ty,
-    pub desc: Comment,
+    pub desc: Option<Comment>,
 }
 
 impl_parse!(Alias, {
@@ -110,13 +117,15 @@ impl_parse!(Alias, {
 pub struct Return {
     pub ty: Ty,
     pub name: Name,
+    pub desc: Option<Comment>,
 }
 
 impl_parse!(Return, {
     just("@return")
         .ignore_then(Ty::parse())
         .then(Name::parse())
-        .map(|(ty, name)| Self { ty, name })
+        .then(Comment::parse())
+        .map(|((ty, name), desc)| Self { ty, name, desc })
 });
 
 /// ---@see @comment

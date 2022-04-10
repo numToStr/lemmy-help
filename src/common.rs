@@ -1,5 +1,5 @@
 use chumsky::{
-    prelude::{filter, take_until},
+    prelude::{choice, end, filter, just, take_until},
     text::{self, Character, TextParser},
     Parser,
 };
@@ -42,9 +42,16 @@ pub struct Name(pub String);
 impl_parse!(Name, text::ident().padded().map(Self));
 
 /// @comment
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Comment(pub String);
 
-impl_parse!(Comment, {
-    take_until(text::newline()).map(|(x, _)| Self(x.into_iter().collect()))
-});
+impl Comment {
+    pub fn parse(
+    ) -> impl chumsky::Parser<char, Option<Self>, Error = chumsky::prelude::Simple<char>> {
+        choice((
+            end().to(None),
+            just("@").rewind().to(None),
+            take_until(text::newline()).map(|(x, _)| Some(Self(x.into_iter().collect()))),
+        ))
+    }
+}
