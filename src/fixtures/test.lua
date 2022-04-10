@@ -51,11 +51,11 @@ print("---")
 
 print("---")
 
----@alias VMode boolean Vim Mode. Read `:h map-operator`
+---@alias VMode '"line"'|'"char"'|'"v"'|'"V"' Vim Mode. Read `:h map-operator`
 
 print("---")
 
----@return string firstName
+---@return string[] firstName
 
 print("---")
 

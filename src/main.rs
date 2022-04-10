@@ -61,7 +61,7 @@ fn main() {
                 let x = x
                     .node
                     .utf8_text(src_bytes)
-                    .unwrap()
+                    .unwrap_or("")
                     .trim_start_matches("--- ")
                     .trim_start_matches("---");
 
