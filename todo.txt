@@ -1,0 +1,7 @@
+## TODO
+
+[ ] optional description
+[ ] header (like comments can appear before @class)
+[ ] @varargs
+[ ] optional parameters
+[ ] expand `Ty`

@@ -43,8 +43,8 @@ impl_parse!(Name, text::ident().padded().map(Self));
 
 /// @comment
 #[derive(Debug)]
-pub struct Desc(pub String);
+pub struct Comment(pub String);
 
-impl_parse!(Desc, {
+impl_parse!(Comment, {
     take_until(text::newline()).map(|(x, _)| Self(x.into_iter().collect()))
 });

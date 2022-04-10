@@ -1,11 +1,11 @@
 use chumsky::{
-    prelude::{choice, just, take_until},
+    prelude::{choice, just, take_until, Simple},
     text::TextParser,
     Parser,
 };
 
 use crate::{
-    common::{Desc, Name, Ty},
+    common::{Comment, Name, Ty},
     impl_parse,
 };
 
@@ -31,16 +31,14 @@ impl_parse!(Tag, just("@tag").ignore_then(Name::parse()).map(Self));
 #[derive(Debug)]
 pub struct Class {
     pub name: Name,
-    // TODO: Visit later
-    // parent: Vec<String>,
-    pub desc: Desc,
+    pub desc: Comment,
     pub fields: Vec<Field>,
 }
 
 impl_parse!(Class, {
     just("@class")
         .ignore_then(Name::parse())
-        .then(Desc::parse())
+        .then(Comment::parse())
         .then(Field::parse().repeated())
         .map(|((name, desc), fields)| Self { name, desc, fields })
 });
@@ -50,14 +48,14 @@ impl_parse!(Class, {
 pub struct Field {
     pub name: Name,
     pub ty: Ty,
-    pub desc: Desc,
+    pub desc: Comment,
 }
 
 impl_parse!(Field, {
     just("@field")
         .ignore_then(Name::parse())
         .then(Ty::parse())
-        .then(Desc::parse())
+        .then(Comment::parse())
         .map(|((name, ty), desc)| Self { name, ty, desc })
 });
 
@@ -66,14 +64,14 @@ impl_parse!(Field, {
 pub struct Param {
     pub name: Name,
     pub ty: Ty,
-    pub desc: Desc,
+    pub desc: Comment,
 }
 
 impl_parse!(Param, {
     just("@param")
         .ignore_then(Name::parse())
         .then(Ty::parse())
-        .then(Desc::parse())
+        .then(Comment::parse())
         .map(|((name, ty), desc)| Self { name, ty, desc })
 });
 
@@ -81,13 +79,13 @@ impl_parse!(Param, {
 #[derive(Debug)]
 pub struct Type {
     pub name: Name,
-    pub desc: Desc,
+    pub desc: Comment,
 }
 
 impl_parse!(Type, {
     just("@type")
         .ignore_then(Name::parse())
-        .then(Desc::parse())
+        .then(Comment::parse())
         .map(|(name, desc)| Self { name, desc })
 });
 
@@ -96,14 +94,14 @@ impl_parse!(Type, {
 pub struct Alias {
     pub name: Name,
     pub ty: Ty,
-    pub desc: Desc,
+    pub desc: Comment,
 }
 
 impl_parse!(Alias, {
     just("@alias")
         .ignore_then(Name::parse())
         .then(Ty::parse())
-        .then(Desc::parse())
+        .then(Comment::parse())
         .map(|((name, ty), desc)| Self { name, ty, desc })
 });
 
@@ -154,11 +152,16 @@ impl_parse!(Node, {
     ))
 });
 
-// #[derive(Debug)]
-// pub struct LemmyHelp {
-//     pub nodes: Vec<Node>,
-// }
-//
-// impl_parse!(LemmyHelp, {
-//     Node::parse().repeated().map(|nodes| Self { nodes })
-// });
+#[derive(Debug)]
+pub struct LemmyHelp {
+    pub nodes: Vec<Node>,
+}
+
+impl LemmyHelp {
+    pub fn parse(src: &str) -> Result<Self, Vec<Simple<char>>> {
+        Node::parse()
+            .repeated()
+            .parse(src)
+            .map(|nodes| Self { nodes })
+    }
+}
