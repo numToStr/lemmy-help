@@ -28,6 +28,7 @@ name = "lemmy-help"
 version = "0.1.0"
 dependencies = [
  "chumsky",
+ "tabular",
  "tree-sitter",
  "tree-sitter-lua",
 ]
@@ -56,6 +57,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f497285884f3fcff424ffc933e56d7cbca511def0c9831a7f9b5f6153e3cc89b"
 
 [[package]]
+name = "tabular"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d9a2882c514780a1973df90de9d68adcd8871bacc9a6331c3f28e6d2ff91a3d1"
+dependencies = [
+ "unicode-width",
+]
+
+[[package]]
 name = "tree-sitter"
 version = "0.20.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -74,3 +84,9 @@ dependencies = [
  "cc",
  "tree-sitter",
 ]
+
+[[package]]
+name = "unicode-width"
+version = "0.1.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3ed742d4ea2bd1176e236172c8429aaf54486e7ac098db29ffe6529e0ce50973"

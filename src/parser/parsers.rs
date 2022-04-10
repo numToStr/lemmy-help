@@ -7,6 +7,7 @@ use chumsky::{
 use crate::{
     impl_parse,
     parser::common::{Comment, Name, Ty},
+    Class,
 };
 
 /// ---@brief [[ TEXT @brief ]]
@@ -33,22 +34,6 @@ impl_parse!(
         .ignore_then(Name::parse())
         .map(|name| Self { name })
 );
-
-/// ---@class MY_TYPE[:PARENT_TYPE] [@comment]
-#[derive(Debug)]
-pub struct Class {
-    pub name: Name,
-    pub desc: Option<Comment>,
-    pub fields: Vec<Field>,
-}
-
-impl_parse!(Class, {
-    just("@class")
-        .ignore_then(Name::parse())
-        .then(Comment::parse())
-        .then(Field::parse().repeated())
-        .map(|((name, desc), fields)| Self { name, desc, fields })
-});
 
 /// ---@field [public|protected|private] field_name FIELD_TYPE[|OTHER_TYPE] [@comment]
 #[derive(Debug)]

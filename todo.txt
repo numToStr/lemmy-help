@@ -6,3 +6,4 @@
 [ ] optional parameters
 [ ] expand `Ty`
 [x] description in return
+[ ] consider 80 char width

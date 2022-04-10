@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use chumsky::{
     prelude::{choice, end, filter, just, take_until},
     text::{self, Character, TextParser},
@@ -36,13 +38,25 @@ impl_parse!(Ty, {
         .map(Self)
 });
 
+impl Display for Ty {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
 #[derive(Debug)]
 pub struct Name(pub String);
 
 impl_parse!(Name, text::ident().padded().map(Self));
 
+impl Display for Name {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
 /// @comment
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Comment(pub String);
 
 impl Comment {
@@ -53,5 +67,11 @@ impl Comment {
             just("@").rewind().to(None),
             take_until(text::newline()).map(|(x, _)| Some(Self(x.into_iter().collect()))),
         ))
+    }
+}
+
+impl Display for Comment {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
     }
 }
