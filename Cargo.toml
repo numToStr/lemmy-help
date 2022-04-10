@@ -1,0 +1,18 @@
+[package]
+name = "lemmy-help"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chumsky = { version = "0.8.0", default-features = false }
+tree-sitter = "0.20.6"
+tree-sitter-lua = "0.0.10"
+
+[profile.release]
+lto = true
+strip = true
+codegen-units = 1
+opt-level = 's'
+panic = 'abort'
