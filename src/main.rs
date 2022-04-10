@@ -1,10 +1,8 @@
 use std::fs::read_to_string;
-mod common;
-mod parsers;
 
 use tree_sitter::{Node, Query, QueryCursor};
 
-use crate::parsers::LemmyHelp;
+use lemmy_help::LemmyHelp;
 
 // const QUERY: &str = r#"
 // (return_statement (expression_list (identifier) @export))

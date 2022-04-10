@@ -5,8 +5,8 @@ use chumsky::{
 };
 
 use crate::{
-    common::{Comment, Name, Ty},
     impl_parse,
+    parser::common::{Comment, Name, Ty},
 };
 
 /// ---@brief [[ TEXT @brief ]]
