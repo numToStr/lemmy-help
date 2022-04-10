@@ -7,7 +7,7 @@ use chumsky::{
 use crate::{
     impl_parse,
     parser::common::{Comment, Name, Ty},
-    Class,
+    Class, Return,
 };
 
 /// ---@brief [[ TEXT @brief ]]
@@ -95,22 +95,6 @@ impl_parse!(Alias, {
         .then(Ty::parse())
         .then(Comment::parse())
         .map(|((name, ty), desc)| Self { name, ty, desc })
-});
-
-/// ---@return MY_TYPE[|OTHER_TYPE] [@comment]
-#[derive(Debug)]
-pub struct Return {
-    pub ty: Ty,
-    pub name: Name,
-    pub desc: Option<Comment>,
-}
-
-impl_parse!(Return, {
-    just("@return")
-        .ignore_then(Ty::parse())
-        .then(Name::parse())
-        .then(Comment::parse())
-        .map(|((ty, name), desc)| Self { ty, name, desc })
 });
 
 /// ---@see @comment
