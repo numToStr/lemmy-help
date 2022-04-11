@@ -7,7 +7,7 @@ use chumsky::{
 use crate::{
     impl_parse,
     parser::common::{Desc, Name, Ty},
-    Class, Return,
+    Class, Comment, Return,
 };
 
 /// ---@brief [[ TEXT @brief ]]
@@ -117,6 +117,7 @@ pub enum Node {
     Return(Return),
     Alias(Alias),
     See(See),
+    Comment(Comment),
 }
 
 impl_parse!(Node, {
@@ -129,6 +130,7 @@ impl_parse!(Node, {
         Param::parse().map(Self::Param),
         Alias::parse().map(Self::Alias),
         See::parse().map(Self::See),
+        Comment::parse().map(Self::Comment),
     ))
 });
 

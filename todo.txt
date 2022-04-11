@@ -1,9 +1,13 @@
 ## TODO
 
 [x] optional description
-[ ] header (like comments can appear before @class)
+[x] simple comments (bcz comments can appear before @class)
 [ ] @varargs
 [ ] optional parameters
 [ ] expand `Ty`
 [x] description in return
 [ ] consider 80 char width
+[ ] @usage/@example
+[ ] multiline @params description
+[ ] support table as param
+[ ] multiple @see reference

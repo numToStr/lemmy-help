@@ -16,7 +16,7 @@
 --- - Item 2
 ---
 --- 1. Item
----   1.1. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna
+---   1.1. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et
 ---   aliquyam erat, sed diam voluptua.
 ---     1.1.1. Item
 ---   1.2. Item

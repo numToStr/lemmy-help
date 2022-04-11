@@ -55,6 +55,16 @@ impl Display for Name {
     }
 }
 
+/// ---@comment
+#[derive(Debug)]
+pub struct Comment(pub String);
+
+impl_parse!(Comment, {
+    just("---")
+        .ignore_then(take_until(text::newline()))
+        .map(|(x, _)| Self(x.iter().collect()))
+});
+
 /// @comment
 #[derive(Debug, Clone, Default)]
 pub struct Desc(pub String);
