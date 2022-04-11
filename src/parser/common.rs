@@ -1,10 +1,10 @@
-use chumsky::{select, Parser};
+use chumsky::select;
 
 use crate::CommentType;
 
 // Little helper macro for making parse function
 #[macro_export]
-macro_rules! impl_parse2 {
+macro_rules! impl_parse {
     ($id: ident, $body: expr) => {
         impl $id {
             pub fn parse() -> impl chumsky::Parser<
@@ -31,4 +31,4 @@ macro_rules! impl_parse2 {
 #[derive(Debug)]
 pub struct Str(pub String);
 
-impl_parse2!(Str, select! {CommentType::Str(x) => x}.map(Self));
+impl_parse!(Str, select! { CommentType::Str(x) => Self(x)});

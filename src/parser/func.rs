@@ -1,6 +1,6 @@
 use chumsky::{select, Parser};
 
-use crate::{impl_parse2, CommentType, Object, Str};
+use crate::{impl_parse, CommentType, Object, Str};
 
 #[derive(Debug)]
 pub struct Func {
@@ -10,7 +10,7 @@ pub struct Func {
     pub returns: Vec<Object>,
 }
 
-impl_parse2!(Func, {
+impl_parse!(Func, {
     select! { CommentType::Func(x) => x }
         .then(Str::parse().or_not())
         .then(select! {CommentType::Param(x) => x}.repeated())

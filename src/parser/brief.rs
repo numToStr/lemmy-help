@@ -1,6 +1,6 @@
 use chumsky::{prelude::just, select, Parser};
 
-use crate::{impl_parse2, CommentType};
+use crate::{impl_parse, CommentType};
 
 /// ---@brief [[ TEXT @brief ]]
 #[derive(Debug)]
@@ -8,7 +8,7 @@ pub struct Brief {
     pub desc: Vec<String>,
 }
 
-impl_parse2!(Brief, {
+impl_parse!(Brief, {
     select! {
         CommentType::Str(x) => x,
         CommentType::Empty => '\n'.into()

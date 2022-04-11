@@ -6,6 +6,8 @@ pub use common::*;
 
 mod brief;
 pub use brief::*;
+mod tag;
+pub use tag::*;
 mod class;
 pub use class::*;
 mod func;
@@ -16,7 +18,7 @@ use chumsky::{
     Parser, Stream,
 };
 
-use crate::impl_parse2;
+use crate::impl_parse;
 
 // ---@tag @comment
 
@@ -37,14 +39,16 @@ pub enum Node {
     Brief(Brief),
     Func(Func),
     Class(Class),
+    Tag(Tag),
     // Alias(Alias),
     // See(See),
     // Comment(Comment)
 }
 
-impl_parse2!(Node, {
+impl_parse!(Node, {
     choice((
         Brief::parse().map(Self::Brief),
+        Tag::parse().map(Self::Tag),
         Func::parse().map(Self::Func),
         Class::parse().map(Self::Class),
         // See::parse().map(Self::See),

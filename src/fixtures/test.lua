@@ -45,19 +45,11 @@ print("---")
 
 print("---")
 
----@param cfg table this is a config
-
-print("---")
-
 ---@type boolean this is something
 
 print("---")
 
 ---@alias VMode '"line"'|'"char"'|'"v"'|'"V"' Vim Mode. Read `:h map-operator`
-
-print("---")
-
----@return string[] firstName
 
 print("---")
 

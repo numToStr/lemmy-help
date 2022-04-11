@@ -3,7 +3,7 @@ use std::fmt::Display;
 use chumsky::{select, Parser};
 use tabular::{Row, Table};
 
-use crate::{impl_parse2, CommentType, Object};
+use crate::{impl_parse, CommentType, Object};
 
 /// **Grammar**
 ///
@@ -33,7 +33,7 @@ pub struct Class {
     pub fields: Vec<Object>,
 }
 
-impl_parse2!(Class, {
+impl_parse!(Class, {
     select! { CommentType::Class(name, desc) => (name, desc) }
         .then(select! { CommentType::Field(x) => x }.repeated())
         .map(|((name, desc), fields)| Self { name, desc, fields })
