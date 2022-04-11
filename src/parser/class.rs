@@ -1,9 +1,9 @@
 use std::fmt::Display;
 
-use chumsky::{prelude::just, Parser};
+use chumsky::{select, Parser};
 use tabular::{Row, Table};
 
-use crate::{impl_parse, Desc, Field, Name};
+use crate::{impl_parse2, CommentType, Object};
 
 /// **Grammar**
 ///
@@ -28,16 +28,14 @@ use crate::{impl_parse, Desc, Field, Name};
 ///
 #[derive(Debug)]
 pub struct Class {
-    pub name: Name,
-    pub desc: Option<Desc>,
-    pub fields: Vec<Field>,
+    pub name: String,
+    pub desc: Option<String>,
+    pub fields: Vec<Object>,
 }
 
-impl_parse!(Class, {
-    just("---@class")
-        .ignore_then(Name::parse())
-        .then(Desc::parse())
-        .then(Field::parse().repeated())
+impl_parse2!(Class, {
+    select! { CommentType::Class(name, desc) => (name, desc) }
+        .then(select! { CommentType::Field(x) => x }.repeated())
         .map(|((name, desc), fields)| Self { name, desc, fields })
 });
 

@@ -21,16 +21,22 @@ const QUERY: &str = r#"
 
 // const QUERY: &str = r#"
 // (
-//     (comment)+ @doc
-// )
-// (
-//     (comment)+
+//     (comment)
 //     [
 //         (function_declaration
-//             (dot_index_expression) @block)
+//             (dot_index_expression) @func)
 //         (assignment_statement
-//             (variable_list) @block)
-//     ]?
+//             (variable_list) @func
+//             (expression_list
+//                 value: (function_definition)))
+//         (assignment_statement
+//             (variable_list) @expr
+//             (expression_list
+//                 value: [(table_constructor)]))
+//     ]
+// )
+// (
+//     (comment)+ @doc
 // )
 // "#;
 
@@ -43,6 +49,40 @@ fn convert_node(node: Node, src: &[u8]) -> String {
     text.push('\n');
 
     text
+}
+
+fn is_exported(node: &Node) -> bool {
+    node.kind() == "dot_index_expression"
+}
+
+fn what_next(node: Node, source: &[u8]) -> Option<String> {
+    match node.next_named_sibling() {
+        Some(x) if x.kind() == "function_declaration" => {
+            let name = x.named_child(0).expect("missing function name!");
+            if is_exported(&name) {
+                let name = name
+                    .utf8_text(source)
+                    .expect("Unable to get the function name!");
+                return Some(format!("---@func {name}\n"));
+            };
+
+            None
+        }
+        Some(x) if x.kind() == "assignment_statement" => {
+            let name = x.named_child(0).expect("missing assigment name!");
+
+            if !is_exported(&name.named_child(0).expect("WTF")) {
+                return None;
+            };
+
+            let name = name
+                .utf8_text(source)
+                .expect("Unable to get the export name!");
+
+            return Some(format!("---@assign {name}\n"));
+        }
+        _ => None,
+    }
 }
 
 fn main() {
@@ -61,31 +101,23 @@ fn main() {
     let tree = parser.parse(src_bytes, None).unwrap();
 
     for ele in cursor.matches(&query, tree.root_node(), src_bytes) {
-        let doc = ele
+        let last_src_node = match ele.captures.last() {
+            Some(x) => what_next(x.node, src_bytes),
+            _ => None,
+        };
+
+        let mut doc = ele
             .captures
             .iter()
             .map(|x| convert_node(x.node, src_bytes))
             .collect::<String>();
 
-        dbg!(LemmyHelp::parse(&doc).unwrap());
-        // dbg!(doc);
+        if let Some(mut last) = last_src_node {
+            last.push_str(&doc);
 
-        // dbg!(ele
-        //     .captures
-        //     .iter()
-        //     .next()
-        //     .unwrap()
-        //     .node
-        //     .utf8_text(source.as_bytes()));
-        // for capture in ele.captures {
-        //     dbg!(capture);
-        //     // dbg!(capture.node.utf8_text(code.as_bytes()).unwrap());
-        //     // dbg!(capture
-        //     //     .node
-        //     //     .next_sibling()
-        //     //     .unwrap()
-        //     //     .utf8_text(code.as_bytes())
-        //     //     .unwrap());
-        // }
+            doc = last
+        }
+
+        dbg!(LemmyHelp::parse(&doc).unwrap());
     }
 }

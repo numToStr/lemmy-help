@@ -1,3 +1,5 @@
+local U = {}
+
 ---@brief [[
 --- This will document a module and will be found at the top of each file. It uses an internal markdown renderer
 --- so you don't need to worry about formatting. It will wrap the lines into one paragraph and
@@ -60,3 +62,16 @@ print("---")
 print("---")
 
 ---@see math.min
+
+print("---")
+
+---Takes out the leading indent from lines
+---@param s string
+---@return string string Indent chars
+---@return number string Length of the indent chars
+function U.grab_indent(s)
+	local _, len, indent = s:find("^(%s*)")
+	return indent, len
+end
+
+return U
