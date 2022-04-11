@@ -57,9 +57,9 @@ impl Display for Name {
 
 /// @comment
 #[derive(Debug, Clone, Default)]
-pub struct Comment(pub String);
+pub struct Desc(pub String);
 
-impl Comment {
+impl Desc {
     pub fn parse(
     ) -> impl chumsky::Parser<char, Option<Self>, Error = chumsky::prelude::Simple<char>> {
         choice((
@@ -70,7 +70,7 @@ impl Comment {
     }
 }
 
-impl Display for Comment {
+impl Display for Desc {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&self.0)
     }

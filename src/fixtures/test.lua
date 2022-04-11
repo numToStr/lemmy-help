@@ -38,7 +38,7 @@ print("---")
 
 ---@class CMode Comment modes - Can be manual or computed in operator-pending phase
 ---@field toggle number Toggle action
----@field comment number Comment action
+---@field comment number
 ---@field uncomment number Uncomment action
 
 print("---")

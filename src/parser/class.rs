@@ -3,7 +3,7 @@ use std::fmt::Display;
 use chumsky::{prelude::just, Parser};
 use tabular::{Row, Table};
 
-use crate::{impl_parse, Comment, Field, Name};
+use crate::{impl_parse, Desc, Field, Name};
 
 /// **Grammar**
 ///
@@ -29,14 +29,14 @@ use crate::{impl_parse, Comment, Field, Name};
 #[derive(Debug)]
 pub struct Class {
     pub name: Name,
-    pub desc: Option<Comment>,
+    pub desc: Option<Desc>,
     pub fields: Vec<Field>,
 }
 
 impl_parse!(Class, {
     just("---@class")
         .ignore_then(Name::parse())
-        .then(Comment::parse())
+        .then(Desc::parse())
         .then(Field::parse().repeated())
         .map(|((name, desc), fields)| Self { name, desc, fields })
 });

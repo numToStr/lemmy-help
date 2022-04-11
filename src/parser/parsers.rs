@@ -6,7 +6,7 @@ use chumsky::{
 
 use crate::{
     impl_parse,
-    parser::common::{Comment, Name, Ty},
+    parser::common::{Desc, Name, Ty},
     Class, Return,
 };
 
@@ -40,14 +40,14 @@ impl_parse!(
 pub struct Field {
     pub name: Name,
     pub ty: Ty,
-    pub desc: Option<Comment>,
+    pub desc: Option<Desc>,
 }
 
 impl_parse!(Field, {
     just("---@field")
         .ignore_then(Name::parse())
         .then(Ty::parse())
-        .then(Comment::parse())
+        .then(Desc::parse())
         .map(|((name, ty), desc)| Self { name, ty, desc })
 });
 
@@ -56,14 +56,14 @@ impl_parse!(Field, {
 pub struct Param {
     pub name: Name,
     pub ty: Ty,
-    pub desc: Option<Comment>,
+    pub desc: Option<Desc>,
 }
 
 impl_parse!(Param, {
     just("---@param")
         .ignore_then(Name::parse())
         .then(Ty::parse())
-        .then(Comment::parse())
+        .then(Desc::parse())
         .map(|((name, ty), desc)| Self { name, ty, desc })
 });
 
@@ -71,13 +71,13 @@ impl_parse!(Param, {
 #[derive(Debug)]
 pub struct Type {
     pub name: Name,
-    pub desc: Option<Comment>,
+    pub desc: Option<Desc>,
 }
 
 impl_parse!(Type, {
     just("---@type")
         .ignore_then(Name::parse())
-        .then(Comment::parse())
+        .then(Desc::parse())
         .map(|(name, desc)| Self { name, desc })
 });
 
@@ -86,14 +86,14 @@ impl_parse!(Type, {
 pub struct Alias {
     pub name: Name,
     pub ty: Ty,
-    pub desc: Option<Comment>,
+    pub desc: Option<Desc>,
 }
 
 impl_parse!(Alias, {
     just("---@alias")
         .ignore_then(Name::parse())
         .then(Ty::parse())
-        .then(Comment::parse())
+        .then(Desc::parse())
         .map(|((name, ty), desc)| Self { name, ty, desc })
 });
 

@@ -2,21 +2,21 @@ use std::fmt::Display;
 
 use chumsky::{prelude::just, Parser};
 
-use crate::{impl_parse, Comment, Name, Ty};
+use crate::{impl_parse, Desc, Name, Ty};
 
 /// ---@return MY_TYPE[|OTHER_TYPE] [@comment]
 #[derive(Debug)]
 pub struct Return {
     pub ty: Ty,
     pub name: Name,
-    pub desc: Option<Comment>,
+    pub desc: Option<Desc>,
 }
 
 impl_parse!(Return, {
     just("---@return")
         .ignore_then(Ty::parse())
         .then(Name::parse())
-        .then(Comment::parse())
+        .then(Desc::parse())
         .map(|((ty, name), desc)| Self { ty, name, desc })
 });
 
