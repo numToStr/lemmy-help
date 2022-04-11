@@ -13,7 +13,7 @@ pub struct Return {
 }
 
 impl_parse!(Return, {
-    just("@return")
+    just("---@return")
         .ignore_then(Ty::parse())
         .then(Name::parse())
         .then(Comment::parse())

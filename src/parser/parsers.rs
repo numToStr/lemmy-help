@@ -15,8 +15,8 @@ use crate::{
 pub struct Brief(pub String);
 
 impl_parse!(Brief, {
-    just("@brief [[").ignore_then(
-        take_until(just("@brief ]]").padded().ignored())
+    just("---@brief [[").ignore_then(
+        take_until(just("---@brief ]]").padded().ignored())
             .padded()
             .map(|(x, _)| Self(x.into_iter().collect())),
     )
@@ -30,7 +30,7 @@ pub struct Tag {
 
 impl_parse!(
     Tag,
-    just("@tag")
+    just("---@tag")
         .ignore_then(Name::parse())
         .map(|name| Self { name })
 );
@@ -44,7 +44,7 @@ pub struct Field {
 }
 
 impl_parse!(Field, {
-    just("@field")
+    just("---@field")
         .ignore_then(Name::parse())
         .then(Ty::parse())
         .then(Comment::parse())
@@ -60,7 +60,7 @@ pub struct Param {
 }
 
 impl_parse!(Param, {
-    just("@param")
+    just("---@param")
         .ignore_then(Name::parse())
         .then(Ty::parse())
         .then(Comment::parse())
@@ -75,7 +75,7 @@ pub struct Type {
 }
 
 impl_parse!(Type, {
-    just("@type")
+    just("---@type")
         .ignore_then(Name::parse())
         .then(Comment::parse())
         .map(|(name, desc)| Self { name, desc })
@@ -90,7 +90,7 @@ pub struct Alias {
 }
 
 impl_parse!(Alias, {
-    just("@alias")
+    just("---@alias")
         .ignore_then(Name::parse())
         .then(Ty::parse())
         .then(Comment::parse())
@@ -102,7 +102,9 @@ impl_parse!(Alias, {
 pub struct See(pub String);
 
 impl_parse!(See, {
-    just("@see").ignore_then(Ty::parse()).map(|Ty(x)| Self(x))
+    just("---@see")
+        .ignore_then(Ty::parse())
+        .map(|Ty(x)| Self(x))
 });
 
 #[derive(Debug)]

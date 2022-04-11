@@ -35,11 +35,7 @@ const QUERY: &str = r#"
 // "#;
 
 fn convert_node(node: Node, src: &[u8]) -> String {
-    let old = node
-        .utf8_text(src)
-        .unwrap_or("")
-        .trim_start_matches("--- ")
-        .trim_start_matches("---");
+    let old = node.utf8_text(src).unwrap_or("");
 
     let mut text = String::with_capacity(old.len() + 1);
 

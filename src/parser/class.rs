@@ -34,7 +34,7 @@ pub struct Class {
 }
 
 impl_parse!(Class, {
-    just("@class")
+    just("---@class")
         .ignore_then(Name::parse())
         .then(Comment::parse())
         .then(Field::parse().repeated())

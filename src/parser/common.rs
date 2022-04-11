@@ -64,7 +64,7 @@ impl Comment {
     ) -> impl chumsky::Parser<char, Option<Self>, Error = chumsky::prelude::Simple<char>> {
         choice((
             end().to(None),
-            just("@").rewind().to(None),
+            just("---@").rewind().to(None),
             take_until(text::newline()).map(|(x, _)| Some(Self(x.into_iter().collect()))),
         ))
     }
