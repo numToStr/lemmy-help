@@ -40,14 +40,9 @@ const QUERY: &str = r#"
 // )
 // "#;
 
-fn convert_node(node: Node, src: &[u8]) -> String {
-    let old = node.utf8_text(src).unwrap_or("");
-
-    let mut text = String::with_capacity(old.len() + 1);
-
-    text.push_str(old);
+fn get_node_text(node: Node, src: &[u8]) -> String {
+    let mut text = node.utf8_text(src).unwrap_or("").to_string();
     text.push('\n');
-
     text
 }
 
@@ -63,7 +58,7 @@ fn what_next(node: Node, source: &[u8]) -> Option<String> {
                 let name = name
                     .utf8_text(source)
                     .expect("Unable to get the function name!");
-                return Some(format!("---@func {name}\n"));
+                return Some(format!("---@name {name}\n"));
             };
 
             None
@@ -79,7 +74,7 @@ fn what_next(node: Node, source: &[u8]) -> Option<String> {
                 .utf8_text(source)
                 .expect("Unable to get the export name!");
 
-            return Some(format!("---@assign {name}\n"));
+            return Some(format!("---@name {name}\n"));
         }
         _ => None,
     }
@@ -109,15 +104,14 @@ fn main() {
         let mut doc = ele
             .captures
             .iter()
-            .map(|x| convert_node(x.node, src_bytes))
+            .map(|x| get_node_text(x.node, src_bytes))
             .collect::<String>();
 
-        if let Some(mut last) = last_src_node {
-            last.push_str(&doc);
-
-            doc = last
+        if let Some(last) = last_src_node {
+            doc.push_str(&last)
         }
 
+        // dbg!(&doc);
         dbg!(LemmyHelp::parse(&doc).unwrap());
     }
 }

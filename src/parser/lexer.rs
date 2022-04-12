@@ -10,7 +10,7 @@ use chumsky::{
 pub enum CommentType {
     BriefStart,
     BriefEnd,
-    Func(String),
+    Name(String),
     Param(Object),
     Return(Object),
     Class(String, Option<String>),
@@ -64,7 +64,9 @@ impl Lexer {
                 just("brief")
                     .ignore_then(just("]]").padded())
                     .to(CommentType::BriefEnd),
-                just("func").ignore_then(comment).map(CommentType::Func),
+                just("name")
+                    .ignore_then(comment.padded())
+                    .map(CommentType::Name),
                 just("param")
                     .ignore_then(ty)
                     .then(name)

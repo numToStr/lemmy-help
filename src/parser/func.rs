@@ -11,11 +11,12 @@ pub struct Func {
 }
 
 impl_parse!(Func, {
-    select! { CommentType::Func(x) => x }
-        .then(Str::parse().or_not())
-        .then(select! {CommentType::Param(x) => x}.repeated())
-        .then(select! {CommentType::Return(x) => x}.repeated())
-        .map(|(((name, desc), params), returns)| Self {
+    Str::parse()
+        .or_not()
+        .then(select! { CommentType::Param(x) => x }.repeated())
+        .then(select! { CommentType::Return(x) => x }.repeated())
+        .then(select! { CommentType::Name(x) => x })
+        .map(|(((desc, params), returns), name)| Self {
             name,
             desc,
             params,
