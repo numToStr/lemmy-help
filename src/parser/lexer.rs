@@ -7,7 +7,7 @@ use chumsky::{
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum CommentType {
+pub enum TagType {
     BriefStart,
     BriefEnd,
     Name(String),
@@ -20,7 +20,7 @@ pub enum CommentType {
     Tag(String),
     See(String),
     Empty,
-    Str(String),
+    Comment(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -34,11 +34,9 @@ pub struct Object {
 pub struct Lexer;
 
 impl Lexer {
-    pub fn parse() -> impl chumsky::Parser<
-        char,
-        Vec<(CommentType, Range<usize>)>,
-        Error = chumsky::prelude::Simple<char>,
-    > {
+    pub fn parse(
+    ) -> impl chumsky::Parser<char, Vec<(TagType, Range<usize>)>, Error = chumsky::prelude::Simple<char>>
+    {
         let comment = take_until(text::newline())
             // .padded()
             .map(|(x, _)| x.iter().collect());
@@ -60,46 +58,46 @@ impl Lexer {
             .ignore_then(choice((
                 just("brief")
                     .ignore_then(just("[[").padded())
-                    .to(CommentType::BriefStart),
+                    .to(TagType::BriefStart),
                 just("brief")
                     .ignore_then(just("]]").padded())
-                    .to(CommentType::BriefEnd),
+                    .to(TagType::BriefEnd),
                 just("name")
                     .ignore_then(comment.padded())
-                    .map(CommentType::Name),
+                    .map(TagType::Name),
                 just("param")
                     .ignore_then(ty)
                     .then(name)
                     .then(desc.clone())
-                    .map(|((ty, name), desc)| CommentType::Param(Object { ty, name, desc })),
+                    .map(|((ty, name), desc)| TagType::Param(Object { ty, name, desc })),
                 just("return")
                     .ignore_then(ty)
                     .then(name)
                     .then(desc.clone())
-                    .map(|((ty, name), desc)| CommentType::Return(Object { ty, name, desc })),
+                    .map(|((ty, name), desc)| TagType::Return(Object { ty, name, desc })),
                 just("class")
                     .ignore_then(name)
                     .then(desc.clone())
-                    .map(|(name, desc)| CommentType::Class(name, desc)),
+                    .map(|(name, desc)| TagType::Class(name, desc)),
                 just("field")
                     .ignore_then(ty)
                     .then(name)
                     .then(desc.clone())
-                    .map(|((ty, name), desc)| CommentType::Field(Object { ty, name, desc })),
+                    .map(|((ty, name), desc)| TagType::Field(Object { ty, name, desc })),
                 just("alias")
                     .ignore_then(name)
                     .then(ty)
                     .then(desc.clone())
-                    .map(|((name, ty), desc)| CommentType::Alias(Object { ty, name, desc })),
+                    .map(|((name, ty), desc)| TagType::Alias(Object { ty, name, desc })),
                 just("type")
                     .ignore_then(name)
                     .then(desc)
-                    .map(|(name, desc)| CommentType::Type(name, desc)),
-                just("tag").ignore_then(name).map(CommentType::Tag),
-                just("see").ignore_then(comment).map(CommentType::See),
+                    .map(|(name, desc)| TagType::Type(name, desc)),
+                just("tag").ignore_then(name).map(TagType::Tag),
+                just("see").ignore_then(comment).map(TagType::See),
             )))
-            .or(text::newline().to(CommentType::Empty))
-            .or(comment.map(CommentType::Str));
+            .or(text::newline().to(TagType::Empty))
+            .or(comment.map(TagType::Comment));
 
         just("---")
             .ignore_then(tags)

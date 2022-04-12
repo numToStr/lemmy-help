@@ -3,7 +3,7 @@ use std::fmt::Display;
 use chumsky::{select, Parser};
 use tabular::{Row, Table};
 
-use crate::{impl_parse, CommentType, Object};
+use crate::{impl_parse, Object, TagType};
 
 /// **Grammar**
 ///
@@ -34,8 +34,8 @@ pub struct Class {
 }
 
 impl_parse!(Class, {
-    select! { CommentType::Class(name, desc) => (name, desc) }
-        .then(select! { CommentType::Field(x) => x }.repeated())
+    select! { TagType::Class(name, desc) => (name, desc) }
+        .then(select! { TagType::Field(x) => x }.repeated())
         .map(|((name, desc), fields)| Self { name, desc, fields })
 });
 

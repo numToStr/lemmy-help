@@ -1,10 +1,10 @@
 use chumsky::select;
 
-use crate::{impl_parse, CommentType};
+use crate::{impl_parse, TagType};
 
 #[derive(Debug)]
 pub struct Tag(String);
 
 impl_parse!(Tag, {
-    select! { CommentType::Tag(x) => Self(x) }
+    select! { TagType::Tag(x) => Self(x) }
 });

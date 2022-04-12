@@ -1,21 +1,21 @@
 use chumsky::{select, Parser};
 
-use crate::{impl_parse, CommentType, Object, Str};
+use crate::{impl_parse, Comment, Object, TagType};
 
 #[derive(Debug)]
 pub struct Func {
     pub name: String,
-    pub desc: Option<Str>,
+    pub desc: Option<Comment>,
     pub params: Vec<Object>,
     pub returns: Vec<Object>,
 }
 
 impl_parse!(Func, {
-    Str::parse()
+    Comment::parse()
         .or_not()
-        .then(select! { CommentType::Param(x) => x }.repeated())
-        .then(select! { CommentType::Return(x) => x }.repeated())
-        .then(select! { CommentType::Name(x) => x })
+        .then(select! { TagType::Param(x) => x }.repeated())
+        .then(select! { TagType::Return(x) => x }.repeated())
+        .then(select! { TagType::Name(x) => x })
         .map(|(((desc, params), returns), name)| Self {
             name,
             desc,

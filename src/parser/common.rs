@@ -1,6 +1,6 @@
 use chumsky::select;
 
-use crate::CommentType;
+use crate::TagType;
 
 // Little helper macro for making parse function
 #[macro_export]
@@ -8,9 +8,9 @@ macro_rules! impl_parse {
     ($id: ident, $body: expr) => {
         impl $id {
             pub fn parse() -> impl chumsky::Parser<
-                crate::CommentType,
+                crate::TagType,
                 Self,
-                Error = chumsky::prelude::Simple<crate::CommentType>,
+                Error = chumsky::prelude::Simple<crate::TagType>,
             > {
                 $body
             }
@@ -29,6 +29,6 @@ macro_rules! impl_parse {
 
 /// ---@comment
 #[derive(Debug)]
-pub struct Str(pub String);
+pub struct Comment(pub String);
 
-impl_parse!(Str, select! { CommentType::Str(x) => Self(x)});
+impl_parse!(Comment, select! { TagType::Comment(x) => Self(x)});
