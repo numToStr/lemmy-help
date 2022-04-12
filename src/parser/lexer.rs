@@ -66,10 +66,10 @@ impl Lexer {
                     .ignore_then(comment.padded())
                     .map(TagType::Name),
                 just("param")
-                    .ignore_then(ty)
-                    .then(name)
+                    .ignore_then(name)
+                    .then(ty)
                     .then(desc.clone())
-                    .map(|((ty, name), desc)| TagType::Param(Object { ty, name, desc })),
+                    .map(|((name, ty), desc)| TagType::Param(Object { ty, name, desc })),
                 just("return")
                     .ignore_then(ty)
                     .then(name)
