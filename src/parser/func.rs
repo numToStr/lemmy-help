@@ -5,14 +5,14 @@ use crate::{impl_parse, Comment, Object, TagType};
 #[derive(Debug)]
 pub struct Func {
     pub name: String,
-    pub desc: Option<Comment>,
+    pub desc: Vec<Comment>,
     pub params: Vec<Object>,
     pub returns: Vec<Object>,
 }
 
 impl_parse!(Func, {
     Comment::parse()
-        .or_not()
+        .repeated()
         .then(select! { TagType::Param(x) => x }.repeated())
         .then(select! { TagType::Return(x) => x }.repeated())
         .then(select! { TagType::Name(x) => x })
