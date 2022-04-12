@@ -39,9 +39,9 @@ use crate::impl_parse;
 #[derive(Debug)]
 pub enum Node {
     Brief(Brief),
+    Tag(Tag),
     Func(Func),
     Class(Class),
-    Tag(Tag),
     // Alias(Alias),
     // See(See),
     // Comment(Comment)
@@ -63,9 +63,10 @@ impl Display for Node {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self {
             Self::Brief(x) => x.fmt(f),
+            Self::Tag(x) => x.fmt(f),
             Self::Func(x) => x.fmt(f),
             Self::Class(x) => x.fmt(f),
-            _ => todo!(),
+            // _ => todo!(),
         }
     }
 }

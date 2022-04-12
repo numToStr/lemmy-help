@@ -40,3 +40,15 @@ impl Display for Comment {
         f.write_str(&self.0)
     }
 }
+
+// some utility functions
+
+pub fn asterisk(s: &str) -> String {
+    format!("*{}*", s)
+}
+
+pub fn create_title(name: &str, tag: &str) -> String {
+    let t = asterisk(tag);
+
+    format!("{}{}{}", name, " ".repeat(80 - (name.len() + t.len())), t)
+}
