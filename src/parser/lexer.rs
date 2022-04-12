@@ -39,6 +39,10 @@ impl Lexer {
         Vec<(CommentType, Range<usize>)>,
         Error = chumsky::prelude::Simple<char>,
     > {
+        let comment = take_until(text::newline())
+            // .padded()
+            .map(|(x, _)| x.iter().collect());
+
         let ty = filter(|x: &char| !x.is_whitespace())
             .repeated()
             .padded()
@@ -48,13 +52,9 @@ impl Lexer {
 
         let desc = choice((
             end().to(None),
-            just("---@").rewind().to(None),
-            take_until(text::newline()).map(|(x, _)| Some(x.iter().collect::<String>())),
+            just("---").rewind().to(None),
+            comment.map(Some),
         ));
-
-        let comment = take_until(text::newline())
-            // .padded()
-            .map(|(x, _)| x.iter().collect());
 
         let tags = just('@')
             .ignore_then(choice((
@@ -101,7 +101,6 @@ impl Lexer {
 
         just("---")
             .ignore_then(tags)
-            .or(comment.map(CommentType::Str)) // Traling comment after tag
             .map_with_span(|t, r| (t, r))
             .repeated()
     }
