@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use chumsky::select;
 
 use crate::TagType;
@@ -32,3 +34,9 @@ macro_rules! impl_parse {
 pub struct Comment(pub String);
 
 impl_parse!(Comment, select! { TagType::Comment(x) => Self(x)});
+
+impl Display for Comment {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}

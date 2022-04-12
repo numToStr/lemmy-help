@@ -40,7 +40,7 @@ print("---")
 
 ---@class CMode Comment modes - Can be manual or computed in operator-pending phase
 ---@field toggle number Toggle action
----@field comment number
+---@field comment number Comment action
 ---@field uncomment number Uncomment action
 
 print("---")
@@ -58,11 +58,11 @@ print("---")
 print("---")
 
 ---Takes out the leading indent from lines
----@param s string
+---@param str string
 ---@return string string Indent chars
 ---@return number string Length of the indent chars
-function U.grab_indent(s)
-	local _, len, indent = s:find("^(%s*)")
+function U.grab_indent(str)
+	local _, len, indent = str:find("^(%s*)")
 	return indent, len
 end
 

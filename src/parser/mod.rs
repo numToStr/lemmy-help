@@ -13,6 +13,8 @@ pub use class::*;
 mod func;
 pub use func::*;
 
+use std::fmt::Display;
+
 use chumsky::{
     prelude::{choice, Simple},
     Parser, Stream,
@@ -57,6 +59,16 @@ impl_parse!(Node, {
     ))
 });
 
+impl Display for Node {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self {
+            Self::Func(x) => x.fmt(f),
+            Self::Class(x) => x.fmt(f),
+            _ => todo!(),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct LemmyHelp {
     pub nodes: Vec<Node>,
@@ -71,5 +83,15 @@ impl LemmyHelp {
             .repeated()
             .parse(stream)
             .map(|nodes| Self { nodes })
+    }
+}
+
+impl Display for LemmyHelp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for ele in &self.nodes {
+            writeln!(f, "{}", ele)?;
+        }
+
+        write!(f, "")
     }
 }

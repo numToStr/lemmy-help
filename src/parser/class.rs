@@ -61,6 +61,6 @@ impl Display for Class {
             tbl.add_row(row);
         }
 
-        f.write_str(&tbl.to_string())
+        writeln!(f, "{}", tbl)
     }
 }
