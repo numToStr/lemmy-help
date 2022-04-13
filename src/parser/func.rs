@@ -28,35 +28,50 @@ impl_parse!(Func, {
 
 impl Display for Func {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let args: String = self
-            .params
-            .iter()
-            .map(|x| format!("{{{}}}", x.name))
-            .collect::<Vec<String>>()
-            .join(", ");
-        let name = format!("{}({})", self.name, args);
+        let mut blocks = Vec::with_capacity(2);
 
-        let params = child_table!(
-            "Parameters: ~",
-            self.params.iter().map(|field| {
-                [
-                    format!("{{{}}}", field.name),
-                    format!("({})", field.ty),
-                    field.desc.clone().unwrap_or_default(),
-                ]
-            })
-        );
+        let tag = if !self.params.is_empty() {
+            blocks.push(
+                child_table!(
+                    "Parameters: ~",
+                    self.params.iter().map(|field| {
+                        [
+                            format!("{{{}}}", field.name),
+                            format!("({})", field.ty),
+                            field.desc.clone().unwrap_or_default(),
+                        ]
+                    })
+                )
+                .to_string(),
+            );
 
-        let returns = child_table!(
-            "Returns: ~",
-            self.returns.iter().map(|r| [
-                format!("{{{}}}", r.ty),
-                r.desc.clone().unwrap_or_else(|| r.name.clone())
-            ])
-        );
+            let args = self
+                .params
+                .iter()
+                .map(|x| format!("{{{}}}", x.name))
+                .collect::<Vec<String>>()
+                .join(", ");
+
+            format!("{}({})", self.name, args)
+        } else {
+            format!("{}()", self.name)
+        };
+
+        if !self.returns.is_empty() {
+            blocks.push(
+                child_table!(
+                    "Returns: ~",
+                    self.returns.iter().map(|r| [
+                        format!("{{{}}}", r.ty),
+                        r.desc.clone().unwrap_or_else(|| r.name.clone())
+                    ])
+                )
+                .to_string(),
+            )
+        };
 
         let section = section!(
-            &name,
+            &tag,
             self.name.as_str(),
             self.desc
                 .iter()
@@ -64,8 +79,7 @@ impl Display for Func {
                 .collect::<Vec<String>>()
                 .join(" ")
                 .as_str(),
-            params.to_string().as_str(),
-            returns.to_string().as_str()
+            blocks
         );
 
         write!(f, "{}", section)

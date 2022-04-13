@@ -55,7 +55,7 @@ impl Display for Class {
             self.name.as_str(),
             self.name.as_str(),
             self.desc.clone().unwrap_or_default().as_str(),
-            fields.to_string().as_str()
+            vec![fields.to_string()]
         );
 
         write!(f, "{}", head)

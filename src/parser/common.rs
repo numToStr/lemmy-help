@@ -43,15 +43,17 @@ impl Display for Comment {
 
 #[macro_export]
 macro_rules! section {
-    ($name: expr, $tag: expr, $desc: expr, $($data: expr),* $(,)?) => {
-        tabled::builder::Builder::from_iter([
-            [$name, format!("*{}*", $tag).as_str()],
-            [$desc, "".into()],
-            ["".into(), "".into()],
-            $(
-                [$data, "".into()],
-            )*
-        ]).build()
+    ($name: expr, $tag: expr, $desc: expr, $data: expr) => {
+        tabled::builder::Builder::from_iter(
+            vec![
+                [$name, format!("*{}*", $tag).as_str()],
+                [$desc, ""],
+                ["", ""],
+            ]
+            .into_iter()
+            .chain($data.iter().map(|x| [x.as_str(), ""])),
+        )
+        .build()
         .with(tabled::Style::blank())
         .with(tabled::Modify::new(tabled::Full).with(tabled::Padding::new(0, 0, 0, 0)))
         .with(tabled::Modify::new(tabled::Cell(1, 0)).with(tabled::Padding::new(4, 0, 0, 0)))
