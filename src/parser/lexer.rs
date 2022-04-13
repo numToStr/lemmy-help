@@ -72,9 +72,15 @@ impl Lexer {
                     .map(|((name, ty), desc)| TagType::Param(Object { ty, name, desc })),
                 just("return")
                     .ignore_then(ty)
-                    .then(name)
+                    .then(name.or_not())
                     .then(desc.clone())
-                    .map(|((ty, name), desc)| TagType::Return(Object { ty, name, desc })),
+                    .map(|((ty, name), desc)| {
+                        TagType::Return(Object {
+                            ty,
+                            name: name.unwrap_or_default(),
+                            desc,
+                        })
+                    }),
                 just("class")
                     .ignore_then(name)
                     .then(desc.clone())
