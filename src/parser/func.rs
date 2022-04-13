@@ -1,9 +1,8 @@
 use std::fmt::Display;
 
 use chumsky::{select, Parser};
-use tabular::{Row, Table};
 
-use crate::{impl_parse, Comment, Object, TagType};
+use crate::{child_table, impl_parse, section, Comment, Object, TagType};
 
 #[derive(Debug)]
 pub struct Func {
@@ -37,48 +36,38 @@ impl Display for Func {
             .join(", ");
         let name = format!("{}({})", self.name, args);
 
-        writeln!(f, "{}\t\t\t\t\t\t\t\t\t*{}*", name, &self.name)?;
+        let params = child_table!(
+            "Parameters: ~",
+            self.params.iter().map(|field| {
+                [
+                    format!("{{{}}}", field.name),
+                    format!("({})", field.ty),
+                    field.desc.clone().unwrap_or_default(),
+                ]
+            })
+        );
 
-        if !self.desc.is_empty() {
-            for d in &self.desc {
-                writeln!(f, "    {}", d)?;
-            }
-        }
+        let returns = child_table!(
+            "Returns: ~",
+            self.returns.iter().map(|r| [
+                format!("{{{}}}", r.ty),
+                r.desc.clone().unwrap_or_else(|| r.name.clone())
+            ])
+        );
 
-        writeln!(f)?;
+        let section = section!(
+            &name,
+            self.name.as_str(),
+            self.desc
+                .iter()
+                .map(|x| x.to_string())
+                .collect::<Vec<String>>()
+                .join(" ")
+                .as_str(),
+            params.to_string().as_str(),
+            returns.to_string().as_str()
+        );
 
-        if !self.params.is_empty() {
-            writeln!(f, "    Parameters: ~")?;
-            let mut tbl = Table::new("        {:<}  {:<}  {:<}");
-
-            for param in &self.params {
-                let row = Row::new()
-                    .with_cell(format!("{{{}}}", param.name))
-                    .with_cell(format!("({})", param.ty))
-                    .with_cell(param.desc.clone().unwrap_or_default());
-
-                tbl.add_row(row);
-            }
-
-            writeln!(f, "{}", tbl)?;
-        }
-
-        if !self.returns.is_empty() {
-            writeln!(f, "    Return: ~")?;
-            let mut tbl = Table::new("        {:<}  {:<}  {:<}");
-
-            for param in &self.returns {
-                let row = Row::new()
-                    .with_cell(format!("{{{}}}", param.name))
-                    .with_cell(format!("({})", param.ty))
-                    .with_cell(param.desc.clone().unwrap_or_default());
-
-                tbl.add_row(row);
-            }
-
-            writeln!(f, "{}", tbl)?;
-        }
-
-        write!(f, "")
+        write!(f, "{}", section)
     }
 }

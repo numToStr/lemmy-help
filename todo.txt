@@ -11,3 +11,5 @@
 [ ] multiline @params description
 [ ] support table as param
 [ ] multiple @see reference
+[ ] func w/ no returns or no params
+[ ] return with only one type

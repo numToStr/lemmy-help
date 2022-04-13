@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::select;
 
-use crate::{asterisk, impl_parse, TagType};
+use crate::{impl_parse, TagType};
 
 #[derive(Debug)]
 pub struct Tag(String);
@@ -13,8 +13,6 @@ impl_parse!(Tag, {
 
 impl Display for Tag {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let t = asterisk(&self.0);
-
-        writeln!(f, "{}{}", " ".repeat(80 - t.len()), t)
+        writeln!(f, "{}*{}*", " ".repeat(78 - &self.0.len()), &self.0)
     }
 }

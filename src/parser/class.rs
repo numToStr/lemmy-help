@@ -1,9 +1,8 @@
 use std::fmt::Display;
 
 use chumsky::{select, Parser};
-use tabular::{Row, Table};
 
-use crate::{impl_parse, Object, TagType};
+use crate::{child_table, impl_parse, section, Object, TagType};
 
 /// **Grammar**
 ///
@@ -41,26 +40,24 @@ impl_parse!(Class, {
 
 impl Display for Class {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "{n}\t\t\t\t\t\t\t\t\t*{n}*", n = &self.name)?;
+        let fields = child_table!(
+            "Fields: ~",
+            self.fields.iter().map(|field| {
+                [
+                    format!("{{{}}}", field.ty),
+                    format!("({})", field.name),
+                    field.desc.clone().unwrap_or_default(),
+                ]
+            })
+        );
 
-        if let Some(x) = &self.desc {
-            writeln!(f, "    {}", x)?;
-        }
+        let head = section!(
+            self.name.as_str(),
+            self.name.as_str(),
+            self.desc.clone().unwrap_or_default().as_str(),
+            fields.to_string().as_str()
+        );
 
-        writeln!(f)?;
-        writeln!(f, "    Fields: ~")?;
-
-        let mut tbl = Table::new("        {:<}  {:<}  {:<}");
-
-        for f in &self.fields {
-            let row = Row::new()
-                .with_cell(format!("{{{}}}", f.name))
-                .with_cell(format!("({})", f.ty))
-                .with_cell(f.desc.clone().unwrap_or_default());
-
-            tbl.add_row(row);
-        }
-
-        writeln!(f, "{}", tbl)
+        write!(f, "{}", head)
     }
 }

@@ -112,7 +112,7 @@ fn main() {
         }
 
         // dbg!(&doc);
-        dbg!(LemmyHelp::parse(&doc).unwrap());
-        // print!("{}", LemmyHelp::parse(&doc).unwrap());
+        // dbg!(LemmyHelp::parse(&doc).unwrap());
+        print!("{}", LemmyHelp::parse(&doc).unwrap());
     }
 }

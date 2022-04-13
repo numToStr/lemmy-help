@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 chumsky = { version = "0.8.0", default-features = false }
-tabular = "0.2.0"
+tabled = { git = "https://github.com/zhiburt/tabled/", branch = "master", default-features = false }
 tree-sitter = "0.20.6"
 tree-sitter-lua = "0.0.10"
 

@@ -41,14 +41,45 @@ impl Display for Comment {
     }
 }
 
-// some utility functions
-
-pub fn asterisk(s: &str) -> String {
-    format!("*{}*", s)
+#[macro_export]
+macro_rules! section {
+    ($name: expr, $tag: expr, $desc: expr, $($data: expr),* $(,)?) => {
+        tabled::builder::Builder::from_iter([
+            [$name, format!("*{}*", $tag).as_str()],
+            [$desc, "".into()],
+            ["".into(), "".into()],
+            $(
+                [$data, "".into()],
+            )*
+        ]).build()
+        .with(tabled::Style::blank())
+        .with(tabled::Modify::new(tabled::Full).with(tabled::Padding::new(0, 0, 0, 0)))
+        .with(tabled::Modify::new(tabled::Cell(1, 0)).with(tabled::Padding::new(4, 0, 0, 0)))
+        .with(tabled::Modify::new(tabled::Columns::new(1..=2)).with(tabled::Alignment::right()))
+        .with(tabled::Modify::new(tabled::Columns::new(..1)).with(tabled::Alignment::left()))
+        .with(tabled::Modify::new(tabled::Rows::new(1..)).with(tabled::Span::column(2)))
+        .with(tabled::MinWidth::new(80))
+        .with(tabled::MaxWidth::wrapping(80))
+    };
 }
 
-pub fn create_title(name: &str, tag: &str) -> String {
-    let t = asterisk(tag);
-
-    format!("{}{}{}", name, " ".repeat(80 - (name.len() + t.len())), t)
+#[macro_export]
+macro_rules! child_table {
+    ($title: expr, $data: expr) => {
+        tabled::builder::Builder::from_iter($data)
+            .build()
+            .with(tabled::Style::blank())
+            .with(tabled::Header($title))
+            .with(tabled::Footer(""))
+            .with(tabled::Margin::new(4, 0, 0, 0))
+            .with(
+                tabled::Modify::new(tabled::Columns::new(..1))
+                    .with(tabled::Padding::new(4, 0, 0, 0)),
+            )
+            .with(tabled::Modify::new(tabled::Cell(0, 0)).with(tabled::Padding::new(0, 0, 0, 0)))
+            .with(tabled::Modify::new(tabled::Full).with(tabled::Alignment::left()))
+            .with(
+                tabled::Modify::new(tabled::Columns::new(2..)).with(tabled::MaxWidth::wrapping(42)),
+            )
+    };
 }
