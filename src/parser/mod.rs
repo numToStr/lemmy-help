@@ -6,6 +6,8 @@ pub use common::*;
 
 mod brief;
 pub use brief::*;
+mod alias;
+pub use alias::*;
 mod tag;
 pub use tag::*;
 mod class;
@@ -42,7 +44,7 @@ pub enum Node {
     Tag(Tag),
     Func(Func),
     Class(Class),
-    // Alias(Alias),
+    Alias(Alias),
     // See(See),
     // Comment(Comment)
 }
@@ -53,8 +55,8 @@ impl_parse!(Node, {
         Tag::parse().map(Self::Tag),
         Func::parse().map(Self::Func),
         Class::parse().map(Self::Class),
+        Alias::parse().map(Self::Alias),
         // See::parse().map(Self::See),
-        // Alias::parse().map(Self::Alias),
         // Comment::parse().map(Self::Comment),
     ))
 });
@@ -66,6 +68,7 @@ impl Display for Node {
             Self::Tag(x) => x.fmt(f),
             Self::Func(x) => x.fmt(f),
             Self::Class(x) => x.fmt(f),
+            Self::Alias(x) => x.fmt(f),
             // _ => todo!(),
         }
     }
