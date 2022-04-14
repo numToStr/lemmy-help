@@ -1,9 +1,3 @@
-use std::fmt::Display;
-
-use chumsky::select;
-
-use crate::TagType;
-
 // Little helper macro for making parse function
 #[macro_export]
 macro_rules! impl_parse {
@@ -28,18 +22,6 @@ macro_rules! impl_parse {
 // - optional = primary?
 // - table = table<string, string>
 // - array = primary[]
-
-/// ---@comment
-#[derive(Debug)]
-pub struct Comment(pub String);
-
-impl_parse!(Comment, select! { TagType::Comment(x) => Self(x)});
-
-impl Display for Comment {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.0)
-    }
-}
 
 #[macro_export]
 macro_rules! section {

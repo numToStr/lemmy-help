@@ -100,7 +100,7 @@ impl Lexer {
                     .then(desc)
                     .map(|(name, desc)| TagType::Type(name, desc)),
                 just("tag").ignore_then(name).map(TagType::Tag),
-                just("see").ignore_then(comment).map(TagType::See),
+                just("see").ignore_then(comment.padded()).map(TagType::See),
             )))
             .or(text::newline().to(TagType::Empty))
             .or(comment.map(TagType::Comment));

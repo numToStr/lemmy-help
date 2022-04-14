@@ -42,6 +42,8 @@ print("---")
 ---@field toggle number Toggle action
 ---@field comment number Comment action
 ---@field uncomment number Uncomment action
+---@see VMode
+---@see Mee
 
 print("---")
 
@@ -61,6 +63,8 @@ print("---")
 ---@param str string
 ---@return string string Indent chars
 ---@return number string Length of the indent chars
+---@see VMode
+---@see Mee
 function U.grab_indent(str)
 	local _, len, indent = str:find("^(%s*)")
 	return indent, len

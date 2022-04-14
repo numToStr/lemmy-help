@@ -6,10 +6,10 @@
 [ ] optional parameters
 [ ] expand `Ty`
 [x] description in return
-[ ] consider 80 char width
+[x] consider 80 char width
 [ ] @usage/@example
 [ ] multiline @params description
 [ ] support table as param
-[ ] multiple @see reference
+[x] multiple @see reference
 [x] func w/ no returns or no params
 [x] return with only type

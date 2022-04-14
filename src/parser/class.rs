@@ -30,32 +30,50 @@ pub struct Class {
     pub name: String,
     pub desc: Option<String>,
     pub fields: Vec<Object>,
+    pub see: Vec<String>,
 }
 
 impl_parse!(Class, {
     select! { TagType::Class(name, desc) => (name, desc) }
         .then(select! { TagType::Field(x) => x }.repeated())
-        .map(|((name, desc), fields)| Self { name, desc, fields })
+        .then(select! { TagType::See(x) => x }.repeated())
+        .map(|(((name, desc), fields), see)| Self {
+            name,
+            desc,
+            fields,
+            see,
+        })
 });
 
 impl Display for Class {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let fields = child_table!(
-            "Fields: ~",
-            self.fields.iter().map(|field| {
-                [
-                    format!("{{{}}}", field.ty),
-                    format!("({})", field.name),
-                    field.desc.clone().unwrap_or_default(),
-                ]
-            })
+        let mut blocks = Vec::with_capacity(2);
+
+        blocks.push(
+            child_table!(
+                "Fields: ~",
+                self.fields.iter().map(|field| {
+                    [
+                        format!("{{{}}}", field.ty),
+                        format!("({})", field.name),
+                        field.desc.clone().unwrap_or_default(),
+                    ]
+                })
+            )
+            .to_string(),
         );
+
+        if !self.see.is_empty() {
+            blocks.push(
+                child_table!("See: ~", self.see.iter().map(|s| [format!("|{}|", s)])).to_string(),
+            )
+        }
 
         let head = section!(
             self.name.as_str(),
             self.name.as_str(),
             self.desc.clone().unwrap_or_default().as_str(),
-            vec![fields.to_string()]
+            blocks
         );
 
         write!(f, "{}", head)

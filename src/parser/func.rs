@@ -2,33 +2,39 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{child_table, impl_parse, section, Comment, Object, TagType};
+use crate::{child_table, impl_parse, section, Object, TagType};
 
 #[derive(Debug)]
 pub struct Func {
     pub name: String,
-    pub desc: Vec<Comment>,
+    pub desc: Vec<String>,
     pub params: Vec<Object>,
     pub returns: Vec<Object>,
+    pub see: Vec<String>,
 }
 
 impl_parse!(Func, {
-    Comment::parse()
-        .repeated()
-        .then(select! { TagType::Param(x) => x }.repeated())
-        .then(select! { TagType::Return(x) => x }.repeated())
-        .then(select! { TagType::Name(x) => x })
-        .map(|(((desc, params), returns), name)| Self {
-            name,
-            desc,
-            params,
-            returns,
-        })
+    select! {
+        TagType::Comment(x) => x,
+        TagType::Empty => "\n".to_string()
+    }
+    .repeated()
+    .then(select! { TagType::Param(x) => x }.repeated())
+    .then(select! { TagType::Return(x) => x }.repeated())
+    .then(select! { TagType::See(x) => x }.repeated())
+    .then(select! { TagType::Name(x) => x })
+    .map(|((((desc, params), returns), see), name)| Self {
+        name,
+        desc,
+        params,
+        returns,
+        see,
+    })
 });
 
 impl Display for Func {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut blocks = Vec::with_capacity(2);
+        let mut blocks = Vec::with_capacity(3);
 
         let tag = if !self.params.is_empty() {
             blocks.push(
@@ -70,15 +76,16 @@ impl Display for Func {
             )
         };
 
+        if !self.see.is_empty() {
+            blocks.push(
+                child_table!("See: ~", self.see.iter().map(|s| [format!("|{}|", s)])).to_string(),
+            )
+        }
+
         let section = section!(
             &tag,
             self.name.as_str(),
-            self.desc
-                .iter()
-                .map(|x| x.to_string())
-                .collect::<Vec<String>>()
-                .join(" ")
-                .as_str(),
+            self.desc.join(" ").as_str(),
             blocks
         );
 
