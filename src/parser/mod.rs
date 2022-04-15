@@ -1,5 +1,5 @@
-mod lexer;
-pub use lexer::*;
+mod emmy;
+pub use emmy::*;
 
 mod common;
 pub use common::*;
@@ -81,7 +81,7 @@ pub struct LemmyHelp {
 
 impl LemmyHelp {
     pub fn parse(src: &str) -> Result<Self, Vec<Simple<TagType>>> {
-        let tokens = Lexer::parse().parse(src).unwrap();
+        let tokens = Emmy::parse().parse(src).unwrap();
         let stream = Stream::from_iter(src.len()..src.len() + 1, tokens.into_iter());
 
         Node::parse()

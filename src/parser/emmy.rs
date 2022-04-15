@@ -1,7 +1,7 @@
 use std::ops::Range;
 
 use chumsky::{
-    prelude::{choice, end, filter, just, take_until},
+    prelude::{choice, end, filter, just, take_until, Simple},
     text::{self, TextParser},
     Parser,
 };
@@ -31,12 +31,10 @@ pub struct Object {
 }
 
 #[derive(Debug)]
-pub struct Lexer;
+pub struct Emmy;
 
-impl Lexer {
-    pub fn parse(
-    ) -> impl chumsky::Parser<char, Vec<(TagType, Range<usize>)>, Error = chumsky::prelude::Simple<char>>
-    {
+impl Emmy {
+    pub fn parse() -> impl Parser<char, Vec<(TagType, Range<usize>)>, Error = Simple<char>> {
         let comment = take_until(text::newline().or(end()))
             // .padded()
             .map(|(x, _)| x.iter().collect());
