@@ -37,7 +37,7 @@ impl Lexer {
     pub fn parse(
     ) -> impl chumsky::Parser<char, Vec<(TagType, Range<usize>)>, Error = chumsky::prelude::Simple<char>>
     {
-        let comment = take_until(text::newline())
+        let comment = take_until(text::newline().or(end()))
             // .padded()
             .map(|(x, _)| x.iter().collect());
 
@@ -51,7 +51,7 @@ impl Lexer {
         let desc = choice((
             end().to(None),
             just("---").rewind().to(None),
-            comment.map(Some),
+            comment.clone().map(Some),
         ));
 
         let tags = just('@')
@@ -63,7 +63,7 @@ impl Lexer {
                     .ignore_then(just("]]").padded())
                     .to(TagType::BriefEnd),
                 just("name")
-                    .ignore_then(comment.padded())
+                    .ignore_then(comment.clone().padded())
                     .map(TagType::Name),
                 just("param")
                     .ignore_then(name)
@@ -100,7 +100,9 @@ impl Lexer {
                     .then(desc)
                     .map(|(name, desc)| TagType::Type(name, desc)),
                 just("tag").ignore_then(name).map(TagType::Tag),
-                just("see").ignore_then(comment.padded()).map(TagType::See),
+                just("see")
+                    .ignore_then(comment.clone().padded())
+                    .map(TagType::See),
             )))
             .or(text::newline().to(TagType::Empty))
             .or(comment.map(TagType::Comment));
