@@ -48,7 +48,20 @@ print("---")
 print("---")
 
 ---This is an amazing type and you should use it
----@type boolean this is something
+---@type CMode this is something
+U.cmode = {
+	toggle = 0,
+	comment = 1,
+	uncomment = 2,
+}
+
+---This is an amazing type and you should use it
+---@type CMode this is something
+local cmode = {
+	toggle = 0,
+	comment = 1,
+	uncomment = 2,
+}
 
 print("---")
 
@@ -67,6 +80,17 @@ print("---")
 ---@see VMode
 ---@see Mee
 function U.grab_indent(str)
+	local _, len, indent = str:find("^(%s*)")
+	return indent, len
+end
+
+---Takes out the leading indent from lines
+---@param str string
+---@return string string Indent chars
+---@return number string Length of the indent chars
+---@see VMode
+---@see Mee
+local function grab_indent2(str)
 	local _, len, indent = str:find("^(%s*)")
 	return indent, len
 end

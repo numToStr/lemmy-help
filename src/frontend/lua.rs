@@ -1,6 +1,6 @@
 use chumsky::{
     prelude::{choice, filter, just, take_until, Simple},
-    text::{keyword, newline, TextParser},
+    text::{ident, keyword, newline, TextParser},
     Parser,
 };
 
@@ -14,9 +14,14 @@ impl Lua {
 
     // TODO: support ignoring `---@private`
     pub fn lex(src: &str) -> Result<Vec<String>, Vec<Simple<char>>> {
-        let func = keyword("function")
-            .padded()
-            .ignore_then(filter(|x| *x != '(').repeated().collect());
+        let dotted = ident()
+            .then_ignore(just('.'))
+            .then(ident())
+            .map(|(m, f)| format!("{m}.{f}"));
+
+        let expr = dotted.padded().then_ignore(just('='));
+
+        let func = keyword("function").padded();
 
         let local = keyword("local").padded();
 
@@ -24,10 +29,18 @@ impl Lua {
             just("---")
                 .then(filter(|c| *c != '\n').repeated().collect::<String>())
                 .map(|(s, x)| format!("{s}{x}")),
-            func.clone().map(|x: String| format!("---@func {x} public")),
-            local
-                .ignore_then(func)
-                .map(|x| format!("---@func {x} private")),
+            local.ignore_then(choice((
+                func.clone()
+                    .ignore_then(ident())
+                    .map(|x| format!("---@func {x} private")),
+                ident()
+                    .padded()
+                    .then_ignore(just('='))
+                    .map(|x| format!("---@expr {x} private")),
+            ))),
+            func.ignore_then(dotted)
+                .map(|x| format!("---@func {x} public")),
+            expr.map(|x| format!("---@expr {x} public")),
         ))
         .map(Some);
 
