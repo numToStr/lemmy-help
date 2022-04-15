@@ -47,6 +47,7 @@ print("---")
 
 print("---")
 
+---This is an amazing type and you should use it
 ---@type boolean this is something
 
 print("---")

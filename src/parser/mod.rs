@@ -15,6 +15,9 @@ pub use class::*;
 mod func;
 pub use func::*;
 
+mod tags;
+pub use tags::*;
+
 use std::fmt::Display;
 
 use chumsky::{
@@ -45,6 +48,7 @@ pub enum Node {
     Func(Func),
     Class(Class),
     Alias(Alias),
+    Type(Type),
     // See(See),
     // Comment(Comment)
 }
@@ -56,6 +60,7 @@ impl_parse!(Node, {
         Func::parse().map(Self::Func),
         Class::parse().map(Self::Class),
         Alias::parse().map(Self::Alias),
+        Type::parse().map(Self::Type),
         // See::parse().map(Self::See),
         // Comment::parse().map(Self::Comment),
     ))
@@ -69,6 +74,7 @@ impl Display for Node {
             Self::Func(x) => x.fmt(f),
             Self::Class(x) => x.fmt(f),
             Self::Alias(x) => x.fmt(f),
+            Self::Type(x) => x.fmt(f),
             // _ => todo!(),
         }
     }
