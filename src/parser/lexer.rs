@@ -8,9 +8,9 @@ use chumsky::{
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TagType {
+    Func(String, String),
     BriefStart,
     BriefEnd,
-    Name(String),
     Param(Object),
     Return(Object),
     Class(String, Option<String>),
@@ -56,15 +56,17 @@ impl Lexer {
 
         let tags = just('@')
             .ignore_then(choice((
+                just("func")
+                    .ignore_then(ty)
+                    .then(comment.clone())
+                    .padded()
+                    .map(|(name, scope)| TagType::Func(name, scope)),
                 just("brief")
                     .ignore_then(just("[[").padded())
                     .to(TagType::BriefStart),
                 just("brief")
                     .ignore_then(just("]]").padded())
                     .to(TagType::BriefEnd),
-                just("name")
-                    .ignore_then(comment.clone().padded())
-                    .map(TagType::Name),
                 just("param")
                     .ignore_then(name)
                     .then(ty)

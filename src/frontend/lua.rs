@@ -1,6 +1,6 @@
 use chumsky::{
     prelude::{choice, filter, just, take_until, Simple},
-    text::{self, newline, TextParser},
+    text::{keyword, newline, TextParser},
     Parser,
 };
 
@@ -14,13 +14,20 @@ impl Lua {
 
     // TODO: support ignoring `---@private`
     pub fn lex(src: &str) -> Result<Vec<String>, Vec<Simple<char>>> {
+        let func = keyword("function")
+            .padded()
+            .ignore_then(filter(|x| *x != '(').repeated().collect());
+
+        let local = keyword("local").padded();
+
         let node = choice((
             just("---")
                 .then(filter(|c| *c != '\n').repeated().collect::<String>())
                 .map(|(s, x)| format!("{s}{x}")),
-            text::keyword("function")
-                .ignore_then(filter(|x| *x != '(').repeated().collect().padded())
-                .map(|x: String| format!("---@name {x}")),
+            func.clone().map(|x: String| format!("---@func {x} public")),
+            local
+                .ignore_then(func)
+                .map(|x| format!("---@func {x} private")),
         ))
         .map(Some);
 

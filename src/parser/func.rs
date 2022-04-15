@@ -7,6 +7,7 @@ use crate::{child_table, impl_parse, section, Object, TagType};
 #[derive(Debug)]
 pub struct Func {
     pub name: String,
+    pub scope: String,
     pub desc: Vec<String>,
     pub params: Vec<Object>,
     pub returns: Vec<Object>,
@@ -22,15 +23,22 @@ impl_parse!(Func, {
     .then(select! { TagType::Param(x) => x }.repeated())
     .then(select! { TagType::Return(x) => x }.repeated())
     .then(select! { TagType::See(x) => x }.repeated())
-    .then(select! { TagType::Name(x) => x })
-    .map(|((((desc, params), returns), see), name)| Self {
+    .then(select! { TagType::Func(n, s) => (n, s) })
+    .map(|((((desc, params), returns), see), (name, scope))| Self {
         name,
+        scope,
         desc,
         params,
         returns,
         see,
     })
 });
+
+impl Func {
+    pub fn is_public(&self) -> bool {
+        &self.scope == "public"
+    }
+}
 
 impl Display for Func {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
