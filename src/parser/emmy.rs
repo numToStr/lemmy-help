@@ -9,6 +9,7 @@ use chumsky::{
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TagType {
     Func(String, String),
+    Expr(String, String),
     BriefStart,
     BriefEnd,
     Param(Object),
@@ -59,6 +60,11 @@ impl Emmy {
                     .then(comment.clone())
                     .padded()
                     .map(|(name, scope)| TagType::Func(name, scope)),
+                just("expr")
+                    .ignore_then(ty)
+                    .then(comment.clone())
+                    .padded()
+                    .map(|(name, scope)| TagType::Expr(name, scope)),
                 just("brief")
                     .ignore_then(just("[[").padded())
                     .to(TagType::BriefStart),
