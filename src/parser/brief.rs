@@ -5,7 +5,7 @@ use chumsky::{prelude::just, select, Parser};
 use crate::{impl_parse, TagType};
 
 /// ---@brief [[ TEXT @brief ]]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Brief {
     pub desc: Vec<String>,
 }

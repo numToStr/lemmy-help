@@ -4,7 +4,7 @@ use chumsky::select;
 
 use crate::{impl_parse, TagType};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Tag(String);
 
 impl_parse!(Tag, {

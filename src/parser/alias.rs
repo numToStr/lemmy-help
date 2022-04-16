@@ -4,7 +4,7 @@ use chumsky::select;
 
 use crate::{child_table, impl_parse, section, Object, TagType};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Alias(Object);
 
 impl_parse!(Alias, {

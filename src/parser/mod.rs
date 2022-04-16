@@ -21,7 +21,7 @@ pub use tags::*;
 use std::fmt::Display;
 
 use chumsky::{
-    prelude::{choice, Simple},
+    prelude::{any, choice, Simple},
     Parser, Stream,
 };
 
@@ -41,7 +41,7 @@ use crate::impl_parse;
 
 // ---@return MY_TYPE[|OTHER_TYPE] [@comment]
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Node {
     Brief(Brief),
     Tag(Tag),
@@ -53,7 +53,7 @@ pub enum Node {
     // Comment(Comment)
 }
 
-impl_parse!(Node, {
+impl_parse!(Node, Option<Self>, {
     choice((
         Brief::parse().map(Self::Brief),
         Tag::parse().map(Self::Tag),
@@ -64,6 +64,10 @@ impl_parse!(Node, {
         // See::parse().map(Self::See),
         // Comment::parse().map(Self::Comment),
     ))
+    .map(Some)
+    // This will skip extra nodes which were probably injected by the fronted parsers
+    // i.e. ---@func | ---@expr
+    .or(any().to(None))
 });
 
 impl Display for Node {
@@ -92,6 +96,7 @@ impl LemmyHelp {
 
         Node::parse()
             .repeated()
+            .flatten()
             .parse(stream)
             .map(|nodes| Self { nodes })
     }

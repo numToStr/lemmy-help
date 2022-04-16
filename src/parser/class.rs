@@ -25,7 +25,7 @@ use crate::{child_table, impl_parse, section, Object, TagType};
 ///         {comment}    (number)    Comment action
 ///         {uncomment}  (number)    Uncomment action
 ///
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Class {
     pub name: String,
     pub desc: Option<String>,

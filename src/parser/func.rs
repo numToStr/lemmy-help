@@ -4,7 +4,7 @@ use chumsky::{select, Parser};
 
 use crate::{child_table, impl_parse, section, Object, TagType};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Func {
     pub name: String,
     pub scope: String,

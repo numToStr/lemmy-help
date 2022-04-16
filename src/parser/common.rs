@@ -1,16 +1,19 @@
 // Little helper macro for making parse function
 #[macro_export]
 macro_rules! impl_parse {
-    ($id: ident, $body: expr) => {
+    ($id: ident, $ret: ty, $body: expr) => {
         impl $id {
             pub fn parse() -> impl chumsky::Parser<
                 crate::TagType,
-                Self,
+                $ret,
                 Error = chumsky::prelude::Simple<crate::TagType>,
             > {
                 $body
             }
         }
+    };
+    ($id: ident, $body: expr) => {
+        crate::impl_parse!($id, Self, $body);
     };
 }
 
