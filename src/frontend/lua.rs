@@ -48,7 +48,6 @@ impl Lua {
 
         choice((node.padded(), misc))
             .repeated()
-            .collect::<Vec<Option<String>>>()
             .flatten()
             .parse(src)
     }

@@ -4,17 +4,6 @@ pub use emmy::*;
 mod common;
 pub use common::*;
 
-mod brief;
-pub use brief::*;
-mod alias;
-pub use alias::*;
-mod tag;
-pub use tag::*;
-mod class;
-pub use class::*;
-mod func;
-pub use func::*;
-
 mod tags;
 pub use tags::*;
 
@@ -91,7 +80,7 @@ pub struct LemmyHelp {
 
 impl LemmyHelp {
     pub fn parse(src: &str) -> Result<Self, Vec<Simple<TagType>>> {
-        let tokens = Emmy::parse().parse(src).unwrap();
+        let tokens = Emmy::parse(src).unwrap();
         let stream = Stream::from_iter(src.len()..src.len() + 1, tokens.into_iter());
 
         Node::parse()

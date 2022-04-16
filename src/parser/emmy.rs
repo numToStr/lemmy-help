@@ -31,11 +31,13 @@ pub struct Object {
     pub desc: Option<String>,
 }
 
+type Spanned = (TagType, Range<usize>);
+
 #[derive(Debug)]
 pub struct Emmy;
 
 impl Emmy {
-    pub fn parse() -> impl Parser<char, Vec<(TagType, Range<usize>)>, Error = Simple<char>> {
+    pub fn parse(src: &str) -> Result<Vec<Spanned>, Vec<Simple<char>>> {
         let comment = take_until(text::newline().or(end()))
             // .padded()
             .map(|(x, _)| x.iter().collect());
@@ -117,5 +119,6 @@ impl Emmy {
             .ignore_then(tags)
             .map_with_span(|t, r| (t, r))
             .repeated()
+            .parse(src)
     }
 }
