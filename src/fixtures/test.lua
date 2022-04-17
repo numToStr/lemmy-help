@@ -85,7 +85,7 @@ function U.grab_indent(str)
 end
 
 ---Takes out the leading indent from lines
----@param str string
+---@param str? string
 ---@return string string Indent chars
 ---@return number string Length of the indent chars
 ---@see VMode

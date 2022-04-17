@@ -74,7 +74,7 @@ impl Emmy {
                     .ignore_then(just("]]").padded())
                     .to(TagType::BriefEnd),
                 just("param")
-                    .ignore_then(name)
+                    .ignore_then(ty) // I am using `ty` here because param can have `?`
                     .then(ty)
                     .then(desc.clone())
                     .map(|((name, ty), desc)| TagType::Param(Object { ty, name, desc })),

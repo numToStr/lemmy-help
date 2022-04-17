@@ -3,7 +3,7 @@
 [x] optional description
 [x] simple comments (bcz comments can appear before @class)
 [ ] @varargs
-[ ] optional parameters
+[x] optional parameters (but IDK how to render is nicely)
 [ ] expand `Ty`
 [x] description in return
 [x] consider 80 char width
