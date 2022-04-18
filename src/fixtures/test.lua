@@ -90,6 +90,7 @@ end
 ---@return number string Length of the indent chars
 ---@see VMode
 ---@see Mee
+---@usage `grab_indent2('   wtf')`
 local function grab_indent2(str)
 	local _, len, indent = str:find("^(%s*)")
 	return indent, len

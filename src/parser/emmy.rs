@@ -2,7 +2,7 @@ use std::ops::Range;
 
 use chumsky::{
     prelude::{choice, end, filter, just, take_until, Simple},
-    text::{self, TextParser},
+    text::{ident, newline, TextParser},
     Parser,
 };
 
@@ -20,6 +20,7 @@ pub enum TagType {
     Type(String, Option<String>),
     Tag(String),
     See(String),
+    Usage(String),
     Empty,
     Comment(String),
 }
@@ -38,16 +39,14 @@ pub struct Emmy;
 
 impl Emmy {
     pub fn parse(src: &str) -> Result<Vec<Spanned>, Vec<Simple<char>>> {
-        let comment = take_until(text::newline().or(end()))
-            // .padded()
-            .map(|(x, _)| x.iter().collect());
+        let comment = take_until(newline().or(end())).map(|(x, _)| x.iter().collect());
 
         let ty = filter(|x: &char| !x.is_whitespace())
             .repeated()
             .padded()
             .collect();
 
-        let name = text::ident().padded();
+        let name = ident().padded();
 
         let desc = choice((
             end().to(None),
@@ -111,8 +110,17 @@ impl Emmy {
                 just("see")
                     .ignore_then(comment.clone().padded())
                     .map(TagType::See),
+                just("usage")
+                    .ignore_then(
+                        just('`')
+                            .ignore_then(filter(|c| *c != '`').repeated())
+                            .then_ignore(just('`'))
+                            .padded(),
+                    )
+                    .collect()
+                    .map(TagType::Usage),
             )))
-            .or(text::newline().to(TagType::Empty))
+            .or(newline().to(TagType::Empty))
             .or(comment.map(TagType::Comment));
 
         just("---")

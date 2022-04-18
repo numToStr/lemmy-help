@@ -7,7 +7,7 @@
 [ ] expand `Ty`
 [x] description in return
 [x] consider 80 char width
-[ ] @usage/@example
+[x] @usage/@example
 [ ] multiline @params description
 [ ] support table as param
 [x] multiple @see reference

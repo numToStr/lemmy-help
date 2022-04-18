@@ -11,19 +11,22 @@ pub struct Type {
     pub scope: String,
     pub ty: String,
     pub desc: Option<String>,
+    pub usage: Option<String>,
 }
 
 impl_parse!(Type, {
     select! { TagType::Comment(x) => x }
         .repeated()
         .then(select! { TagType::Type(ty, desc) => (ty, desc) })
+        .then(select! { TagType::Usage(x) => x }.or_not())
         .then(select! { TagType::Expr(name, scope) => (name, scope) })
-        .map(|((header, (ty, desc)), (name, scope))| Self {
+        .map(|(((header, (ty, desc)), usage), (name, scope))| Self {
             header,
             name,
             scope,
             ty,
             desc,
+            usage,
         })
 });
 
@@ -35,17 +38,26 @@ impl Type {
 
 impl Display for Type {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let detail = child_table!(
-            "Type: ~",
-            [[
-                format!("({})", self.ty).as_str(),
-                self.desc.as_deref().unwrap_or_default()
-            ]]
-        )
-        .to_string();
+        let mut blocks = Vec::with_capacity(2);
 
-        let section =
-            section!(&self.name, &self.name, &self.header.join(" "), [detail]).to_string();
+        blocks.push(
+            child_table!(
+                "Type: ~",
+                [[
+                    format!("({})", self.ty).as_str(),
+                    self.desc.as_deref().unwrap_or_default()
+                ]]
+            )
+            .to_string(),
+        );
+
+        if let Some(usage) = &self.usage {
+            blocks.push(
+                child_table!("Usage: ~", [[">"], [&format!("  {}", usage)], ["<"]]).to_string(),
+            )
+        }
+
+        let section = section!(&self.name, &self.name, &self.header.join(" "), blocks).to_string();
 
         f.write_str(&section)
     }

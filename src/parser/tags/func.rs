@@ -12,6 +12,7 @@ pub struct Func {
     pub params: Vec<Object>,
     pub returns: Vec<Object>,
     pub see: Vec<String>,
+    pub usage: Option<String>,
 }
 
 impl_parse!(Func, {
@@ -23,15 +24,19 @@ impl_parse!(Func, {
     .then(select! { TagType::Param(x) => x }.repeated())
     .then(select! { TagType::Return(x) => x }.repeated())
     .then(select! { TagType::See(x) => x }.repeated())
+    .then(select! { TagType::Usage(x) => x }.or_not())
     .then(select! { TagType::Func(n, s) => (n, s) })
-    .map(|((((desc, params), returns), see), (name, scope))| Self {
-        name,
-        scope,
-        desc,
-        params,
-        returns,
-        see,
-    })
+    .map(
+        |(((((desc, params), returns), see), usage), (name, scope))| Self {
+            name,
+            scope,
+            desc,
+            params,
+            returns,
+            see,
+            usage,
+        },
+    )
 });
 
 impl Func {
@@ -87,6 +92,12 @@ impl Display for Func {
         if !self.see.is_empty() {
             blocks.push(
                 child_table!("See: ~", self.see.iter().map(|s| [format!("|{}|", s)])).to_string(),
+            )
+        }
+
+        if let Some(usage) = &self.usage {
+            blocks.push(
+                child_table!("Usage: ~", [[">"], [&format!("  {}", usage)], ["<"]]).to_string(),
             )
         }
 
