@@ -2,7 +2,7 @@
 
 [x] optional description
 [x] simple comments (bcz comments can appear before @class)
-[ ] @varargs
+[ ] @vararg
 [x] optional parameters (but IDK how to render is nicely)
 [ ] expand `Ty`
 [x] description in return
@@ -13,3 +13,8 @@
 [x] multiple @see reference
 [x] func w/ no returns or no params
 [x] return with only type
+[x] support metamethods i.e. this:that()
+[x] check for exported `return`
+[ ] table of content
+[ ] enum via @alias
+[ ] also support string as an entry alongside path

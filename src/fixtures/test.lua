@@ -73,12 +73,23 @@ print("---")
 
 print("---")
 
+---Call a function if exists
+---@param fn function Wanna be function
+---@return boolean|string
+function U:is_fn(fn, ...)
+	if type(fn) == "function" then
+		return fn(...)
+	end
+	return fn
+end
+
 ---Takes out the leading indent from lines
 ---@param str string
 ---@return string string Indent chars
 ---@return number string Length of the indent chars
 ---@see VMode
----@see Mee
+---@see math.min
+---@usage `grab_indent2('   wtf')`
 function U.grab_indent(str)
 	local _, len, indent = str:find("^(%s*)")
 	return indent, len
@@ -90,7 +101,6 @@ end
 ---@return number string Length of the indent chars
 ---@see VMode
 ---@see Mee
----@usage `grab_indent2('   wtf')`
 local function grab_indent2(str)
 	local _, len, indent = str:find("^(%s*)")
 	return indent, len

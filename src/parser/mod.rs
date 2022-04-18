@@ -11,7 +11,7 @@ use std::fmt::Display;
 
 use chumsky::{
     prelude::{any, choice, Simple},
-    Parser, Stream,
+    select, Parser, Stream,
 };
 
 use crate::impl_parse;
@@ -38,6 +38,7 @@ pub enum Node {
     Class(Class),
     Alias(Alias),
     Type(Type),
+    Export(String),
     // See(See),
     // Comment(Comment)
 }
@@ -50,8 +51,10 @@ impl_parse!(Node, Option<Self>, {
         Class::parse().map(Self::Class),
         Alias::parse().map(Self::Alias),
         Type::parse().map(Self::Type),
-        // See::parse().map(Self::See),
-        // Comment::parse().map(Self::Comment),
+        // We need this export to properly create the docs
+        // Like there is not point in creating docs for internal things
+        // NOTE: This is inserted by the lua parser
+        select! { TagType::Export(x) => Self::Export(x) },
     ))
     .map(Some)
     // This will skip extra nodes which were probably injected by the fronted parsers
@@ -68,7 +71,7 @@ impl Display for Node {
             Self::Class(x) => x.fmt(f),
             Self::Alias(x) => x.fmt(f),
             Self::Type(x) => x.fmt(f),
-            // _ => todo!(),
+            _ => unimplemented!(),
         }
     }
 }
@@ -93,10 +96,22 @@ impl LemmyHelp {
 
 impl Display for LemmyHelp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for ele in &self.nodes {
-            writeln!(f, "{}", ele)?;
+        if let Some(Node::Export(export)) = &self.nodes.last() {
+            for ele in &self.nodes {
+                match ele {
+                    Node::Export(..) => {}
+                    Node::Func(Func { name, .. }) | Node::Type(Type { name, .. }) => {
+                        if let Name::Member(member, ..) = name {
+                            if member == export {
+                                writeln!(f, "{}", ele)?;
+                            }
+                        }
+                    }
+                    _ => writeln!(f, "{}", ele)?,
+                }
+            }
         }
 
-        write!(f, "")
+        writeln!(f, " vim:tw=78:ts=8:noet:ft=help:norl:")
     }
 }

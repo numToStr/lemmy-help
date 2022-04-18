@@ -2,11 +2,11 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{child_table, impl_parse, section, Object, TagType};
+use crate::{child_table, impl_parse, section, Name, Object, TagType};
 
 #[derive(Debug, Clone)]
 pub struct Func {
-    pub name: String,
+    pub name: Name,
     pub scope: String,
     pub desc: Vec<String>,
     pub params: Vec<Object>,
@@ -38,12 +38,6 @@ impl_parse!(Func, {
         },
     )
 });
-
-impl Func {
-    pub fn is_public(&self) -> bool {
-        &self.scope == "public"
-    }
-}
 
 impl Display for Func {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -103,7 +97,7 @@ impl Display for Func {
 
         let section = section!(
             &tag,
-            self.name.as_str(),
+            self.name.to_string().as_str(),
             self.desc.join(" ").as_str(),
             blocks
         );

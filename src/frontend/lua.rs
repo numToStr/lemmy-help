@@ -1,5 +1,5 @@
 use chumsky::{
-    prelude::{choice, filter, just, take_until, Simple},
+    prelude::{choice, end, filter, just, take_until, Simple},
     text::{ident, keyword, newline, TextParser},
     Parser,
 };
@@ -12,12 +12,12 @@ impl Lua {
         Ok(Self::lex(src)?.join("\n"))
     }
 
-    // TODO: support ignoring `---@private`
+    // TODO: support ignoring via `---@private`
     pub fn lex(src: &str) -> Result<Vec<String>, Vec<Simple<char>>> {
         let dotted = ident()
-            .then_ignore(just('.'))
+            .then(just('.').or(just(':')))
             .then(ident())
-            .map(|(m, f)| format!("{m}.{f}"));
+            .map(|((m, k), f)| format!("{m}{k}{f}"));
 
         let expr = dotted.padded().then_ignore(just('='));
 
@@ -41,6 +41,10 @@ impl Lua {
             func.ignore_then(dotted)
                 .map(|x| format!("---@func {x} public")),
             expr.map(|x| format!("---@expr {x} public")),
+            keyword("return")
+                .ignore_then(ident().padded())
+                .then_ignore(end())
+                .map(|x| format!("---@export {x}")),
         ))
         .map(Some);
 

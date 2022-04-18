@@ -1,4 +1,4 @@
-use std::ops::Range;
+use std::{fmt::Display, ops::Range};
 
 use chumsky::{
     prelude::{choice, end, filter, just, take_until, Simple},
@@ -7,9 +7,40 @@ use chumsky::{
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum Kind {
+    Dot,
+    Colon,
+}
+
+impl Display for Kind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Dot => f.write_str("."),
+            Self::Colon => f.write_str(":"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum Name {
+    Id(String),
+    Member(String, String, Kind),
+}
+
+impl Display for Name {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Id(id) => f.write_str(id),
+            Self::Member(member, field, kind) => write!(f, "{member}{kind}{field}"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TagType {
-    Func(String, String),
-    Expr(String, String),
+    Func(Name, String),
+    Expr(Name, String),
+    Export(String),
     BriefStart,
     BriefEnd,
     Param(Object),
@@ -54,18 +85,31 @@ impl Emmy {
             comment.clone().map(Some),
         ));
 
+        let dotted = choice((
+            ident()
+                .then(just('.').to(Kind::Dot).or(just(':').to(Kind::Colon)))
+                .then(ident())
+                .map(|((m, k), f)| Name::Member(m, f, k)),
+            ident().map(Name::Id),
+        ))
+        .padded();
+
         let tags = just('@')
             .ignore_then(choice((
                 just("func")
-                    .ignore_then(ty)
+                    .ignore_then(dotted.clone())
                     .then(comment.clone())
                     .padded()
                     .map(|(name, scope)| TagType::Func(name, scope)),
                 just("expr")
-                    .ignore_then(ty)
+                    .ignore_then(dotted)
                     .then(comment.clone())
                     .padded()
                     .map(|(name, scope)| TagType::Expr(name, scope)),
+                just("export")
+                    .ignore_then(ident().padded())
+                    .then_ignore(end())
+                    .map(TagType::Export),
                 just("brief")
                     .ignore_then(just("[[").padded())
                     .to(TagType::BriefStart),
