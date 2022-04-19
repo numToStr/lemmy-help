@@ -106,4 +106,11 @@ local function grab_indent2(str)
 	return indent, len
 end
 
+---(Operator-Pending) Toggle linewise-comment on the current line
+---@param vmode VMode
+---@param cfg? Config
+function U.toggle_current_linewise_op(vmode, cfg)
+	-- hello world
+end
+
 return U

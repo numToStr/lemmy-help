@@ -43,7 +43,7 @@ impl Display for Func {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut blocks = Vec::with_capacity(3);
 
-        let tag = if !self.params.is_empty() {
+        let name = if !self.params.is_empty() {
             blocks.push(
                 child_table!(
                     "Parameters: ~",
@@ -95,12 +95,9 @@ impl Display for Func {
             )
         }
 
-        let section = section!(
-            &tag,
-            self.name.to_string().as_str(),
-            self.desc.join(" ").as_str(),
-            blocks
-        );
+        let desc = self.desc.join(" ");
+
+        let section = section!(&name, self.name.to_string().as_str(), &desc, blocks);
 
         write!(f, "{}", section)
     }

@@ -52,7 +52,9 @@ impl Display for Type {
         }
 
         let name = self.name.to_string();
-        let section = section!(&name, &name, &self.header.join(" "), blocks).to_string();
+        let desc = self.header.join(" ");
+
+        let section = section!(&name, &name, &desc, blocks).to_string();
 
         f.write_str(&section)
     }

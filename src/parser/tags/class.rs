@@ -69,12 +69,9 @@ impl Display for Class {
             )
         }
 
-        let head = section!(
-            self.name.as_str(),
-            self.name.as_str(),
-            self.desc.clone().unwrap_or_default().as_str(),
-            blocks
-        );
+        let desc = self.desc.clone().unwrap_or_default();
+
+        let head = section!(self.name.as_str(), self.name.as_str(), &desc, blocks);
 
         write!(f, "{}", head)
     }

@@ -28,26 +28,39 @@ macro_rules! impl_parse {
 
 #[macro_export]
 macro_rules! section {
-    ($name: expr, $tag: expr, $desc: expr, $data: expr) => {
+    ($name: expr, $tag: expr, $desc: expr, $data: expr) => {{
+        let mut rows = vec![];
+
+        let tag = format!("*{}*", $tag);
+
+        let to_indent = if $name.len() > 45 {
+            rows.push(["", &tag]);
+            rows.push([$name, ""]);
+            2
+        } else {
+            rows.push([$name, &tag]);
+            1
+        };
+
+        rows.push([$desc, ""]);
+        rows.push(["", ""]);
+
         tabled::builder::Builder::from_iter(
-            vec![
-                [$name, format!("*{}*", $tag).as_str()],
-                [$desc, ""],
-                ["", ""],
-            ]
-            .into_iter()
-            .chain($data.iter().map(|x| [x.as_str(), ""])),
+            rows.into_iter()
+                .chain($data.iter().map(|x| [x.as_str(), ""])),
         )
         .build()
         .with(tabled::Style::blank())
         .with(tabled::Modify::new(tabled::Full).with(tabled::Padding::new(0, 0, 0, 0)))
-        .with(tabled::Modify::new(tabled::Cell(1, 0)).with(tabled::Padding::new(4, 0, 0, 0)))
+        .with(
+            tabled::Modify::new(tabled::Cell(to_indent, 0)).with(tabled::Padding::new(4, 0, 0, 0)),
+        )
         .with(tabled::Modify::new(tabled::Columns::new(1..=2)).with(tabled::Alignment::right()))
         .with(tabled::Modify::new(tabled::Columns::new(..1)).with(tabled::Alignment::left()))
         .with(tabled::Modify::new(tabled::Rows::new(1..)).with(tabled::Span::column(2)))
         .with(tabled::MinWidth::new(80))
         .with(tabled::MaxWidth::wrapping(80))
-    };
+    }};
 }
 
 #[macro_export]
