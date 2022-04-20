@@ -112,6 +112,6 @@ impl Display for LemmyHelp {
             }
         }
 
-        writeln!(f, " vim:tw=78:ts=8:noet:ft=help:norl:")
+        write!(f, "")
     }
 }

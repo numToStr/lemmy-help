@@ -19,8 +19,10 @@
 [ ] enum via @alias
 [ ] also support string as an entry alongside path
 [x] long names
-[ ] Non-Standard tags
+[ ] Non-Standard tags (should not interfere with LSP)
     [ ] ---@module <tag> <description>
     [ ] ---@divider (-------)
     [ ] ---@separator (=======)
     [ ] ---@toc-entry & ---@toc-slot
+    [ ] ---@prefix (override the tagged name prefix like *U.comment* -> *comment-comment*)
+[ ] Error handling
