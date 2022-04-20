@@ -19,3 +19,8 @@
 [ ] enum via @alias
 [ ] also support string as an entry alongside path
 [x] long names
+[ ] Non-Standard tags
+    [ ] ---@module <tag> <description>
+    [ ] ---@divider (-------)
+    [ ] ---@separator (=======)
+    [ ] ---@toc-entry & ---@toc-slot

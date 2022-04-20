@@ -23,6 +23,6 @@ impl_parse!(Brief, {
 impl Display for Brief {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         // TODO: add formatting
-        f.write_str(&self.desc.join("\n"))
+        writeln!(f, "{}", self.desc.join("\n"))
     }
 }

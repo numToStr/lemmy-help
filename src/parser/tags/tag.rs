@@ -13,6 +13,6 @@ impl_parse!(Tag, {
 
 impl Display for Tag {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "{}*{}*", " ".repeat(78 - &self.0.len()), &self.0)
+        write!(f, "{:>80}", format!("*{}*", self.0))
     }
 }
