@@ -59,7 +59,7 @@ macro_rules! section {
         .with(tabled::Modify::new(tabled::Columns::new(..1)).with(tabled::Alignment::left()))
         .with(tabled::Modify::new(tabled::Rows::new(1..)).with(tabled::Span::column(2)))
         .with(tabled::MinWidth::new(80))
-        .with(tabled::MaxWidth::wrapping(80))
+        // .with(tabled::MaxWidth::wrapping(80))
     }};
 }
 
@@ -78,8 +78,8 @@ macro_rules! child_table {
             )
             .with(tabled::Modify::new(tabled::Cell(0, 0)).with(tabled::Padding::new(0, 0, 0, 0)))
             .with(tabled::Modify::new(tabled::Full).with(tabled::Alignment::left()))
-            .with(
-                tabled::Modify::new(tabled::Columns::new(2..)).with(tabled::MaxWidth::wrapping(42)),
-            )
+        // .with(
+        //     tabled::Modify::new(tabled::Columns::new(2..)).with(tabled::MaxWidth::wrapping(42)),
+        // )
     };
 }

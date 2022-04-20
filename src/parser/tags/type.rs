@@ -52,7 +52,7 @@ impl Display for Type {
         }
 
         let name = self.name.to_string();
-        let desc = self.header.join(" ");
+        let desc = self.header.join("\n");
 
         let section = section!(&name, &name, &desc, blocks).to_string();
 

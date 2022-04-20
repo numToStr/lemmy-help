@@ -95,7 +95,7 @@ impl Display for Func {
             )
         }
 
-        let desc = self.desc.join(" ");
+        let desc = self.desc.join("\n");
 
         let section = section!(&name, self.name.to_string().as_str(), &desc, blocks);
 
