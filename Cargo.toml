@@ -3,14 +3,31 @@ name = "lemmy-help"
 description = "Emmylua parser and transformer"
 version = "0.0.0"
 edition = "2021"
+rust-version = "1.60.0"
 license-file = "LICENSE"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[bin]]
+name = "lemmy-help"
+required-features = ["cli"]
+
 [dependencies]
 chumsky = { version = "0.8.0", default-features = false }
-clap = { version = "3.1.10", default-features = false, features = ["std", "derive", "cargo"] }
-tabled = { version = "0.6.1", default-features = false  }
+
+[dependencies.tabled]
+version = "0.6.1"
+default-features = false
+# optional = true
+
+[dependencies.clap]
+version = "3.1.10"
+default-features = false
+features = ["std", "derive", "cargo"]
+optional = true
+
+[features]
+cli = ["dep:clap"]
 
 [profile.release]
 lto = true
