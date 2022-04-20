@@ -1,0 +1,205 @@
+name: build
+
+on:
+  pull_request:
+    paths-ignore:
+      - "LICENSE"
+      - "README.md"
+    branches:
+      - master
+  push:
+    tags:
+      - "*"
+
+env:
+  CARGO_TERM_COLOR: always
+  MSRV: 1.56.0
+
+jobs:
+  build:
+    name: Release
+    strategy:
+      matrix:
+        job:
+          - {
+              os: ubuntu-latest,
+              target: aarch64-unknown-linux-gnu,
+              use_cross: true,
+            }
+          - {
+              os: ubuntu-latest,
+              target: armv7-unknown-linux-gnueabihf,
+              use_cross: true,
+            }
+          - {
+              os: ubuntu-latest,
+              target: x86_64-unknown-linux-gnu,
+              use_cross: false,
+            }
+          - {
+              os: windows-latest,
+              target: x86_64-pc-windows-msvc,
+              use_cross: false,
+            }
+          - { os: macos-latest, target: x86_64-apple-darwin, use_cross: false }
+    runs-on: ${{ matrix.job.os }}
+    timeout-minutes: 20
+    outputs:
+      PKG_NAME: ${{ steps.vars.outputs.PKG_NAME }}
+      PKG_VERSION: ${{ steps.vars.outputs.PKG_VERSION }}
+      PKG_DESC: ${{ steps.vars.outputs.PKG_DESC }}
+      PKG_AUTHOR: ${{ steps.vars.outputs.PKG_AUTHOR }}
+      PKG_EMAIL: ${{ steps.vars.outputs.PKG_EMAIL }}
+      PKG_HOMEPAGE: ${{ steps.vars.outputs.PKG_HOMEPAGE }}
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v2
+
+      - name: Initialize workflow variables
+        id: vars
+        shell: bash
+        run: |
+          # Package version
+          if [[ $GITHUB_REF = refs/tags/* ]]; then
+            PKG_VERSION=${GITHUB_REF##*/}
+          else
+            PKG_VERSION=${GITHUB_SHA:0:7}
+          fi
+
+          PKG_NAME=$(sed -n 's/^name = "\(.*\)"/\1/p' Cargo.toml | head -n1)
+          PKG_DESC=$(sed -n 's/^description = "\(.*\)"/\1/p' Cargo.toml | head -n1)
+          PKG_AUTHORS=$(sed -n 's/^authors = \["\(.*\)"\]/\1/p' Cargo.toml)
+          PKG_HOMEPAGE=$(sed -n 's/^homepage = "\(.*\)"/\1/p' Cargo.toml)
+          PKG_BASENAME="${PKG_NAME}-${PKG_VERSION}-${{ matrix.job.target }}"
+
+          echo ::set-output name=PKG_VERSION::${PKG_VERSION}
+          echo ::set-output name=PKG_NAME::${PKG_NAME}
+          echo ::set-output name=PKG_BASENAME::${PKG_BASENAME}
+          echo ::set-output name=PKG_DESC::${PKG_DESC}
+          echo ::set-output name=PKG_AUTHOR::$(echo $PKG_AUTHORS | awk '{print $1}')
+          echo ::set-output name=PKG_EMAIL::$(echo $PKG_AUTHORS | awk '{print $2}' | sed -e 's/[<>]//g')
+          echo ::set-output name=PKG_HOMEPAGE::${PKG_HOMEPAGE}
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.MSRV }}
+          target: ${{ matrix.job.target }}
+          override: true
+          profile: minimal
+
+      # - name: Test
+      #   uses: actions-rs/cargo@v1
+      #   with:
+      #     use-cross: ${{ matrix.job.use_cross }}
+      #     command: test
+      #     args: --target=${{ matrix.job.target }}
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: ${{ matrix.job.use_cross }}
+          command: build
+          # args: --release --features=cli --target=${{ matrix.job.target }}
+          args: --release --target=${{ matrix.job.target }}
+
+      - name: Package
+        shell: bash
+        id: package
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          # Staging area
+          PKG_STAGING=".ci_staging/${{ steps.vars.outputs.PKG_BASENAME }}"
+
+          # Create the staging area
+          mkdir -p $PKG_STAGING
+
+          # Package suffix relative to the platform
+          if [[ "${{ matrix.job.target }}" = *-windows-* ]]; then
+            PKG_SUFFIX=".zip"
+            BIN_SUFFIX=".exe"
+          else
+            PKG_SUFFIX=".tar.gz"
+          fi
+
+          BIN_NAME="${{ steps.vars.outputs.PKG_NAME }}${BIN_SUFFIX}"
+          BIN_PATH="target/${{ matrix.job.target }}/release/${BIN_NAME}"
+
+          # Copy binary
+          cp $BIN_PATH $PKG_STAGING
+
+          # Tarball name
+          TARBALL="${{ steps.vars.outputs.PKG_BASENAME }}${PKG_SUFFIX}"
+
+          # Creating release assets
+          pushd "${PKG_STAGING}/" >/dev/null
+          if [[ "${{ matrix.job.target }}" = *-windows-* ]]; then
+            7z -y a ${TARBALL} * | tail -2
+          else
+            tar czf ${TARBALL} *
+          fi
+          popd >/dev/null
+
+          echo ::set-output name=PKG_PATH::"${PKG_STAGING}/${TARBALL}"
+
+      - name: Publish archives and packages
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          generate_release_notes: true
+          files: ${{ steps.package.outputs.PKG_PATH }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish_rust_crate:
+    name: Publish Rust Crate on crates.io
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+
+      - name: Publish
+        uses: actions-rs/cargo@v1
+        with:
+          command: publish
+          args: --verbose --all-features --token ${{ secrets.CARGO_TOKEN }}
+
+  publish_aur_package:
+    name: Publish AUR package
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Generate PKGBUILD
+        id: gen_pkgbuild
+        shell: bash
+        run: |
+          sed -i -e "s%{{AUTHOR}}%${{needs.build.outputs.PKG_AUTHOR}}%g;" ./.aur/PKGBUILD
+          sed -i -e "s%{{EMAIL}}%${{needs.build.outputs.PKG_EMAIL}}%g;" ./.aur/PKGBUILD
+          sed -i -e "s%{{NAME}}%${{needs.build.outputs.PKG_NAME}}%g;" ./.aur/PKGBUILD
+          sed -i -e "s%{{DESC}}%${{needs.build.outputs.PKG_DESC}}%g;" ./.aur/PKGBUILD
+          sed -i -e "s%{{VERSION}}%${{needs.build.outputs.PKG_VERSION}}%g;" ./.aur/PKGBUILD
+          sed -i -e "s%{{URL}}%${{needs.build.outputs.PKG_HOMEPAGE}}%g;" ./.aur/PKGBUILD
+          cat ./.aur/PKGBUILD
+
+      - name: Publish to the AUR
+        uses: KSXGitHub/github-actions-deploy-aur@v2.2.5
+        with:
+          pkgbuild: ./.aur/PKGBUILD
+          pkgname: ${{ needs.build.outputs.PKG_NAME }}
+          commit_username: ${{ needs.build.outputs.PKG_AUTHOR }}
+          commit_email: ${{ needs.build.outputs.PKG_EMAIL }}
+          commit_message: ${{ needs.build.outputs.PKG_VERSION }}
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
