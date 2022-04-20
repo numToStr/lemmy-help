@@ -1,9 +1,6 @@
 mod emmy;
 pub use emmy::*;
 
-mod common;
-pub use common::*;
-
 mod tags;
 pub use tags::*;
 
@@ -14,7 +11,33 @@ use chumsky::{
     select, Parser, Stream,
 };
 
-use crate::impl_parse;
+// Little helper macro for making parse function
+#[macro_export]
+macro_rules! impl_parse {
+    ($id: ident, $ret: ty, $body: expr) => {
+        impl $id {
+            pub fn parse() -> impl chumsky::Parser<
+                crate::TagType,
+                $ret,
+                Error = chumsky::prelude::Simple<crate::TagType>,
+            > {
+                $body
+            }
+        }
+    };
+    ($id: ident, $body: expr) => {
+        crate::impl_parse!($id, Self, $body);
+    };
+}
+
+// A TYPE could be
+// - primary = string|number|boolean
+// - fn = func(...):string
+// - enum = "one"|"two"|"three"
+// - or: primary (| primary)+
+// - optional = primary?
+// - table = table<string, string>
+// - array = primary[]
 
 // ---@tag @comment
 
