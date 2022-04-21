@@ -1,7 +1,7 @@
 <h1 align="center">🤝 lemmy-help</h1>
 <p align="center"><sup>Everyone needs help, so lemmy-help you</sup></p>
 
-![lemmy-help](https://user-images.githubusercontent.com/24727447/164242728-170ac7fa-a093-46b6-b423-960325d94313.gif "Generating help docs")
+![lemmy-help](https://user-images.githubusercontent.com/24727447/164423469-b26fea39-2ef7-497c-8156-5a4c01bc30f8.gif "Generating help docs")
 
 ### What?
 
