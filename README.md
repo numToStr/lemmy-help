@@ -15,6 +15,16 @@
 cargo install lemmy-help --features=cli
 ```
 
+- Arch Linux
+
+```bash
+# Using yay
+yay -S lemmy-help
+
+# Using paru
+paru -S lemmy-help
+```
+
 - Using releases
 
 Check out the [release page](https://github.com/numToStr/lemmy-help/releases) for prebuild binaries available for different operating systems.
