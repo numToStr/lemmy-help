@@ -110,12 +110,13 @@ impl Emmy {
                     .ignore_then(ident().padded())
                     .then_ignore(end())
                     .map(TagType::Export),
-                just("brief")
-                    .ignore_then(just("[[").padded())
-                    .to(TagType::BriefStart),
-                just("brief")
-                    .ignore_then(just("]]").padded())
-                    .to(TagType::BriefEnd),
+                just("brief").ignore_then(
+                    choice((
+                        just("[[").to(TagType::BriefStart),
+                        just("]]").to(TagType::BriefEnd),
+                    ))
+                    .padded(),
+                ),
                 just("param")
                     .ignore_then(ty) // I am using `ty` here because param can have `?`
                     .then(ty)
