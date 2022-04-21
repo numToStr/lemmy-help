@@ -150,7 +150,9 @@ impl Emmy {
                     .ignore_then(name)
                     .then(desc)
                     .map(|(name, desc)| TagType::Type(name, desc)),
-                just("tag").ignore_then(name).map(TagType::Tag),
+                just("tag")
+                    .ignore_then(comment.clone().padded())
+                    .map(TagType::Tag),
                 just("see")
                     .ignore_then(comment.clone().padded())
                     .map(TagType::See),
