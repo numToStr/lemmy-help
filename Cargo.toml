@@ -1,10 +1,22 @@
 [package]
 name = "lemmy-help"
-description = "Emmylua parser and transformer"
 version = "0.0.0"
+description = "Emmylua parser and transformer"
+authors = ["numToStr <sudo@vikasraj.dev>"]
 edition = "2021"
 rust-version = "1.60.0"
-license-file = "LICENSE"
+homepage = "https://github.com/numToStr/lemmy-help"
+repository = "https://github.com/numToStr/lemmy-help"
+license = "MIT"
+readme = "README.md"
+keywords = ["parser", "lua", "emmylua"]
+categories = ["parser", "command-line-utilities"]
+exclude = [
+    ".cargo/**",
+    ".github/**",
+    ".gitignore",
+    "todo.txt"
+]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
