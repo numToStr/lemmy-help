@@ -100,8 +100,7 @@ jobs:
         with:
           use-cross: ${{ matrix.job.use_cross }}
           command: build
-          # args: --release --features=cli --target=${{ matrix.job.target }}
-          args: --release --target=${{ matrix.job.target }}
+          args: --release --features=cli --target=${{ matrix.job.target }}
 
       - name: Package
         shell: bash
