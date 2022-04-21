@@ -1,115 +1,107 @@
 local U = {}
 
 ---@brief [[
----This will document a module and will be found at the top of each file. It uses an internal
----markdown renderer so you don't need to worry about formatting. It will wrap the lines into one
----paragraph and will make sure that the max line width is < 80.
+---Any summary you wanted to write you can write here.
+---There is no formatting here,
+---the way you write in here, will be shown
+---exactly in the help-doc
 ---
----To start a new paragraph with a newline.
+---An empty line can be used to denote a paragraph
 ---
----To explicitly do a breakline do a `<br>` at the end.<br>
----This is useful sometimes
+---You can also write anything, like ordered list
+---    1. first
+---    2. second
+---    3. third
 ---
----We also support itemize and enumerate
----- Item 1
----  - Item 1.1 This item will be wrapped as well and the result will be as expected. This is really handy.
----    - Item 1.1.1
----  - Item 1.2
----- Item 2
+---Some code blocks, but IDK whether it will be highlighted or not
 ---
----1. Item
----  1.1. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et
----  aliquyam erat, sed diam voluptua.
----    1.1.1. Item
----  1.2. Item
----2. Item
+--->
+---    for i = 1, 10, 1 do
+---        print(("%s Lua is awesome"):format(i))
+---    end
+---<
 ---
----<pre>
----You can disable formatting with a
----pre block.
----This is useful if you want to draw a table or write some code
----</pre>
+---NOTE: remember there is no formatting or text wrapping
 ---@brief ]]
 
-print("---")
+---@tag cool-tag
+---@tag another-cool-tag
 
----@tag utils
+---NOTE: Local functions are not part of the documentation
+---Multiply two integar and print it
+---@param this number First number
+---@param that number Second number
+local function mul(this, that)
+	print(this * that)
+end
 
-print("---")
+---Add two integar and print it
+---@param this number First number
+---@param that number Second number
+function U.sum(this, that)
+	print(this + that)
+end
 
----@class CMode Comment modes - Can be manual or computed in operator-pending phase
----@field toggle number Toggle action
----@field comment number Comment action
----@field uncomment number Uncomment action
----@see VMode
----@see Mee
+---Subtract second from the first integar
+---@param this number First number
+---@param that number Second number
+---@return number
+---@usage `require("module.U").sub(10, 5)`
+function U.sub(this, that)
+	return this - that
+end
 
-print("---")
+---This is a magical function
+---@param this number Non-magical number #1
+---@param that number Non-magical number #2
+---@return number _ The magical number #1
+---@return number _ The magical number #2
+---@see U.mul
+---@see U.sum
+---@see U.sub
+function U.magical(this, that)
+	return (U.mul(this, that) / U.sum(that, this)), (U.sum(this, that) * U.sub(that, this))
+end
 
----This is an amazing type and you should use it
----@type CMode this is something
-U.cmode = {
-	toggle = 0,
-	comment = 1,
-	uncomment = 2,
+---@class Human The Homosapien
+---@field legs number Total number of legs
+---@field hands number Total number of hands
+---@field brain boolean Does humans have brain?
+
+---Creates a Human
+---@return Human
+---@usage `require('Human'):create()`
+function U:create()
+	return setmetatable({
+		legs = 2,
+		hands = 2,
+		brain = false,
+	}, { __index = self })
+end
+
+---@class Chai Ingredients for making chai
+---@field milk string 1.5 cup
+---@field water string 0.5 cup
+---@field sugar string 3 tablespoon
+---@field tea_leaves string 2 tablespoon
+---@field cardamom string 2 pieces
+
+---A object containing the recipe for making chai
+---@type Chai
+U.chai = {
+	milk = "1.5 Cup",
+	water = "0.5 Cup",
+	sugar = "3 tablespoon",
+	tea_leaves = "2 tablespoon",
+	cardamom = "2 pieces",
 }
 
----This is an amazing type and you should use it
----@type CMode this is something
-local cmode = {
-	toggle = 0,
-	comment = 1,
-	uncomment = 2,
-}
+---@alias Lines string[] All the lines in the buffer
 
-print("---")
-
----@alias VMode '"line"'|'"char"'|'"v"'|'"V"' Vim Mode. Read `:h map-operator`
-
-print("---")
-
----@see math.min
-
-print("---")
-
----Call a function if exists
----@param fn function Wanna be function
----@return boolean|string
-function U:is_fn(fn, ...)
-	if type(fn) == "function" then
-		return fn(...)
-	end
-	return fn
-end
-
----Takes out the leading indent from lines
----@param str string
----@return string string Indent chars
----@return number string Length of the indent chars
----@see VMode
----@see math.min
----@usage `grab_indent2('   wtf')`
-function U.grab_indent(str)
-	local _, len, indent = str:find("^(%s*)")
-	return indent, len
-end
-
----Takes out the leading indent from lines
----@param str? string
----@return string string Indent chars
----@return number string Length of the indent chars
----@see VMode
----@see Mee
-local function grab_indent2(str)
-	local _, len, indent = str:find("^(%s*)")
-	return indent, len
-end
-
----(Operator-Pending) Toggle linewise-comment on the current line
----@param vmode VMode
----@param cfg? Config
-function U.toggle_current_linewise_op(vmode, cfg)
-	-- hello world
+---Returns all the content of the buffer
+---@return Lines
+function U.get_all()
+	return vim.api.nvim_buf_get_lines(0, 0, -1, false)
 end
 
 return U

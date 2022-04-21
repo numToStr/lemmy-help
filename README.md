@@ -19,6 +19,12 @@ cargo install lemmy-help --features=cli
 
 Check out the [release page](https://github.com/numToStr/lemmy-help/releases) for prebuild binaries available for different operating systems.
 
+### Emmylua
+
+To properly generate docs you should follow emmylua spec. The parser is capable of parsing most (not all) of the emmylua syntax. You can read the following doc which can give you the idea on how to properly write emmylua comments.
+
+- [Writing emmylua docs](./emmylua.md)
+
 ### Usage
 
 Using the CLI is simple just give it the path to the lua files; it will parse them and prints the help doc to **stdout**
