@@ -70,7 +70,7 @@ jobs:
           PKG_DESC=$(sed -n 's/^description = "\(.*\)"/\1/p' Cargo.toml | head -n1)
           PKG_AUTHORS=$(sed -n 's/^authors = \["\(.*\)"\]/\1/p' Cargo.toml)
           PKG_HOMEPAGE=$(sed -n 's/^homepage = "\(.*\)"/\1/p' Cargo.toml)
-          PKG_BASENAME="${PKG_NAME}-${PKG_VERSION}-${{ matrix.job.target }}"
+          PKG_BASENAME="${PKG_NAME}-${{ matrix.job.target }}"
 
           echo ::set-output name=PKG_VERSION::${PKG_VERSION}
           echo ::set-output name=PKG_NAME::${PKG_NAME}
