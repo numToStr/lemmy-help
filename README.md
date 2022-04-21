@@ -33,9 +33,9 @@ Using the CLI is simple just give it the path to the lua files; it will parse th
 
 ```bash
 lemmy-help \
-    -f "/path/to/first/file" \
-    -f "/path/to/second/file" \
-    -f "/path/to/third/file" > doc.txt
+    "/path/to/first/file" \
+    "/path/to/second/file" \
+    "/path/to/third/file" > doc.txt
 ```
 
 ### Credits

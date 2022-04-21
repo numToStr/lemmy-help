@@ -10,8 +10,7 @@ use std::{fs::read_to_string, path::PathBuf};
     global_setting = AppSettings::DeriveDisplayOrder,
 )]
 pub struct Cli {
-    /// Path to the file (can be used multiple times)
-    #[clap(short, long = "file", name = "FILE")]
+    /// Path to the files
     pub files: Vec<PathBuf>,
 }
 
