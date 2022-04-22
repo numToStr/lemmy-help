@@ -10,3 +10,5 @@ mod tag;
 pub use tag::*;
 mod r#type;
 pub use r#type::*;
+mod module;
+pub use module::*;

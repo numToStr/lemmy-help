@@ -1,3 +1,5 @@
+---@mod awesome-name Awesome module title
+
 local U = {}
 
 ---@brief [[

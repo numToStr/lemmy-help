@@ -38,6 +38,7 @@ impl Display for Name {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TagType {
+    Module(String, Option<String>),
     Func(Name, String),
     Expr(Name, String),
     Export(String),
@@ -96,6 +97,10 @@ impl Emmy {
 
         let tags = just('@')
             .ignore_then(choice((
+                just("mod")
+                    .ignore_then(ty)
+                    .then(desc.clone())
+                    .map(|(tag, desc)| TagType::Module(tag, desc)),
                 just("func")
                     .ignore_then(dotted.clone())
                     .then(comment.clone())

@@ -55,6 +55,7 @@ macro_rules! impl_parse {
 
 #[derive(Debug, Clone)]
 pub enum Node {
+    Module(Module),
     Brief(Brief),
     Tag(Tag),
     Func(Func),
@@ -68,6 +69,7 @@ pub enum Node {
 
 impl_parse!(Node, Option<Self>, {
     choice((
+        Module::parse().map(Self::Module),
         Brief::parse().map(Self::Brief),
         Tag::parse().map(Self::Tag),
         Func::parse().map(Self::Func),
@@ -94,6 +96,7 @@ impl Display for Node {
             Self::Class(x) => x.fmt(f),
             Self::Alias(x) => x.fmt(f),
             Self::Type(x) => x.fmt(f),
+            Self::Module(x) => x.fmt(f),
             _ => unimplemented!(),
         }
     }
