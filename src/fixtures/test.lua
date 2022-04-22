@@ -1,4 +1,4 @@
----@mod awesome-name Awesome module title
+---@mod awesome.name Awesome module title
 
 local U = {}
 

@@ -6,6 +6,7 @@ use crate::{child_table, impl_parse, section, Name, Object, TagType};
 
 #[derive(Debug, Clone)]
 pub struct Func {
+    pub tag: Name,
     pub name: Name,
     pub scope: String,
     pub desc: Vec<String>,
@@ -28,6 +29,7 @@ impl_parse!(Func, {
     .then(select! { TagType::Func(n, s) => (n, s) })
     .map(
         |(((((desc, params), returns), see), usage), (name, scope))| Self {
+            tag: name.clone(),
             name,
             scope,
             desc,
@@ -38,6 +40,16 @@ impl_parse!(Func, {
         },
     )
 });
+
+impl Func {
+    pub fn rename_tag(mut self, tag: String) -> Self {
+        if let Name::Member(_, field, kind) = self.tag {
+            self.tag = Name::Member(tag, field, kind)
+        };
+
+        self
+    }
+}
 
 impl Display for Func {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -97,7 +109,7 @@ impl Display for Func {
 
         let desc = self.desc.join("\n");
 
-        let section = section!(&name, self.name.to_string().as_str(), &desc, blocks);
+        let section = section!(&name, self.tag.to_string().as_str(), &desc, blocks);
 
         write!(f, "{}", section)
     }
