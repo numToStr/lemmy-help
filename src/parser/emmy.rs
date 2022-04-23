@@ -1,7 +1,7 @@
 use std::{fmt::Display, ops::Range};
 
 use chumsky::{
-    prelude::{choice, end, filter, just, take_until, Simple},
+    prelude::{any, choice, end, filter, just, take_until, Simple},
     text::{ident, newline, TextParser},
     Parser,
 };
@@ -39,6 +39,7 @@ impl Display for Name {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TagType {
     Module(String, Option<String>),
+    Divider(char),
     Func(Name, String),
     Expr(Name, String),
     Export(String),
@@ -101,6 +102,9 @@ impl Emmy {
                     .ignore_then(ty)
                     .then(desc.clone())
                     .map(|(tag, desc)| TagType::Module(tag, desc)),
+                just("divider")
+                    .ignore_then(any().padded())
+                    .map(TagType::Divider),
                 just("func")
                     .ignore_then(dotted.clone())
                     .then(comment.clone())
