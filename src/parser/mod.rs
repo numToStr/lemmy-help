@@ -102,54 +102,72 @@ impl Display for Node {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct LemmyHelp {
     pub nodes: Vec<Node>,
 }
 
 impl LemmyHelp {
-    pub fn parse(src: &str) -> Result<Self, Vec<Simple<TagType>>> {
-        let tokens = Emmy::parse(src).unwrap();
-        let stream = Stream::from_iter(src.len()..src.len() + 1, tokens.into_iter());
-
-        Node::parse()
-            .repeated()
-            .flatten()
-            .parse(stream)
-            .map(|nodes| Self { nodes })
+    pub fn new() -> Self {
+        Self::default()
     }
-}
 
-// TOOD: move all the logic to method
-impl Display for LemmyHelp {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if let Some(Node::Export(export)) = &self.nodes.last() {
-            let module = if let Some(Node::Module(Module { name, .. })) = &self.nodes.first() {
+    pub fn parse(&mut self, src: &str) -> Result<&Self, Vec<Simple<TagType>>> {
+        self.nodes.append(&mut Self::lex(src)?);
+
+        Ok(self)
+    }
+
+    /// Prepare nodes for help doc generation
+    pub fn for_help(&mut self, src: &str) -> Result<&Self, Vec<Simple<TagType>>> {
+        let nodes = Self::lex(src)?;
+
+        if let Some(Node::Export(export)) = nodes.last().cloned() {
+            let module = if let Some(Node::Module(Module { name, .. })) = nodes.first().cloned() {
                 name
             } else {
-                export
+                export.clone()
             };
 
-            for ele in &self.nodes {
+            for ele in nodes {
                 match ele {
                     Node::Export(..) => {}
                     Node::Func(func) => {
                         if let Name::Member(member, ..) = &func.name {
-                            if member == export {
-                                writeln!(f, "{}", func.clone().rename_tag(module.to_string()))?;
+                            if *member == export {
+                                self.nodes
+                                    .push(Node::Func(func.rename_tag(module.to_string())));
                             }
                         }
                     }
                     Node::Type(typ) => {
                         if let Name::Member(member, ..) = &typ.name {
-                            if member == export {
-                                writeln!(f, "{}", typ.clone().rename_tag(module.to_string()))?;
+                            if *member == export {
+                                self.nodes
+                                    .push(Node::Type(typ.rename_tag(module.to_string())));
                             }
                         }
                     }
-                    _ => writeln!(f, "{}", ele)?,
+                    _ => self.nodes.push(ele),
                 }
             }
+        };
+
+        Ok(self)
+    }
+
+    fn lex(src: &str) -> Result<Vec<Node>, Vec<Simple<TagType>>> {
+        let tokens = Emmy::parse(src).unwrap();
+        let stream = Stream::from_iter(src.len()..src.len() + 1, tokens.into_iter());
+
+        Node::parse().repeated().flatten().parse(stream)
+    }
+}
+
+impl Display for LemmyHelp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for node in &self.nodes {
+            writeln!(f, "{}", node)?;
         }
 
         write!(f, "")
