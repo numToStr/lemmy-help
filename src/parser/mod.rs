@@ -55,6 +55,7 @@ macro_rules! impl_parse {
 
 #[derive(Debug, Clone)]
 pub enum Node {
+    Module(Module),
     Brief(Brief),
     Tag(Tag),
     Func(Func),
@@ -68,6 +69,7 @@ pub enum Node {
 
 impl_parse!(Node, Option<Self>, {
     choice((
+        Module::parse().map(Self::Module),
         Brief::parse().map(Self::Brief),
         Tag::parse().map(Self::Tag),
         Func::parse().map(Self::Func),
@@ -94,6 +96,7 @@ impl Display for Node {
             Self::Class(x) => x.fmt(f),
             Self::Alias(x) => x.fmt(f),
             Self::Type(x) => x.fmt(f),
+            Self::Module(x) => x.fmt(f),
             _ => unimplemented!(),
         }
     }
@@ -117,16 +120,30 @@ impl LemmyHelp {
     }
 }
 
+// TOOD: move all the logic to method
 impl Display for LemmyHelp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(Node::Export(export)) = &self.nodes.last() {
+            let module = if let Some(Node::Module(Module { name, .. })) = &self.nodes.first() {
+                name
+            } else {
+                export
+            };
+
             for ele in &self.nodes {
                 match ele {
                     Node::Export(..) => {}
-                    Node::Func(Func { name, .. }) | Node::Type(Type { name, .. }) => {
-                        if let Name::Member(member, ..) = name {
+                    Node::Func(func) => {
+                        if let Name::Member(member, ..) = &func.name {
                             if member == export {
-                                writeln!(f, "{}", ele)?;
+                                writeln!(f, "{}", func.clone().rename_tag(module.to_string()))?;
+                            }
+                        }
+                    }
+                    Node::Type(typ) => {
+                        if let Name::Member(member, ..) = &typ.name {
+                            if member == export {
+                                writeln!(f, "{}", typ.clone().rename_tag(module.to_string()))?;
                             }
                         }
                     }
