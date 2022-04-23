@@ -26,6 +26,10 @@ local U = {}
 ---NOTE: remember there is no formatting or text wrapping
 ---@brief ]]
 
+---@divider -
+---@divider =
+---@divider ~
+
 ---@tag cool-tag
 ---@tag another-cool-tag
 

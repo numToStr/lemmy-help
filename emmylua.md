@@ -69,6 +69,25 @@ Some code blocks, but IDK whether it will be highlighted or not
 NOTE: remember there is no formatting or text wrapping
 ```
 
+#### Module
+
+This tag can be used to add a heading for the module.
+
+```lua
+---@mod <name> [desc]
+```
+
+```lua
+---@mod new.module With some description
+```
+
+- Output
+
+```help
+================================================================================
+With some description                                               *new.module*
+```
+
 #### Tag
 
 This can used to create an alternate tag for your module, functions etc.
@@ -81,6 +100,30 @@ This can used to create an alternate tag for your module, functions etc.
 ```
                                                                       *cool-tag*
                                                               *another-cool-tag*
+```
+
+#### Divider
+
+This tag can be used to add a divider/separator between section or anything you desire
+
+```lua
+---@divider <char>
+```
+
+```lua
+---@divider -
+---@divider =
+---@divider ~
+```
+
+- Output
+
+```help
+--------------------------------------------------------------------------------
+
+================================================================================
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
 #### Functions
