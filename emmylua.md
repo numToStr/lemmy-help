@@ -175,7 +175,7 @@ end
 ---@see U.mul
 ---@see U.sum
 ---@see U.sub
-function U.magical(this, that)
+U.magical = function(this, that)
     return (U.mul(this, that) / U.sum(that, this)), (U.sum(this, that) * U.sub(that, this))
 end
 

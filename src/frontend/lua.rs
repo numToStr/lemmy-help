@@ -38,9 +38,14 @@ impl Lua {
                     .then_ignore(just('='))
                     .map(|x| format!("---@expr {x} private")),
             ))),
-            func.ignore_then(dotted)
+            func.clone()
+                .ignore_then(dotted)
                 .map(|x| format!("---@func {x} public")),
-            expr.map(|x| format!("---@expr {x} public")),
+            choice((
+                expr.then_ignore(func)
+                    .map(|x| format!("---@func {x} public")),
+                expr.map(|x| format!("---@expr {x} public")),
+            )),
             keyword("return")
                 .ignore_then(ident().padded())
                 .then_ignore(end())

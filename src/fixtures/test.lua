@@ -38,14 +38,14 @@ local U = {}
 ---@param this number First number
 ---@param that number Second number
 local function mul(this, that)
-	print(this * that)
+    print(this * that)
 end
 
 ---Add two integar and print it
 ---@param this number First number
 ---@param that number Second number
 function U.sum(this, that)
-	print(this + that)
+    print(this + that)
 end
 
 ---Subtract second from the first integar
@@ -54,7 +54,7 @@ end
 ---@return number
 ---@usage `require("module.U").sub(10, 5)`
 function U.sub(this, that)
-	return this - that
+    return this - that
 end
 
 ---This is a magical function
@@ -65,8 +65,8 @@ end
 ---@see U.mul
 ---@see U.sum
 ---@see U.sub
-function U.magical(this, that)
-	return (U.mul(this, that) / U.sum(that, this)), (U.sum(this, that) * U.sub(that, this))
+U.magical = function(this, that)
+    return (U.mul(this, that) / U.sum(that, this)), (U.sum(this, that) * U.sub(that, this))
 end
 
 ---@class Human The Homosapien
@@ -78,11 +78,11 @@ end
 ---@return Human
 ---@usage `require('Human'):create()`
 function U:create()
-	return setmetatable({
-		legs = 2,
-		hands = 2,
-		brain = false,
-	}, { __index = self })
+    return setmetatable({
+        legs = 2,
+        hands = 2,
+        brain = false,
+    }, { __index = self })
 end
 
 ---@class Chai Ingredients for making chai
@@ -95,11 +95,11 @@ end
 ---A object containing the recipe for making chai
 ---@type Chai
 U.chai = {
-	milk = "1.5 Cup",
-	water = "0.5 Cup",
-	sugar = "3 tablespoon",
-	tea_leaves = "2 tablespoon",
-	cardamom = "2 pieces",
+    milk = '1.5 Cup',
+    water = '0.5 Cup',
+    sugar = '3 tablespoon',
+    tea_leaves = '2 tablespoon',
+    cardamom = '2 pieces',
 }
 
 ---@alias Lines string[] All the lines in the buffer
@@ -107,7 +107,7 @@ U.chai = {
 ---Returns all the content of the buffer
 ---@return Lines
 function U.get_all()
-	return vim.api.nvim_buf_get_lines(0, 0, -1, false)
+    return vim.api.nvim_buf_get_lines(0, 0, -1, false)
 end
 
 return U
