@@ -49,19 +49,21 @@ impl Display for Class {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut blocks = Vec::with_capacity(2);
 
-        blocks.push(
-            child_table!(
-                "Fields: ~",
-                self.fields.iter().map(|field| {
-                    [
-                        format!("{{{}}}", field.ty),
-                        format!("({})", field.name),
-                        field.desc.clone().unwrap_or_default(),
-                    ]
-                })
-            )
-            .to_string(),
-        );
+        if !self.fields.is_empty() {
+            blocks.push(
+                child_table!(
+                    "Fields: ~",
+                    self.fields.iter().map(|field| {
+                        [
+                            format!("{{{}}}", field.ty),
+                            format!("({})", field.name),
+                            field.desc.clone().unwrap_or_default(),
+                        ]
+                    })
+                )
+                .to_string(),
+            );
+        }
 
         if !self.see.is_empty() {
             blocks.push(
