@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{child_table, impl_parse, section, Object, TagType};
+use crate::{impl_parse, see, Object, TagType};
 
 /// **Grammar**
 ///
@@ -47,34 +47,33 @@ impl_parse!(Class, {
 
 impl Display for Class {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut blocks = Vec::with_capacity(2);
+        use crate::{description, header};
+
+        header!(f, self.name)?;
+        description!(f, self.desc.as_deref().unwrap_or_default())?;
+        writeln!(f)?;
 
         if !self.fields.is_empty() {
-            blocks.push(
-                child_table!(
-                    "Fields: ~",
-                    self.fields.iter().map(|field| {
-                        [
-                            format!("{{{}}}", field.ty),
-                            format!("({})", field.name),
-                            field.desc.clone().unwrap_or_default(),
-                        ]
-                    })
-                )
-                .to_string(),
-            );
+            description!(f, "Fields: ~")?;
+
+            let mut table = tabular::Table::new("        {:<}  {:<}  {:<}");
+
+            for field in &self.fields {
+                table.add_row(
+                    tabular::Row::new()
+                        .with_cell(&format!("{{{}}}", field.name))
+                        .with_cell(&format!("({})", field.ty))
+                        .with_cell(field.desc.as_deref().unwrap_or_default()),
+                );
+            }
+
+            writeln!(f, "{}", table)?;
         }
 
         if !self.see.is_empty() {
-            blocks.push(
-                child_table!("See: ~", self.see.iter().map(|s| [format!("|{}|", s)])).to_string(),
-            )
+            see!(f, self.see)?;
         }
 
-        let desc = self.desc.clone().unwrap_or_default();
-
-        let head = section!(self.name.as_str(), self.name.as_str(), &desc, blocks);
-
-        write!(f, "{}", head)
+        write!(f, "")
     }
 }

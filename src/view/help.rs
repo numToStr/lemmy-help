@@ -1,57 +1,51 @@
 #[macro_export]
-macro_rules! section {
-    ($name: expr, $tag: expr, $desc: expr, $data: expr) => {{
-        let mut rows = vec![];
-
-        let tag = format!("*{}*", $tag);
-
-        let to_indent = if $name.len() > 45 {
-            rows.push(["", &tag]);
-            rows.push([$name, ""]);
-            2
+macro_rules! header {
+    ($f:expr, $name:expr, $tag:expr) => {{
+        let len = $name.len();
+        if len > 40 || $tag.len() > 40 {
+            writeln!($f, "{:>80}", format!("*{}*", $tag))?;
+            writeln!($f, "{}", $name)
         } else {
-            rows.push([$name, &tag]);
-            1
-        };
+            writeln!(
+                $f,
+                "{}{}",
+                $name,
+                format_args!("{:>w$}", format!("*{}*", $tag), w = 80 - len)
+            )
+        }
+    }};
+    ($f:expr, $name:expr) => {
+        crate::header!($f, $name, $name)
+    };
+}
 
-        rows.push([$desc, ""]);
-        rows.push(["", ""]);
+#[macro_export]
+macro_rules! description {
+    ($f:expr, $desc:expr) => {
+        writeln!($f, "{}", textwrap::indent($desc, "    "))
+    };
+}
 
-        tabled::builder::Builder::from_iter(
-            rows.into_iter()
-                .chain($data.iter().map(|x| [x.as_str(), ""])),
-        )
-        .build()
-        .with(tabled::Style::blank())
-        .with(tabled::Modify::new(tabled::Full).with(tabled::Padding::new(0, 0, 0, 0)))
-        .with(
-            tabled::Modify::new(tabled::Cell(to_indent, 0)).with(tabled::Padding::new(4, 0, 0, 0)),
-        )
-        .with(tabled::Modify::new(tabled::Columns::new(1..=2)).with(tabled::Alignment::right()))
-        .with(tabled::Modify::new(tabled::Columns::new(..1)).with(tabled::Alignment::left()))
-        .with(tabled::Modify::new(tabled::Rows::new(1..)).with(tabled::Span::column(2)))
-        .with(tabled::MinWidth::new(80))
-        // .with(tabled::MaxWidth::wrapping(80))
+#[macro_export]
+macro_rules! usage {
+    ($f:expr, $code:expr) => {{
+        crate::description!($f, "Usage: ~")?;
+        writeln!($f, "{:>9}", ">")?;
+        writeln!($f, "{:>w$}", $code, w = 12 + $code.len())?;
+        writeln!($f, "{:>9}", "<")?;
+        writeln!($f)
     }};
 }
 
 #[macro_export]
-macro_rules! child_table {
-    ($title: expr, $data: expr) => {
-        tabled::builder::Builder::from_iter($data)
-            .build()
-            .with(tabled::Style::blank())
-            .with(tabled::Header($title))
-            .with(tabled::Footer(""))
-            .with(tabled::Margin::new(4, 0, 0, 0))
-            .with(
-                tabled::Modify::new(tabled::Columns::new(..1))
-                    .with(tabled::Padding::new(4, 0, 0, 0)),
-            )
-            .with(tabled::Modify::new(tabled::Cell(0, 0)).with(tabled::Padding::new(0, 0, 0, 0)))
-            .with(tabled::Modify::new(tabled::Full).with(tabled::Alignment::left()))
-        // .with(
-        //     tabled::Modify::new(tabled::Columns::new(2..)).with(tabled::MaxWidth::wrapping(42)),
-        // )
-    };
+macro_rules! see {
+    ($f:expr, $seee:expr) => {{
+        description!($f, "See: ~")?;
+
+        for s in &$seee {
+            writeln!($f, "        |{}|", s)?;
+        }
+
+        writeln!($f)
+    }};
 }

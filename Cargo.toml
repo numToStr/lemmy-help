@@ -27,8 +27,13 @@ required-features = ["cli"]
 [dependencies]
 chumsky = { version = "0.8.0", default-features = false }
 
-[dependencies.tabled]
-version = "0.6.1"
+[dependencies.textwrap]
+version = "0.15.0"
+default-features = false
+# optional = true
+
+[dependencies.tabular]
+version = "0.2.0"
 default-features = false
 # optional = true
 

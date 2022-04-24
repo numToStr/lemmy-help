@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{child_table, impl_parse, section, Name, Object, TagType};
+use crate::{impl_parse, see, usage, Name, Object, TagType};
 
 #[derive(Debug, Clone)]
 pub struct Func {
@@ -53,23 +53,9 @@ impl Func {
 
 impl Display for Func {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut blocks = Vec::with_capacity(3);
+        use crate::{description, header};
 
         let name = if !self.params.is_empty() {
-            blocks.push(
-                child_table!(
-                    "Parameters: ~",
-                    self.params.iter().map(|field| {
-                        [
-                            format!("{{{}}}", field.name),
-                            format!("({})", field.ty),
-                            field.desc.clone().unwrap_or_default(),
-                        ]
-                    })
-                )
-                .to_string(),
-            );
-
             let args = self
                 .params
                 .iter()
@@ -82,35 +68,53 @@ impl Display for Func {
             format!("{}()", self.name)
         };
 
+        let desc = self.desc.join("\n");
+
+        header!(f, name, self.tag.to_string())?;
+        description!(f, &desc)?;
+        writeln!(f)?;
+
+        if !self.params.is_empty() {
+            description!(f, "Parameters: ~")?;
+
+            let mut table = tabular::Table::new("        {:<}  {:<}  {:<}");
+
+            for param in &self.params {
+                table.add_row(
+                    tabular::Row::new()
+                        .with_cell(&format!("{{{}}}", param.name))
+                        .with_cell(&format!("({})", param.ty))
+                        .with_cell(param.desc.as_deref().unwrap_or_default()),
+                );
+            }
+
+            writeln!(f, "{}", table)?;
+        }
+
         if !self.returns.is_empty() {
-            blocks.push(
-                child_table!(
-                    "Returns: ~",
-                    self.returns.iter().map(|r| [
-                        format!("{{{}}}", r.ty),
-                        r.desc.clone().unwrap_or_else(|| r.name.clone())
-                    ])
-                )
-                .to_string(),
-            )
-        };
+            description!(f, "Returns: ~")?;
+
+            let mut table = tabular::Table::new("        {:<}  {:<}");
+
+            for entry in &self.returns {
+                table.add_row(
+                    tabular::Row::new()
+                        .with_cell(&format!("{{{}}}", entry.ty))
+                        .with_cell(entry.desc.as_deref().unwrap_or(&entry.name)),
+                );
+            }
+
+            writeln!(f, "{}", table)?;
+        }
 
         if !self.see.is_empty() {
-            blocks.push(
-                child_table!("See: ~", self.see.iter().map(|s| [format!("|{}|", s)])).to_string(),
-            )
+            see!(f, self.see)?;
         }
 
         if let Some(usage) = &self.usage {
-            blocks.push(
-                child_table!("Usage: ~", [[">"], [&format!("  {}", usage)], ["<"]]).to_string(),
-            )
+            usage!(f, usage)?;
         }
 
-        let desc = self.desc.join("\n");
-
-        let section = section!(&name, self.tag.to_string().as_str(), &desc, blocks);
-
-        write!(f, "{}", section)
+        write!(f, "")
     }
 }

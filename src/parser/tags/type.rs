@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{child_table, impl_parse, section, Name, TagType};
+use crate::{impl_parse, usage, Name, TagType};
 
 #[derive(Debug, Clone)]
 pub struct Type {
@@ -44,31 +44,28 @@ impl Type {
 
 impl Display for Type {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut blocks = Vec::with_capacity(2);
+        use crate::{description, header};
 
-        blocks.push(
-            child_table!(
-                "Type: ~",
-                [[
-                    format!("({})", self.ty).as_str(),
-                    self.desc.as_deref().unwrap_or_default()
-                ]]
-            )
-            .to_string(),
+        header!(f, self.name.to_string(), self.tag.to_string())?;
+        description!(f, &self.header.join("\n"))?;
+        writeln!(f)?;
+
+        description!(f, "Type:~")?;
+
+        let mut table = tabular::Table::new("        {:<}  {:<}");
+
+        table.add_row(
+            tabular::Row::new()
+                .with_cell(&format!("({})", self.ty))
+                .with_cell(self.desc.as_deref().unwrap_or_default()),
         );
 
+        writeln!(f, "{}", table)?;
+
         if let Some(usage) = &self.usage {
-            blocks.push(
-                child_table!("Usage: ~", [[">"], [&format!("  {}", usage)], ["<"]]).to_string(),
-            )
+            usage!(f, usage)?;
         }
 
-        let name = self.name.to_string();
-        let tag = self.tag.to_string();
-        let desc = self.header.join("\n");
-
-        let section = section!(&name, &tag, &desc, blocks).to_string();
-
-        f.write_str(&section)
+        write!(f, "")
     }
 }

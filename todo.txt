@@ -20,9 +20,9 @@
 [ ] also support string as an entry alongside path
 [x] long names
 [ ] Non-Standard tags (should not interfere with LSP)
-    [ ] ---@module <tag> <description>
-    [ ] ---@divider (-------)
-    [ ] ---@separator (=======)
+    [x] ---@module <tag> <description>
+            (override the tagged name prefix like *U.comment* -> *comment-comment*)
+    [x] ---@divider <char>
     [ ] ---@toc-entry & ---@toc-slot
-    [ ] ---@prefix (override the tagged name prefix like *U.comment* -> *comment-comment*)
+    [ ] ---@private
 [ ] Error handling

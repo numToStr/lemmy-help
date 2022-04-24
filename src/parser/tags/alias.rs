@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::select;
 
-use crate::{child_table, impl_parse, section, Object, TagType};
+use crate::{impl_parse, Object, TagType};
 
 #[derive(Debug, Clone)]
 pub struct Alias(Object);
@@ -13,17 +13,15 @@ impl_parse!(Alias, {
 
 impl Display for Alias {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use crate::{description, header};
+
         let a = &self.0;
 
-        let ty = child_table!("Type: ~", [[&a.ty]]);
-
-        let alias = section!(
-            a.name.as_str(),
-            a.name.as_str(),
-            a.desc.as_deref().unwrap_or_default(),
-            vec![ty.to_string()]
-        );
-
-        f.write_str(alias.to_string().as_str())
+        header!(f, a.name)?;
+        description!(f, a.desc.as_deref().unwrap_or_default())?;
+        writeln!(f)?;
+        description!(f, "Type:~")?;
+        writeln!(f, "{:>w$}", a.ty, w = 8 + a.ty.len())?;
+        writeln!(f)
     }
 }
