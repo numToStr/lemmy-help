@@ -71,21 +71,74 @@ NOTE: remember there is no formatting or text wrapping
 
 #### Module
 
-This tag can be used to add a heading for the module.
+This tag can be used to add a heading for the module and change the prefix of every exported _function and type_.
+
+> NOTE: This should be defined **at the top** of the file.
 
 ```lua
 ---@mod <name> [desc]
 ```
 
 ```lua
----@mod new.module With some description
+---@mod mod.Human Human module
+
+local H = {}
+
+---@class Human The Homosapien
+---@field legs number Total number of legs
+---@field hands number Total number of hands
+---@field brain boolean Does humans have brain?
+
+---Default traits of a human
+---@type Human
+H.DEFAULT = {
+    legs = 2,
+    hands = 2,
+    brain = false,
+}
+
+---Creates a Human
+---@return Human
+---@usage `require('Human'):create()`
+function H:create()
+    return setmetatable(self.DEFAULT, { __index = self })
+end
+
+return H
 ```
 
 - Output
 
 ```help
 ================================================================================
-With some description                                               *new.module*
+Human module                                                         *mod.Human*
+
+Human                                                                    *Human*
+    The Homosapien
+
+    Fields: ~
+        {number}   (legs)   Total number of legs
+        {number}   (hands)  Total number of hands
+        {boolean}  (brain)  Does humans have brain?
+
+
+U.DEFAULT                                                    *mod.Human.DEFAULT*
+    Default traits of a human
+
+    Type:~
+        (Human)
+
+
+U:create()                                                    *mod.Human:create*
+    Creates a Human
+
+    Returns: ~
+        {Human}
+
+    Usage: ~
+        >
+            require('Human'):create()
+        <
 ```
 
 #### Tag
@@ -205,7 +258,7 @@ U.sub({this}, {that})                                                    *U.sub*
 
     Usage: ~
         >
-          require("module.U").sub(10, 5)
+            require("module.U").sub(10, 5)
         <
 
 
@@ -280,7 +333,7 @@ H:create()                                                            *H:create*
 
     Usage: ~
         >
-          require('Human'):create()
+            require('Human'):create()
         <
 ```
 
@@ -371,4 +424,40 @@ U.get_all()                                                          *U.get_all*
 
     Returns: ~
         {Lines}
+```
+
+### Private
+
+You can use `---@private` tag to discard any part of the code that is exported but it is not considered to be a part of the public API
+
+> NOTE:
+
+```lua
+local U = {}
+
+---@private
+---This is a private function which is exported
+---But not considered as part of the API
+function U.private()
+    print('I am private!')
+end
+
+---Only this will be documented
+function U.ok()
+    print('Ok! I am exported')
+end
+
+---@private
+function U.no_emmy()
+    print('Private func with no emmylua!')
+end
+
+return U
+```
+
+- Output
+
+```help
+U.ok()                                                                    *U.ok*
+    Only this will be documented
 ```

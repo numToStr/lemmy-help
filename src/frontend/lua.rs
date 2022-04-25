@@ -25,8 +25,10 @@ impl Lua {
 
         let local = keyword("local").padded();
 
+        let triple = just("---");
+
         let node = choice((
-            just("---")
+            triple
                 .then(filter(|c| *c != '\n').repeated().collect::<String>())
                 .map(|(s, x)| format!("{s}{x}")),
             local.ignore_then(choice((
@@ -53,9 +55,27 @@ impl Lua {
         ))
         .map(Some);
 
+        let private = triple
+            .then_ignore(just("@private"))
+            .then_ignore(
+                choice((
+                    // eat up all the emmylua, if any, then one valid token
+                    triple
+                        .then(take_until(newline().or(end())))
+                        .repeated()
+                        .ignore_then(ident()),
+                    // if there is no emmylua, just eat the next token
+                    // so the next parser won't recognize the code
+                    ident(),
+                ))
+                .padded(),
+            )
+            .to(None);
+
         let misc = take_until(newline()).to(None);
 
-        choice((node.padded(), misc))
+        choice((private, node, misc))
+            .padded()
             .repeated()
             .flatten()
             .parse(src)
