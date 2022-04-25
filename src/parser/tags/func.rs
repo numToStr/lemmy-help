@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{impl_parse, see, usage, Name, TagType};
+use crate::{impl_parse, see, usage, Prefix, Scope, TagType};
 
 #[derive(Debug, Clone)]
 pub struct Param {
@@ -20,9 +20,9 @@ pub struct Return {
 
 #[derive(Debug, Clone)]
 pub struct Func {
-    pub tag: Name,
-    pub name: Name,
-    pub scope: String,
+    pub name: String,
+    pub scope: Scope,
+    pub prefix: Prefix,
     pub desc: Vec<String>,
     pub params: Vec<Param>,
     pub returns: Vec<Return>,
@@ -40,12 +40,15 @@ impl_parse!(Func, {
     .then(select! { TagType::Return { ty, name, desc } => Return { ty, name, desc } }.repeated())
     .then(select! { TagType::See(x) => x }.repeated())
     .then(select! { TagType::Usage(x) => x }.or_not())
-    .then(select! { TagType::Func(n, s) => (n, s) })
+    .then(select! { TagType::Func { prefix, name, scope, .. } => (name, scope, prefix.unwrap_or_default()) })
     .map(
-        |(((((desc, params), returns), see), usage), (name, scope))| Self {
-            tag: name.clone(),
+        |(((((desc, params), returns), see), usage), (name, scope, prefix))| Self {
             name,
             scope,
+            prefix: Prefix {
+                left: prefix.clone(),
+                right: prefix,
+            },
             desc,
             params,
             returns,
@@ -56,12 +59,12 @@ impl_parse!(Func, {
 });
 
 impl Func {
-    pub fn rename_tag(mut self, tag: String) -> Self {
-        if let Name::Member(_, field, kind) = self.tag {
-            self.tag = Name::Member(tag, field, kind)
-        };
+    pub fn rename_tag(&mut self, tag: String) {
+        self.prefix.right = tag;
+    }
 
-        self
+    pub fn is_public(&self, export: &str) -> bool {
+        self.scope != Scope::Local && self.prefix.left == export
     }
 }
 
@@ -82,10 +85,13 @@ impl Display for Func {
             format!("{}()", self.name)
         };
 
-        let desc = self.desc.join("\n");
+        header!(
+            f,
+            format!("{}{}{name}", self.prefix.left, self.scope),
+            format!("{}{}{}", self.prefix.right, self.scope, self.name)
+        )?;
 
-        header!(f, name, self.tag.to_string())?;
-        description!(f, &desc)?;
+        description!(f, &self.desc.join("\n"))?;
         writeln!(f)?;
 
         if !self.params.is_empty() {

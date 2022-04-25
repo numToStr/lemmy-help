@@ -1,3 +1,6 @@
+mod common;
+pub use common::*;
+
 mod emmy;
 pub use emmy::*;
 
@@ -135,20 +138,18 @@ impl LemmyHelp {
             for ele in nodes {
                 match ele {
                     Node::Export(..) => {}
-                    Node::Func(func) => {
-                        if let Name::Member(member, ..) = &func.name {
-                            if *member == export {
-                                self.nodes
-                                    .push(Node::Func(func.rename_tag(module.to_string())));
-                            }
+                    Node::Func(mut func) => {
+                        if func.is_public(&export) {
+                            func.rename_tag(module.to_owned());
+
+                            self.nodes.push(Node::Func(func));
                         }
                     }
-                    Node::Type(typ) => {
-                        if let Name::Member(member, ..) = &typ.name {
-                            if *member == export {
-                                self.nodes
-                                    .push(Node::Type(typ.rename_tag(module.to_string())));
-                            }
+                    Node::Type(mut typ) => {
+                        if typ.is_public(&export) {
+                            typ.rename_tag(module.to_owned());
+
+                            self.nodes.push(Node::Type(typ));
                         }
                     }
                     _ => self.nodes.push(ele),
