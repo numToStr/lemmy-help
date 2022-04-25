@@ -59,21 +59,22 @@ pub enum TagType {
         desc: Option<String>,
     },
     Class(String, Option<String>),
-    Field(Object),
-    Alias(Object),
+    Field {
+        name: String,
+        ty: String,
+        desc: Option<String>,
+    },
+    Alias {
+        name: String,
+        ty: String,
+        desc: Option<String>,
+    },
     Type(String, Option<String>),
     Tag(String),
     See(String),
     Usage(String),
-    Empty,
     Comment(String),
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Object {
-    pub ty: String,
-    pub name: String,
-    pub desc: Option<String>,
+    Empty,
 }
 
 type Spanned = (TagType, Range<usize>);
@@ -152,15 +153,15 @@ impl Emmy {
                     .then(desc.clone())
                     .map(|(name, desc)| TagType::Class(name, desc)),
                 just("field")
-                    .ignore_then(ty)
-                    .then(name)
+                    .ignore_then(name)
+                    .then(ty)
                     .then(desc.clone())
-                    .map(|((ty, name), desc)| TagType::Field(Object { ty, name, desc })),
+                    .map(|((ty, name), desc)| TagType::Field { name, ty, desc }),
                 just("alias")
                     .ignore_then(name)
                     .then(ty)
                     .then(desc.clone())
-                    .map(|((name, ty), desc)| TagType::Alias(Object { ty, name, desc })),
+                    .map(|((name, ty), desc)| TagType::Alias { ty, name, desc }),
                 just("type")
                     .ignore_then(name)
                     .then(desc)

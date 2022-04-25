@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{impl_parse, see, Object, TagType};
+use crate::{impl_parse, see, TagType};
 
 /// **Grammar**
 ///
@@ -29,13 +29,20 @@ use crate::{impl_parse, see, Object, TagType};
 pub struct Class {
     pub name: String,
     pub desc: Option<String>,
-    pub fields: Vec<Object>,
+    pub fields: Vec<Field>,
     pub see: Vec<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct Field {
+    pub name: String,
+    pub ty: String,
+    pub desc: Option<String>,
 }
 
 impl_parse!(Class, {
     select! { TagType::Class(name, desc) => (name, desc) }
-        .then(select! { TagType::Field(x) => x }.repeated())
+        .then(select! { TagType::Field { name, ty, desc } => Field { name, ty, desc } }.repeated())
         .then(select! { TagType::See(x) => x }.repeated())
         .map(|(((name, desc), fields), see)| Self {
             name,
