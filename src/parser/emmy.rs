@@ -38,7 +38,7 @@ impl Display for Name {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TagType {
-    Module(String, Option<String>),
+    Module { name: String, desc: Option<String> },
     Divider(char),
     Func(Name, String),
     Expr(Name, String),
@@ -101,7 +101,7 @@ impl Emmy {
                 just("mod")
                     .ignore_then(ty)
                     .then(desc.clone())
-                    .map(|(tag, desc)| TagType::Module(tag, desc)),
+                    .map(|(tag, desc)| TagType::Module { name: tag, desc }),
                 just("divider")
                     .ignore_then(any().padded())
                     .map(TagType::Divider),

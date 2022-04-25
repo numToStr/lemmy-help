@@ -12,7 +12,6 @@ impl Lua {
         Ok(Self::lex(src)?.join("\n"))
     }
 
-    // TODO: support ignoring via `---@private`
     pub fn lex(src: &str) -> Result<Vec<String>, Vec<Simple<char>>> {
         let dotted = ident()
             .then(just('.').or(just(':')))
