@@ -2,12 +2,19 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{impl_parse, see, usage, Name, Object, TagType};
+use crate::{impl_parse, see, usage, Name, TagType};
 
 #[derive(Debug, Clone)]
 pub struct Param {
     name: String,
     ty: String,
+    desc: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct Return {
+    ty: String,
+    name: Option<String>,
     desc: Option<String>,
 }
 
@@ -18,7 +25,7 @@ pub struct Func {
     pub scope: String,
     pub desc: Vec<String>,
     pub params: Vec<Param>,
-    pub returns: Vec<Object>,
+    pub returns: Vec<Return>,
     pub see: Vec<String>,
     pub usage: Option<String>,
 }
@@ -30,7 +37,7 @@ impl_parse!(Func, {
     }
     .repeated()
     .then(select! { TagType::Param { name, ty, desc } => Param { name, ty, desc } }.repeated())
-    .then(select! { TagType::Return(x) => x }.repeated())
+    .then(select! { TagType::Return { ty, name, desc } => Return { ty, name, desc } }.repeated())
     .then(select! { TagType::See(x) => x }.repeated())
     .then(select! { TagType::Usage(x) => x }.or_not())
     .then(select! { TagType::Func(n, s) => (n, s) })
@@ -107,7 +114,12 @@ impl Display for Func {
                 table.add_row(
                     tabular::Row::new()
                         .with_cell(&format!("{{{}}}", entry.ty))
-                        .with_cell(entry.desc.as_deref().unwrap_or(&entry.name)),
+                        .with_cell(
+                            entry
+                                .desc
+                                .as_deref()
+                                .unwrap_or_else(|| entry.name.as_deref().unwrap_or_default()),
+                        ),
                 );
             }
 

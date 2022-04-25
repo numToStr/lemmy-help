@@ -53,7 +53,11 @@ pub enum TagType {
         ty: String,
         desc: Option<String>,
     },
-    Return(Object),
+    Return {
+        ty: String,
+        name: Option<String>,
+        desc: Option<String>,
+    },
     Class(String, Option<String>),
     Field(Object),
     Alias(Object),
@@ -142,13 +146,7 @@ impl Emmy {
                     .ignore_then(ty)
                     .then(name.or_not())
                     .then(desc.clone())
-                    .map(|((ty, name), desc)| {
-                        TagType::Return(Object {
-                            ty,
-                            name: name.unwrap_or_default(),
-                            desc,
-                        })
-                    }),
+                    .map(|((ty, name), desc)| TagType::Return { ty, name, desc }),
                 just("class")
                     .ignore_then(name)
                     .then(desc.clone())
