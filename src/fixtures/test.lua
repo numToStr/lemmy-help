@@ -110,4 +110,16 @@ function U.get_all()
     return vim.api.nvim_buf_get_lines(0, 0, -1, false)
 end
 
+---@private
+---This is a private function which is exported
+---But not considered as part of the API
+function U.private()
+    print('I am private!')
+end
+
+---@private
+function U.no_emmy()
+    print('Private func with no emmylua!')
+end
+
 return U
