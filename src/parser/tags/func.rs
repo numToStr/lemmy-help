@@ -5,12 +5,19 @@ use chumsky::{select, Parser};
 use crate::{impl_parse, see, usage, Name, Object, TagType};
 
 #[derive(Debug, Clone)]
+pub struct Param {
+    name: String,
+    ty: String,
+    desc: Option<String>,
+}
+
+#[derive(Debug, Clone)]
 pub struct Func {
     pub tag: Name,
     pub name: Name,
     pub scope: String,
     pub desc: Vec<String>,
-    pub params: Vec<Object>,
+    pub params: Vec<Param>,
     pub returns: Vec<Object>,
     pub see: Vec<String>,
     pub usage: Option<String>,
@@ -22,7 +29,7 @@ impl_parse!(Func, {
         TagType::Empty => "\n".to_string()
     }
     .repeated()
-    .then(select! { TagType::Param(x) => x }.repeated())
+    .then(select! { TagType::Param { name, ty, desc } => Param { name, ty, desc } }.repeated())
     .then(select! { TagType::Return(x) => x }.repeated())
     .then(select! { TagType::See(x) => x }.repeated())
     .then(select! { TagType::Usage(x) => x }.or_not())

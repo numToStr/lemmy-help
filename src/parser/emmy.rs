@@ -38,14 +38,21 @@ impl Display for Name {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TagType {
-    Module { name: String, desc: Option<String> },
+    Module {
+        name: String,
+        desc: Option<String>,
+    },
     Divider(char),
     Func(Name, String),
     Expr(Name, String),
     Export(String),
     BriefStart,
     BriefEnd,
-    Param(Object),
+    Param {
+        name: String,
+        ty: String,
+        desc: Option<String>,
+    },
     Return(Object),
     Class(String, Option<String>),
     Field(Object),
@@ -130,7 +137,7 @@ impl Emmy {
                     .ignore_then(ty) // I am using `ty` here because param can have `?`
                     .then(ty)
                     .then(desc.clone())
-                    .map(|((name, ty), desc)| TagType::Param(Object { ty, name, desc })),
+                    .map(|((name, ty), desc)| TagType::Param { name, ty, desc }),
                 just("return")
                     .ignore_then(ty)
                     .then(name.or_not())
