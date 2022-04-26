@@ -27,17 +27,6 @@ macro_rules! description {
 }
 
 #[macro_export]
-macro_rules! usage {
-    ($f:expr, $code:expr) => {{
-        crate::description!($f, "Usage: ~")?;
-        writeln!($f, "{:>9}", ">")?;
-        writeln!($f, "{:>w$}", $code, w = 12 + $code.len())?;
-        writeln!($f, "{:>9}", "<")?;
-        writeln!($f)
-    }};
-}
-
-#[macro_export]
 macro_rules! see {
     ($f:expr, $seee:expr) => {{
         description!($f, "See: ~")?;

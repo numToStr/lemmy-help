@@ -2,20 +2,20 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{impl_parse, see, usage, Prefix, Scope, TagType};
+use crate::{impl_parse, see, Prefix, Scope, TagType, Usage};
 
 #[derive(Debug, Clone)]
 pub struct Param {
-    name: String,
-    ty: String,
-    desc: Option<String>,
+    pub name: String,
+    pub ty: String,
+    pub desc: Option<String>,
 }
 
 #[derive(Debug, Clone)]
 pub struct Return {
-    ty: String,
-    name: Option<String>,
-    desc: Option<String>,
+    pub ty: String,
+    pub name: Option<String>,
+    pub desc: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -27,7 +27,7 @@ pub struct Func {
     pub params: Vec<Param>,
     pub returns: Vec<Return>,
     pub see: Vec<String>,
-    pub usage: Option<String>,
+    pub usage: Option<Usage>,
 }
 
 impl_parse!(Func, {
@@ -39,10 +39,10 @@ impl_parse!(Func, {
     .then(select! { TagType::Param { name, ty, desc } => Param { name, ty, desc } }.repeated())
     .then(select! { TagType::Return { ty, name, desc } => Return { ty, name, desc } }.repeated())
     .then(select! { TagType::See(x) => x }.repeated())
-    .then(select! { TagType::Usage(x) => x }.or_not())
-    .then(select! { TagType::Func { prefix, name, scope, .. } => (name, scope, prefix.unwrap_or_default()) })
+    .then(select! { TagType::Usage(code) => Usage { code } }.or_not())
+    .then(select! { TagType::Func { prefix, name, scope } => (prefix, name, scope) })
     .map(
-        |(((((desc, params), returns), see), usage), (name, scope, prefix))| Self {
+        |(((((desc, params), returns), see), usage), (prefix, name, scope))| Self {
             name,
             scope,
             prefix: Prefix {
@@ -60,11 +60,11 @@ impl_parse!(Func, {
 
 impl Func {
     pub fn rename_tag(&mut self, tag: String) {
-        self.prefix.right = tag;
+        self.prefix.right = Some(tag);
     }
 
     pub fn is_public(&self, export: &str) -> bool {
-        self.scope != Scope::Local && self.prefix.left == export
+        self.scope != Scope::Local && self.prefix.left.as_deref() == Some(export)
     }
 }
 
@@ -87,8 +87,17 @@ impl Display for Func {
 
         header!(
             f,
-            format!("{}{}{name}", self.prefix.left, self.scope),
-            format!("{}{}{}", self.prefix.right, self.scope, self.name)
+            format!(
+                "{}{}{name}",
+                self.prefix.left.as_deref().unwrap_or_default(),
+                self.scope
+            ),
+            format!(
+                "{}{}{}",
+                self.prefix.right.as_deref().unwrap_or_default(),
+                self.scope,
+                self.name
+            )
         )?;
 
         description!(f, &self.desc.join("\n"))?;
@@ -137,7 +146,7 @@ impl Display for Func {
         }
 
         if let Some(usage) = &self.usage {
-            usage!(f, usage)?;
+            writeln!(f, "{usage}")?;
         }
 
         write!(f, "")

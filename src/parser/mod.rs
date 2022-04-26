@@ -126,13 +126,13 @@ impl LemmyHelp {
 
     /// Prepare nodes for help doc generation
     pub fn for_help(&mut self, src: &str) -> Result<&Self, Vec<Simple<TagType>>> {
-        let nodes = Self::lex(src)?;
+        let mut nodes = Self::lex(src)?;
 
-        if let Some(Node::Export(export)) = nodes.last().cloned() {
+        if let Some(Node::Export(export)) = nodes.pop() {
             let module = if let Some(Node::Module(Module { name, .. })) = nodes.first().cloned() {
                 name
             } else {
-                export.clone()
+                export.to_owned()
             };
 
             for ele in nodes {

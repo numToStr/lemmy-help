@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{impl_parse, usage, Prefix, Scope, TagType};
+use crate::{impl_parse, Prefix, Scope, TagType, Usage};
 
 #[derive(Debug, Clone)]
 pub struct Type {
@@ -12,33 +12,38 @@ pub struct Type {
     pub scope: Scope,
     pub ty: String,
     pub desc: Option<String>,
-    pub usage: Option<String>,
+    pub usage: Option<Usage>,
 }
 
 impl_parse!(Type, {
     select! { TagType::Comment(x) => x }
         .repeated()
         .then(select! { TagType::Type(ty, desc) => (ty, desc) })
-        .then(select! { TagType::Usage(x) => x }.or_not())
-        .then(select! { TagType::Expr { prefix, name, scope } => (prefix.unwrap_or_default(), name, scope) })
-        .map(|(((header, (ty, desc)), usage), (prefix, name, scope))| Self {
-            header,
-            prefix: Prefix { left: prefix.clone(), right: prefix },
-            name,
-            scope,
-            ty,
-            desc,
-            usage,
-        })
+        .then(select! { TagType::Usage(code) => Usage { code } }.or_not())
+        .then(select! { TagType::Expr { prefix, name, scope } => (prefix, name, scope) })
+        .map(
+            |(((header, (ty, desc)), usage), (prefix, name, scope))| Self {
+                header,
+                prefix: Prefix {
+                    left: prefix.clone(),
+                    right: prefix,
+                },
+                name,
+                scope,
+                ty,
+                desc,
+                usage,
+            },
+        )
 });
 
 impl Type {
     pub fn rename_tag(&mut self, tag: String) {
-        self.prefix.right = tag;
+        self.prefix.right = Some(tag);
     }
 
     pub fn is_public(&self, export: &str) -> bool {
-        self.scope != Scope::Local && self.prefix.left == export
+        self.scope != Scope::Local && self.prefix.left.as_deref() == Some(export)
     }
 }
 
@@ -48,8 +53,18 @@ impl Display for Type {
 
         header!(
             f,
-            format!("{}{}{}", self.prefix.left, self.scope, self.name),
-            format!("{}{}{}", self.prefix.right, self.scope, self.name)
+            format!(
+                "{}{}{}",
+                self.prefix.left.as_deref().unwrap_or_default(),
+                self.scope,
+                self.name
+            ),
+            format!(
+                "{}{}{}",
+                self.prefix.right.as_deref().unwrap_or_default(),
+                self.scope,
+                self.name
+            )
         )?;
 
         description!(f, &self.header.join("\n"))?;
@@ -68,7 +83,7 @@ impl Display for Type {
         writeln!(f, "{}", table)?;
 
         if let Some(usage) = &self.usage {
-            usage!(f, usage)?;
+            writeln!(f, "{usage}")?;
         }
 
         write!(f, "")
