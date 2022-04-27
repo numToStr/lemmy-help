@@ -25,16 +25,3 @@ macro_rules! description {
         writeln!($f, "{}", textwrap::indent($desc, "    "))
     };
 }
-
-#[macro_export]
-macro_rules! see {
-    ($f:expr, $seee:expr) => {{
-        description!($f, "See: ~")?;
-
-        for s in &$seee {
-            writeln!($f, "        |{}|", s)?;
-        }
-
-        writeln!($f)
-    }};
-}

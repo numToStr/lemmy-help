@@ -83,7 +83,7 @@ impl Emmy {
             ident()
                 .then(just('.').to(Scope::Dot).or(just(':').to(Scope::Colon)))
                 .then(ident())
-                .map(|((prefix, kind), name)| (Some(prefix), kind, name)),
+                .map(|((prefix, scope), name)| (Some(prefix), scope, name)),
             ident().map(|name| (None, Scope::Local, name)),
         ))
         .padded();
@@ -93,7 +93,7 @@ impl Emmy {
                 just("mod")
                     .ignore_then(ty)
                     .then(desc.clone())
-                    .map(|(tag, desc)| TagType::Module { name: tag, desc }),
+                    .map(|(name, desc)| TagType::Module { name, desc }),
                 just("divider")
                     .ignore_then(any().padded())
                     .map(TagType::Divider),

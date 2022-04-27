@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{impl_parse, see, Prefix, Scope, TagType, Usage};
+use crate::{impl_parse, Prefix, Scope, See, TagType, Usage};
 
 #[derive(Debug, Clone)]
 pub struct Param {
@@ -26,7 +26,7 @@ pub struct Func {
     pub desc: Vec<String>,
     pub params: Vec<Param>,
     pub returns: Vec<Return>,
-    pub see: Vec<String>,
+    pub see: See,
     pub usage: Option<Usage>,
 }
 
@@ -38,8 +38,8 @@ impl_parse!(Func, {
     .repeated()
     .then(select! { TagType::Param { name, ty, desc } => Param { name, ty, desc } }.repeated())
     .then(select! { TagType::Return { ty, name, desc } => Return { ty, name, desc } }.repeated())
-    .then(select! { TagType::See(x) => x }.repeated())
-    .then(select! { TagType::Usage(code) => Usage { code } }.or_not())
+    .then(See::parse())
+    .then(Usage::parse().or_not())
     .then(select! { TagType::Func { prefix, name, scope } => (prefix, name, scope) })
     .map(
         |(((((desc, params), returns), see), usage), (prefix, name, scope))| Self {
@@ -141,8 +141,8 @@ impl Display for Func {
             writeln!(f, "{}", table)?;
         }
 
-        if !self.see.is_empty() {
-            see!(f, self.see)?;
+        if !self.see.refs.is_empty() {
+            writeln!(f, "{}", self.see)?;
         }
 
         if let Some(usage) = &self.usage {

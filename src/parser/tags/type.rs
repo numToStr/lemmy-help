@@ -19,7 +19,7 @@ impl_parse!(Type, {
     select! { TagType::Comment(x) => x }
         .repeated()
         .then(select! { TagType::Type(ty, desc) => (ty, desc) })
-        .then(select! { TagType::Usage(code) => Usage { code } }.or_not())
+        .then(Usage::parse().or_not())
         .then(select! { TagType::Expr { prefix, name, scope } => (prefix, name, scope) })
         .map(
             |(((header, (ty, desc)), usage), (prefix, name, scope))| Self {
