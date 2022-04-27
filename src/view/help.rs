@@ -25,27 +25,3 @@ macro_rules! description {
         writeln!($f, "{}", textwrap::indent($desc, "    "))
     };
 }
-
-#[macro_export]
-macro_rules! usage {
-    ($f:expr, $code:expr) => {{
-        crate::description!($f, "Usage: ~")?;
-        writeln!($f, "{:>9}", ">")?;
-        writeln!($f, "{:>w$}", $code, w = 12 + $code.len())?;
-        writeln!($f, "{:>9}", "<")?;
-        writeln!($f)
-    }};
-}
-
-#[macro_export]
-macro_rules! see {
-    ($f:expr, $seee:expr) => {{
-        description!($f, "See: ~")?;
-
-        for s in &$seee {
-            writeln!($f, "        |{}|", s)?;
-        }
-
-        writeln!($f)
-    }};
-}

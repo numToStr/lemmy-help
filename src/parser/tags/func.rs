@@ -2,18 +2,32 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{impl_parse, see, usage, Name, Object, TagType};
+use crate::{impl_parse, Prefix, Scope, See, TagType, Usage};
+
+#[derive(Debug, Clone)]
+pub struct Param {
+    pub name: String,
+    pub ty: String,
+    pub desc: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct Return {
+    pub ty: String,
+    pub name: Option<String>,
+    pub desc: Option<String>,
+}
 
 #[derive(Debug, Clone)]
 pub struct Func {
-    pub tag: Name,
-    pub name: Name,
-    pub scope: String,
+    pub name: String,
+    pub scope: Scope,
+    pub prefix: Prefix,
     pub desc: Vec<String>,
-    pub params: Vec<Object>,
-    pub returns: Vec<Object>,
-    pub see: Vec<String>,
-    pub usage: Option<String>,
+    pub params: Vec<Param>,
+    pub returns: Vec<Return>,
+    pub see: See,
+    pub usage: Option<Usage>,
 }
 
 impl_parse!(Func, {
@@ -22,16 +36,19 @@ impl_parse!(Func, {
         TagType::Empty => "\n".to_string()
     }
     .repeated()
-    .then(select! { TagType::Param(x) => x }.repeated())
-    .then(select! { TagType::Return(x) => x }.repeated())
-    .then(select! { TagType::See(x) => x }.repeated())
-    .then(select! { TagType::Usage(x) => x }.or_not())
-    .then(select! { TagType::Func(n, s) => (n, s) })
+    .then(select! { TagType::Param { name, ty, desc } => Param { name, ty, desc } }.repeated())
+    .then(select! { TagType::Return { ty, name, desc } => Return { ty, name, desc } }.repeated())
+    .then(See::parse())
+    .then(Usage::parse().or_not())
+    .then(select! { TagType::Func { prefix, name, scope } => (prefix, name, scope) })
     .map(
-        |(((((desc, params), returns), see), usage), (name, scope))| Self {
-            tag: name.clone(),
+        |(((((desc, params), returns), see), usage), (prefix, name, scope))| Self {
             name,
             scope,
+            prefix: Prefix {
+                left: prefix.clone(),
+                right: prefix,
+            },
             desc,
             params,
             returns,
@@ -42,12 +59,12 @@ impl_parse!(Func, {
 });
 
 impl Func {
-    pub fn rename_tag(mut self, tag: String) -> Self {
-        if let Name::Member(_, field, kind) = self.tag {
-            self.tag = Name::Member(tag, field, kind)
-        };
+    pub fn rename_tag(&mut self, tag: String) {
+        self.prefix.right = Some(tag);
+    }
 
-        self
+    pub fn is_public(&self, export: &str) -> bool {
+        self.scope != Scope::Local && self.prefix.left.as_deref() == Some(export)
     }
 }
 
@@ -68,10 +85,22 @@ impl Display for Func {
             format!("{}()", self.name)
         };
 
-        let desc = self.desc.join("\n");
+        header!(
+            f,
+            format!(
+                "{}{}{name}",
+                self.prefix.left.as_deref().unwrap_or_default(),
+                self.scope
+            ),
+            format!(
+                "{}{}{}",
+                self.prefix.right.as_deref().unwrap_or_default(),
+                self.scope,
+                self.name
+            )
+        )?;
 
-        header!(f, name, self.tag.to_string())?;
-        description!(f, &desc)?;
+        description!(f, &self.desc.join("\n"))?;
         writeln!(f)?;
 
         if !self.params.is_empty() {
@@ -100,19 +129,24 @@ impl Display for Func {
                 table.add_row(
                     tabular::Row::new()
                         .with_cell(&format!("{{{}}}", entry.ty))
-                        .with_cell(entry.desc.as_deref().unwrap_or(&entry.name)),
+                        .with_cell(
+                            entry
+                                .desc
+                                .as_deref()
+                                .unwrap_or_else(|| entry.name.as_deref().unwrap_or_default()),
+                        ),
                 );
             }
 
             writeln!(f, "{}", table)?;
         }
 
-        if !self.see.is_empty() {
-            see!(f, self.see)?;
+        if !self.see.refs.is_empty() {
+            writeln!(f, "{}", self.see)?;
         }
 
         if let Some(usage) = &self.usage {
-            usage!(f, usage)?;
+            writeln!(f, "{usage}")?;
         }
 
         write!(f, "")

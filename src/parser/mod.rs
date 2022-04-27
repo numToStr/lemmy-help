@@ -1,3 +1,6 @@
+mod common;
+pub use common::*;
+
 mod emmy;
 pub use emmy::*;
 
@@ -123,32 +126,30 @@ impl LemmyHelp {
 
     /// Prepare nodes for help doc generation
     pub fn for_help(&mut self, src: &str) -> Result<&Self, Vec<Simple<TagType>>> {
-        let nodes = Self::lex(src)?;
+        let mut nodes = Self::lex(src)?;
 
-        if let Some(Node::Export(export)) = nodes.last().cloned() {
+        if let Some(Node::Export(export)) = nodes.pop() {
             let module = if let Some(Node::Module(Module { name, .. })) = nodes.first().cloned() {
                 name
             } else {
-                export.clone()
+                export.to_owned()
             };
 
             for ele in nodes {
                 match ele {
                     Node::Export(..) => {}
-                    Node::Func(func) => {
-                        if let Name::Member(member, ..) = &func.name {
-                            if *member == export {
-                                self.nodes
-                                    .push(Node::Func(func.rename_tag(module.to_string())));
-                            }
+                    Node::Func(mut func) => {
+                        if func.is_public(&export) {
+                            func.rename_tag(module.to_owned());
+
+                            self.nodes.push(Node::Func(func));
                         }
                     }
-                    Node::Type(typ) => {
-                        if let Name::Member(member, ..) = &typ.name {
-                            if *member == export {
-                                self.nodes
-                                    .push(Node::Type(typ.rename_tag(module.to_string())));
-                            }
+                    Node::Type(mut typ) => {
+                        if typ.is_public(&export) {
+                            typ.rename_tag(module.to_owned());
+
+                            self.nodes.push(Node::Type(typ));
                         }
                     }
                     _ => self.nodes.push(ele),

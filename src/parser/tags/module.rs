@@ -11,14 +11,14 @@ pub struct Module {
 }
 
 impl_parse!(Module, {
-    select! { TagType::Module(name, desc) => Self { name, desc } }
+    select! { TagType::Module { name, desc } => Self { name, desc } }
 });
 
 impl Display for Module {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let desc = self.desc.as_deref().unwrap_or_default();
 
-        writeln!(f, "{:=>80}", "")?;
+        writeln!(f, "{}", "=".repeat(80))?;
         writeln!(
             f,
             "{}{}",

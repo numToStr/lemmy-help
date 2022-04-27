@@ -1,4 +1,4 @@
-use std::{fmt::Display, ops::Range};
+use std::ops::Range;
 
 use chumsky::{
     prelude::{any, choice, end, filter, just, take_until, Simple},
@@ -6,63 +6,55 @@ use chumsky::{
     Parser,
 };
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Kind {
-    Dot,
-    Colon,
-}
-
-impl Display for Kind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Dot => f.write_str("."),
-            Self::Colon => f.write_str(":"),
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Name {
-    Id(String),
-    Member(String, String, Kind),
-}
-
-impl Display for Name {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Id(id) => f.write_str(id),
-            Self::Member(member, field, kind) => write!(f, "{member}{kind}{field}"),
-        }
-    }
-}
+use crate::Scope;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TagType {
-    Module(String, Option<String>),
+    Module {
+        name: String,
+        desc: Option<String>,
+    },
     Divider(char),
-    Func(Name, String),
-    Expr(Name, String),
+    Func {
+        prefix: Option<String>,
+        name: String,
+        scope: Scope,
+    },
+    Expr {
+        prefix: Option<String>,
+        name: String,
+        scope: Scope,
+    },
     Export(String),
     BriefStart,
     BriefEnd,
-    Param(Object),
-    Return(Object),
+    Param {
+        name: String,
+        ty: String,
+        desc: Option<String>,
+    },
+    Return {
+        ty: String,
+        name: Option<String>,
+        desc: Option<String>,
+    },
     Class(String, Option<String>),
-    Field(Object),
-    Alias(Object),
+    Field {
+        name: String,
+        ty: String,
+        desc: Option<String>,
+    },
+    Alias {
+        name: String,
+        ty: String,
+        desc: Option<String>,
+    },
     Type(String, Option<String>),
     Tag(String),
     See(String),
     Usage(String),
-    Empty,
     Comment(String),
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Object {
-    pub ty: String,
-    pub name: String,
-    pub desc: Option<String>,
+    Empty,
 }
 
 type Spanned = (TagType, Range<usize>);
@@ -89,10 +81,10 @@ impl Emmy {
 
         let dotted = choice((
             ident()
-                .then(just('.').to(Kind::Dot).or(just(':').to(Kind::Colon)))
+                .then(just('.').to(Scope::Dot).or(just(':').to(Scope::Colon)))
                 .then(ident())
-                .map(|((m, k), f)| Name::Member(m, f, k)),
-            ident().map(Name::Id),
+                .map(|((prefix, scope), name)| (Some(prefix), scope, name)),
+            ident().map(|name| (None, Scope::Local, name)),
         ))
         .padded();
 
@@ -101,7 +93,7 @@ impl Emmy {
                 just("mod")
                     .ignore_then(ty)
                     .then(desc.clone())
-                    .map(|(tag, desc)| TagType::Module(tag, desc)),
+                    .map(|(name, desc)| TagType::Module { name, desc }),
                 just("divider")
                     .ignore_then(any().padded())
                     .map(TagType::Divider),
@@ -109,12 +101,20 @@ impl Emmy {
                     .ignore_then(dotted.clone())
                     .then(comment.clone())
                     .padded()
-                    .map(|(name, scope)| TagType::Func(name, scope)),
+                    .map(|((prefix, scope, name), _)| TagType::Func {
+                        prefix,
+                        name,
+                        scope,
+                    }),
                 just("expr")
                     .ignore_then(dotted)
                     .then(comment.clone())
                     .padded()
-                    .map(|(name, scope)| TagType::Expr(name, scope)),
+                    .map(|((prefix, scope, name), _)| TagType::Expr {
+                        prefix,
+                        name,
+                        scope,
+                    }),
                 just("export")
                     .ignore_then(ident().padded())
                     .then_ignore(end())
@@ -130,32 +130,26 @@ impl Emmy {
                     .ignore_then(ty) // I am using `ty` here because param can have `?`
                     .then(ty)
                     .then(desc.clone())
-                    .map(|((name, ty), desc)| TagType::Param(Object { ty, name, desc })),
+                    .map(|((name, ty), desc)| TagType::Param { name, ty, desc }),
                 just("return")
                     .ignore_then(ty)
                     .then(name.or_not())
                     .then(desc.clone())
-                    .map(|((ty, name), desc)| {
-                        TagType::Return(Object {
-                            ty,
-                            name: name.unwrap_or_default(),
-                            desc,
-                        })
-                    }),
+                    .map(|((ty, name), desc)| TagType::Return { ty, name, desc }),
                 just("class")
                     .ignore_then(name)
                     .then(desc.clone())
                     .map(|(name, desc)| TagType::Class(name, desc)),
                 just("field")
-                    .ignore_then(ty)
-                    .then(name)
+                    .ignore_then(name)
+                    .then(ty)
                     .then(desc.clone())
-                    .map(|((ty, name), desc)| TagType::Field(Object { ty, name, desc })),
+                    .map(|((ty, name), desc)| TagType::Field { name, ty, desc }),
                 just("alias")
                     .ignore_then(name)
                     .then(ty)
                     .then(desc.clone())
-                    .map(|((name, ty), desc)| TagType::Alias(Object { ty, name, desc })),
+                    .map(|((name, ty), desc)| TagType::Alias { ty, name, desc }),
                 just("type")
                     .ignore_then(name)
                     .then(desc)
