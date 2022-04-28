@@ -11,13 +11,14 @@ pub const DESC: &str = env!("CARGO_PKG_DESCRIPTION");
 pub const AUTHOR: &str = env!("CARGO_PKG_AUTHORS");
 
 pub struct Cli {
-    /// Path to the files
-    pub files: Vec<PathBuf>,
+    files: Vec<PathBuf>,
+    modeline: bool,
 }
 
 impl Cli {
     pub fn new() -> Result<Self, lexopt::Error> {
         let mut files = vec![];
+        let mut modeline = true;
         let mut parser = Parser::from_env();
 
         while let Some(arg) = parser.next()? {
@@ -29,6 +30,9 @@ impl Cli {
                 Short('h') | Long("help") => {
                     Self::help();
                     std::process::exit(0);
+                }
+                Short('M') | Long("no-modeline") => {
+                    modeline = false;
                 }
                 Value(val) => {
                     let file = PathBuf::from(&val);
@@ -46,7 +50,7 @@ impl Cli {
             }
         }
 
-        Ok(Self { files })
+        Ok(Self { files, modeline })
     }
 
     pub fn run(&self) {
@@ -59,7 +63,10 @@ impl Cli {
         }
 
         print!("{lemmy}");
-        println!("vim:tw=78:ts=8:noet:ft=help:norl:");
+
+        if self.modeline {
+            println!("vim:tw=78:ts=8:noet:ft=help:norl:");
+        }
     }
 
     pub fn help() {
@@ -73,11 +80,12 @@ USAGE:
     {NAME} [FILES]...
 
 ARGS:
-    <FILES>...    Path to the files
+    <FILES>...              Path to the files
 
 OPTIONS:
-    -h, --help       Print help information
-    -v, --version    Print version information
+    -M, --no-modeline       Don't print modeline at the end
+    -h, --help              Print help information
+    -v, --version           Print version information
 "
         );
     }
