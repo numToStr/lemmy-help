@@ -117,15 +117,15 @@ Human                                                                    *Human*
     The Homosapien
 
     Fields: ~
-        {number}   (legs)   Total number of legs
-        {number}   (hands)  Total number of hands
-        {boolean}  (brain)  Does humans have brain?
+        {legs}   (number)   Total number of legs
+        {hands}  (number)   Total number of hands
+        {brain}  (boolean)  Does humans have brain?
 
 
 U.DEFAULT                                                    *mod.Human.DEFAULT*
     Default traits of a human
 
-    Type:~
+    Type: ~
         (Human)
 
 
@@ -242,16 +242,16 @@ U.sum({this}, {that})                                                    *U.sum*
     Add two integer and print it
 
     Parameters: ~
-        {this}  (number)   First number
-        {that}  (number)   Second number
+        {this}  (number)  First number
+        {that}  (number)  Second number
 
 
 U.sub({this}, {that})                                                    *U.sub*
     Subtract second from the first integer
 
     Parameters: ~
-        {this}  (number)   First number
-        {that}  (number)   Second number
+        {this}  (number)  First number
+        {that}  (number)  Second number
 
     Returns: ~
         {number}
@@ -266,8 +266,8 @@ U.magical({this}, {that})                                            *U.magical*
     This is a magical function
 
     Parameters: ~
-        {this}  (number)   Non-magical number #1
-        {that}  (number)   Non-magical number #2
+        {this}  (number)  Non-magical number #1
+        {that}  (number)  Non-magical number #2
 
     Returns: ~
         {number}  The magical number #1
@@ -320,9 +320,9 @@ Human                                                                    *Human*
     The Homosapien
 
     Fields: ~
-        {legs}   (number)    Total number of legs
-        {hands}  (number)    Total number of hands
-        {brain}  (boolean)   Does humans have brain?
+        {legs}   (number)   Total number of legs
+        {hands}  (number)   Total number of hands
+        {brain}  (boolean)  Does humans have brain?
 
 
 H:create()                                                            *H:create*
@@ -377,11 +377,11 @@ Chai                                                                      *Chai*
     Ingredients for making chai
 
     Fields: ~
-        {milk}        (string)   1.5 cup
-        {water}       (string)   0.5 cup
-        {sugar}       (string)   3 tablespoon
-        {tea_leaves}  (string)   2 tablespoon
-        {cardamom}    (string)   2 pieces
+        {milk}        (string)  1.5 cup
+        {water}       (string)  0.5 cup
+        {sugar}       (string)  3 tablespoon
+        {tea_leaves}  (string)  2 tablespoon
+        {cardamom}    (string)  2 pieces
 
 
 U.chai                                                                  *U.chai*
