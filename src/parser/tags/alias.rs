@@ -22,7 +22,7 @@ impl Display for Alias {
         header!(f, self.name)?;
         description!(f, self.desc.as_deref().unwrap_or_default())?;
         writeln!(f)?;
-        description!(f, "Type:~")?;
+        description!(f, "Type: ~")?;
         writeln!(f, "{:>w$}", self.ty, w = 8 + self.ty.len())?;
         writeln!(f)
     }

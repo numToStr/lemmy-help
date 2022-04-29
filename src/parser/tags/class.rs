@@ -4,27 +4,6 @@ use chumsky::{select, Parser};
 
 use crate::{impl_parse, See, TagType};
 
-/// **Grammar**
-///
-/// ---@class MY_TYPE[:PARENT_TYPE] [@comment]
-///
-/// **Emmy**
-///
-/// ---@class CMode Comment modes - Can be manual or computed in operator-pending phase
-/// ---@field toggle number Toggle action
-/// ---@field comment number Comment action
-/// ---@field uncomment number Uncomment action
-///
-/// **Help**
-///
-/// CMode                                                                   \*CMode\*
-///     Comment modes - Can be manual or computed in operator-pending phase
-///
-///     Fields: ~
-///         {toggle}     (number)    Toggle action
-///         {comment}    (number)    Comment action
-///         {uncomment}  (number)    Uncomment action
-///
 #[derive(Debug, Clone)]
 pub struct Class {
     pub name: String,

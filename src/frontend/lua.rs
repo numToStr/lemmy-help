@@ -61,6 +61,7 @@ impl Lua {
                     // eat up all the emmylua, if any, then one valid token
                     triple
                         .then(take_until(newline().or(end())))
+                        .padded()
                         .repeated()
                         .ignore_then(ident()),
                     // if there is no emmylua, just eat the next token

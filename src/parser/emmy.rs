@@ -144,7 +144,7 @@ impl Emmy {
                     .ignore_then(name)
                     .then(ty)
                     .then(desc.clone())
-                    .map(|((ty, name), desc)| TagType::Field { name, ty, desc }),
+                    .map(|((name, ty), desc)| TagType::Field { name, ty, desc }),
                 just("alias")
                     .ignore_then(name)
                     .then(ty)

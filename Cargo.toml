@@ -12,8 +12,10 @@ readme = "README.md"
 keywords = ["parser", "lua", "emmylua"]
 categories = ["parser", "command-line-utilities"]
 exclude = [
+    ".aur/**",
     ".cargo/**",
     ".github/**",
+    "tests/**",
     ".gitignore",
     "todo.txt"
 ]
