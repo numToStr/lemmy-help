@@ -53,7 +53,7 @@ jobs:
       PKG_HOMEPAGE: ${{ steps.vars.outputs.PKG_HOMEPAGE }}
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Initialize workflow variables
         id: vars
@@ -157,7 +157,7 @@ jobs:
     needs: build
     if: startsWith(github.ref, 'refs/tags/')
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
@@ -179,7 +179,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     needs: build
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Generate PKGBUILD
         id: gen_pkgbuild
