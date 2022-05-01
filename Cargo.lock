@@ -10,7 +10,7 @@ checksum = "8d02796e4586c6c41aeb68eae9bfb4558a522c35f1430c14b40136c3706e09e4"
 
 [[package]]
 name = "lemmy-help"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "chumsky",
  "lexopt",
