@@ -1,4 +1,4 @@
-use lemmy_help::{frontend::Lua, LemmyHelp};
+use lemmy_help::LemmyHelp;
 use lexopt::{
     Arg::{Long, Short, Value},
     Parser,
@@ -58,7 +58,6 @@ impl Cli {
 
         for f in &self.files {
             let source = read_to_string(f).unwrap();
-            let source = Lua::parse(&source).unwrap();
             lemmy.for_help(&source).unwrap();
         }
 

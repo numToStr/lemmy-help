@@ -2,7 +2,7 @@ use std::ops::Range;
 
 use chumsky::{
     prelude::{any, choice, end, filter, just, take_until, Simple},
-    text::{ident, newline, TextParser},
+    text::{ident, keyword, newline, TextParser},
     Parser,
 };
 
@@ -55,6 +55,7 @@ pub enum TagType {
     Usage(String),
     Comment(String),
     Empty,
+    Skip,
 }
 
 type Spanned = (TagType, Range<usize>);
@@ -64,20 +65,11 @@ pub struct Emmy;
 
 impl Emmy {
     pub fn parse(src: &str) -> Result<Vec<Spanned>, Vec<Simple<char>>> {
-        let comment = take_until(newline().or(end())).map(|(x, _)| x.iter().collect());
+        let triple = just("---");
 
-        let ty = filter(|x: &char| !x.is_whitespace())
-            .repeated()
-            .padded()
-            .collect();
+        let local = keyword("local").padded();
 
-        let name = ident().padded();
-
-        let desc = choice((
-            end().to(None),
-            just("---").rewind().to(None),
-            comment.clone().map(Some),
-        ));
+        let func = keyword("function").padded();
 
         let dotted = choice((
             ident()
@@ -88,37 +80,47 @@ impl Emmy {
         ))
         .padded();
 
+        let expr = dotted.clone().padded().then_ignore(just('='));
+
+        let comment = take_until(newline().or(end())).map(|(x, _)| x.iter().collect());
+
+        let ty = filter(|x: &char| !x.is_whitespace()).repeated().collect();
+
+        let name = ident().padded();
+
+        let desc = choice((
+            end().to(None),
+            triple.rewind().to(None),
+            comment.clone().map(Some),
+        ));
+
+        let private = just("private").then_ignore(
+            choice((
+                // eat up all the emmylua, if any, then one valid token
+                triple
+                    .then(take_until(newline().or(end())))
+                    .padded()
+                    .repeated()
+                    .ignore_then(ident()),
+                // if there is no emmylua, just eat the next token
+                // so the next parser won't recognize the code
+                ident(),
+            ))
+            .padded(),
+        );
+
+        let misc = take_until(newline());
+
         let tags = just('@')
             .ignore_then(choice((
+                private.to(TagType::Skip),
                 just("mod")
-                    .ignore_then(ty)
+                    .ignore_then(ty.padded())
                     .then(desc.clone())
                     .map(|(name, desc)| TagType::Module { name, desc }),
                 just("divider")
                     .ignore_then(any().padded())
                     .map(TagType::Divider),
-                just("func")
-                    .ignore_then(dotted.clone())
-                    .then(comment.clone())
-                    .padded()
-                    .map(|((prefix, scope, name), _)| TagType::Func {
-                        prefix,
-                        name,
-                        scope,
-                    }),
-                just("expr")
-                    .ignore_then(dotted)
-                    .then(comment.clone())
-                    .padded()
-                    .map(|((prefix, scope, name), _)| TagType::Expr {
-                        prefix,
-                        name,
-                        scope,
-                    }),
-                just("export")
-                    .ignore_then(ident().padded())
-                    .then_ignore(end())
-                    .map(TagType::Export),
                 just("brief").ignore_then(
                     choice((
                         just("[[").to(TagType::BriefStart),
@@ -127,33 +129,41 @@ impl Emmy {
                     .padded(),
                 ),
                 just("param")
-                    .ignore_then(ty) // I am using `ty` here because param can have `?`
-                    .then(ty)
+                    .ignore_then(ty.padded()) // I am using `ty` here because param can have `?`
+                    .then(ty.padded())
                     .then(desc.clone())
                     .map(|((name, ty), desc)| TagType::Param { name, ty, desc }),
                 just("return")
-                    .ignore_then(ty)
-                    .then(name.or_not())
-                    .then(desc.clone())
-                    .map(|((ty, name), desc)| TagType::Return { ty, name, desc }),
+                    .ignore_then(
+                        ty.then(choice((
+                            newline().to((None, None)),
+                            ident()
+                                .then(newline().to(None).or(desc.clone().padded()))
+                                .padded()
+                                .map(|(name, desc)| (Some(name), desc)),
+                        )))
+                        .padded(),
+                    )
+                    .map(|(ty, (name, desc))| TagType::Return { ty, name, desc }),
                 just("class")
                     .ignore_then(name)
                     .then(desc.clone())
                     .map(|(name, desc)| TagType::Class(name, desc)),
                 just("field")
                     .ignore_then(name)
-                    .then(ty)
+                    .then(ty.padded())
                     .then(desc.clone())
                     .map(|((name, ty), desc)| TagType::Field { name, ty, desc }),
                 just("alias")
                     .ignore_then(name)
-                    .then(ty)
+                    .then(ty.padded())
                     .then(desc.clone())
                     .map(|((name, ty), desc)| TagType::Alias { ty, name, desc }),
-                just("type")
-                    .ignore_then(name)
-                    .then(desc)
-                    .map(|(name, desc)| TagType::Type(name, desc)),
+                just("type").ignore_then(
+                    ty.then(choice((newline().to(None), desc.padded())))
+                        .padded()
+                        .map(|(name, desc)| TagType::Type(name, desc)),
+                ),
                 just("tag")
                     .ignore_then(comment.clone().padded())
                     .map(TagType::Tag),
@@ -173,10 +183,53 @@ impl Emmy {
             .or(newline().to(TagType::Empty))
             .or(comment.map(TagType::Comment));
 
-        just("---")
-            .ignore_then(tags)
-            .map_with_span(|t, r| (t, r))
-            .repeated()
-            .parse(src)
+        choice((
+            triple.ignore_then(tags),
+            local.ignore_then(choice((
+                func.clone().ignore_then(ident()).map(|name| TagType::Func {
+                    name,
+                    prefix: None,
+                    scope: Scope::Local,
+                }),
+                ident()
+                    .padded()
+                    .then_ignore(just('='))
+                    .map(|name| TagType::Expr {
+                        name,
+                        prefix: None,
+                        scope: Scope::Local,
+                    }),
+            ))),
+            func.clone()
+                .ignore_then(dotted)
+                .map(|(prefix, scope, name)| TagType::Func {
+                    prefix,
+                    name,
+                    scope,
+                }),
+            choice((
+                expr.clone()
+                    .then_ignore(func)
+                    .map(|(prefix, scope, name)| TagType::Func {
+                        prefix,
+                        name,
+                        scope,
+                    }),
+                expr.map(|(prefix, scope, name)| TagType::Expr {
+                    prefix,
+                    name,
+                    scope,
+                }),
+            )),
+            keyword("return")
+                .ignore_then(ident().padded())
+                .then_ignore(end())
+                .map(TagType::Export),
+            misc.to(TagType::Skip),
+        ))
+        .padded()
+        .map_with_span(|t, r| (t, r))
+        .repeated()
+        .parse(src)
     }
 }

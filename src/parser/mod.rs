@@ -87,8 +87,7 @@ impl_parse!(Node, Option<Self>, {
         select! { TagType::Export(x) => Self::Export(x) },
     ))
     .map(Some)
-    // This will skip extra nodes which were probably injected by the fronted parsers
-    // i.e. ---@func | ---@expr
+    // This will skip useless nodes
     .or(any().to(None))
 });
 
