@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{impl_parse, TagType};
+use crate::{parser, TagType};
 
 #[derive(Debug, Clone)]
 pub struct Prefix {
@@ -32,7 +32,7 @@ pub struct Usage {
     pub code: String,
 }
 
-impl_parse!(Usage, {
+parser!(Usage, {
     select! { TagType::Usage(code) => Self { code } }
 });
 
@@ -50,7 +50,7 @@ pub struct See {
     pub refs: Vec<String>,
 }
 
-impl_parse!(See, {
+parser!(See, {
     select! { TagType::See(x) => x }
         .repeated()
         .map(|refs| Self { refs })

@@ -1,37 +1,17 @@
+mod util;
+
 mod common;
 pub use common::*;
-
 mod emmy;
 pub use emmy::*;
-
+mod node;
+pub use node::*;
 mod tags;
 pub use tags::*;
 
 use std::fmt::Display;
 
-use chumsky::{
-    prelude::{any, choice, Simple},
-    select, Parser, Stream,
-};
-
-// Little helper macro for making parse function
-#[macro_export]
-macro_rules! impl_parse {
-    ($id: ident, $ret: ty, $body: expr) => {
-        impl $id {
-            pub fn parse() -> impl chumsky::Parser<
-                crate::TagType,
-                $ret,
-                Error = chumsky::prelude::Simple<crate::TagType>,
-            > {
-                $body
-            }
-        }
-    };
-    ($id: ident, $body: expr) => {
-        crate::impl_parse!($id, Self, $body);
-    };
-}
+use chumsky::{prelude::Simple, Parser, Stream};
 
 // A TYPE could be
 // - primary = string|number|boolean
@@ -55,57 +35,6 @@ macro_rules! impl_parse {
 // ---@see @comment
 
 // ---@return MY_TYPE[|OTHER_TYPE] [@comment]
-
-#[derive(Debug, Clone)]
-pub enum Node {
-    Module(Module),
-    Divider(Divider),
-    Brief(Brief),
-    Tag(Tag),
-    Func(Func),
-    Class(Class),
-    Alias(Alias),
-    Type(Type),
-    Export(String),
-    // See(See),
-    // Comment(Comment)
-}
-
-impl_parse!(Node, Option<Self>, {
-    choice((
-        Module::parse().map(Self::Module),
-        Divider::parse().map(Self::Divider),
-        Brief::parse().map(Self::Brief),
-        Tag::parse().map(Self::Tag),
-        Func::parse().map(Self::Func),
-        Class::parse().map(Self::Class),
-        Alias::parse().map(Self::Alias),
-        Type::parse().map(Self::Type),
-        // We need this export to properly create the docs
-        // Like there is not point in creating docs for internal things
-        // NOTE: This is inserted by the lua parser
-        select! { TagType::Export(x) => Self::Export(x) },
-    ))
-    .map(Some)
-    // This will skip useless nodes
-    .or(any().to(None))
-});
-
-impl Display for Node {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match &self {
-            Self::Brief(x) => x.fmt(f),
-            Self::Tag(x) => x.fmt(f),
-            Self::Func(x) => x.fmt(f),
-            Self::Class(x) => x.fmt(f),
-            Self::Alias(x) => x.fmt(f),
-            Self::Type(x) => x.fmt(f),
-            Self::Module(x) => x.fmt(f),
-            Self::Divider(x) => x.fmt(f),
-            _ => unimplemented!(),
-        }
-    }
-}
 
 #[derive(Debug, Default)]
 pub struct LemmyHelp {

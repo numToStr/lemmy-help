@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{impl_parse, See, TagType};
+use crate::{parser, See, TagType};
 
 #[derive(Debug, Clone)]
 pub struct Class {
@@ -19,7 +19,7 @@ pub struct Field {
     pub desc: Option<String>,
 }
 
-impl_parse!(Class, {
+parser!(Class, {
     select! { TagType::Class(name, desc) => (name, desc) }
         .then(select! { TagType::Field { name, ty, desc } => Field { name, ty, desc } }.repeated())
         .then(See::parse())

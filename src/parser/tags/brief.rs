@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::{prelude::just, select, Parser};
 
-use crate::{impl_parse, TagType};
+use crate::{parser, TagType};
 
 /// ---@brief [[ TEXT @brief ]]
 #[derive(Debug, Clone)]
@@ -10,7 +10,7 @@ pub struct Brief {
     pub desc: Vec<String>,
 }
 
-impl_parse!(Brief, {
+parser!(Brief, {
     select! {
         TagType::Comment(x) => x,
         TagType::Empty => "".into()

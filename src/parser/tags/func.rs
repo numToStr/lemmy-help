@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{impl_parse, Prefix, Scope, See, TagType, Usage};
+use crate::{parser, Prefix, Scope, See, TagType, Usage};
 
 #[derive(Debug, Clone)]
 pub struct Param {
@@ -30,7 +30,7 @@ pub struct Func {
     pub usage: Option<Usage>,
 }
 
-impl_parse!(Func, {
+parser!(Func, {
     select! {
         TagType::Comment(x) => x,
         TagType::Empty => "\n".to_string()

@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{impl_parse, Prefix, Scope, TagType, Usage};
+use crate::{parser, Prefix, Scope, TagType, Usage};
 
 #[derive(Debug, Clone)]
 pub struct Type {
@@ -15,7 +15,7 @@ pub struct Type {
     pub usage: Option<Usage>,
 }
 
-impl_parse!(Type, {
+parser!(Type, {
     select! { TagType::Comment(x) => x }
         .repeated()
         .then(select! { TagType::Type(ty, desc) => (ty, desc) })
