@@ -1,4 +1,4 @@
-use lemmy_help::{frontend::Lua, LemmyHelp};
+use lemmy_help::LemmyHelp;
 
 #[test]
 fn brief() {
@@ -34,7 +34,7 @@ fn brief() {
 
     let mut lemmy = LemmyHelp::new();
 
-    lemmy.for_help(&Lua::parse(src).unwrap()).unwrap();
+    lemmy.for_help(src).unwrap();
 
     assert_eq!(
         lemmy.to_string(),
@@ -80,7 +80,7 @@ fn divider_and_tag() {
 
     let mut lemmy = LemmyHelp::new();
 
-    lemmy.for_help(&Lua::parse(src).unwrap()).unwrap();
+    lemmy.for_help(src).unwrap();
 
     assert_eq!(
         lemmy.to_string(),
@@ -110,7 +110,7 @@ fn classes() {
 
     let mut lemmy = LemmyHelp::new();
 
-    lemmy.for_help(&Lua::parse(src).unwrap()).unwrap();
+    lemmy.for_help(src).unwrap();
 
     assert_eq!(
         lemmy.to_string(),
@@ -174,7 +174,7 @@ fn functions() {
 
     let mut lemmy = LemmyHelp::new();
 
-    lemmy.for_help(&Lua::parse(src).unwrap()).unwrap();
+    lemmy.for_help(src).unwrap();
 
     assert_eq!(
         lemmy.to_string(),
@@ -255,7 +255,7 @@ fn module() {
 
     let mut lemmy = LemmyHelp::new();
 
-    lemmy.for_help(&Lua::parse(src).unwrap()).unwrap();
+    lemmy.for_help(src).unwrap();
 
     assert_eq!(
         lemmy.to_string(),
@@ -317,7 +317,7 @@ fn alias_and_type() {
 
     let mut lemmy = LemmyHelp::new();
 
-    lemmy.for_help(&Lua::parse(src).unwrap()).unwrap();
+    lemmy.for_help(src).unwrap();
 
     assert_eq!(
         lemmy.to_string(),
@@ -374,7 +374,7 @@ fn private() {
 
     let mut lemmy = LemmyHelp::new();
 
-    lemmy.for_help(&Lua::parse(src).unwrap()).unwrap();
+    lemmy.for_help(src).unwrap();
 
     assert_eq!(
         lemmy.to_string(),

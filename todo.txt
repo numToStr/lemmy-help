@@ -15,14 +15,13 @@
 [x] return with only type
 [x] support metamethods i.e. this:that()
 [x] check for exported `return`
-[ ] table of content
 [ ] enum via @alias
 [ ] also support string as an entry alongside path
 [x] long names
-[ ] Non-Standard tags (should not interfere with LSP)
+[-] Non-Standard tags (should not interfere with LSP)
     [x] ---@module <tag> <description>
             (override the tagged name prefix like *U.comment* -> *comment-comment*)
     [x] ---@divider <char>
-    [ ] ---@toc-entry & ---@toc-slot
     [x] ---@private
+    [ ] ---@toc-entry & ---@toc-slot
 [ ] Error handling
