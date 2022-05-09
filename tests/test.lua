@@ -71,8 +71,10 @@ end
 
 ---@class Human The Homosapien
 ---@field legs number Total number of legs
----@field hands number Total number of hands
+---@field public hands number Total number of hands
 ---@field brain boolean Does humans have brain?
+---@field protected heart boolean Heart is protected
+---@field private IQ number We need to hide this
 
 ---Creates a Human
 ---@return Human
@@ -82,6 +84,8 @@ function U:create()
         legs = 2,
         hands = 2,
         brain = false,
+        heart = true,
+        IQ = -1,
     }, { __index = self })
 end
 

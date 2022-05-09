@@ -105,6 +105,14 @@ fn classes() {
     ---@field hands number Total number of hands
     ---@field brain boolean Does humans have brain?
 
+    ---@class SuperSecret Secret stuff
+    ---@field first number First ingredient
+    ---@field public second number Second ingredient
+    ---@field third number Third ingredient
+    ---@field todo number
+    ---@field protected __secret_1 number Secret ingredient first
+    ---@field private __secret_2 number
+
     return U
     ";
 
@@ -122,6 +130,16 @@ Human                                                                    *Human*
         {legs}   (number)   Total number of legs
         {hands}  (number)   Total number of hands
         {brain}  (boolean)  Does humans have brain?
+
+
+SuperSecret                                                        *SuperSecret*
+    Secret stuff
+
+    Fields: ~
+        {first}   (number)  First ingredient
+        {second}  (number)  Second ingredient
+        {third}   (number)  Third ingredient
+        {todo}    (number)  
 
 
 "

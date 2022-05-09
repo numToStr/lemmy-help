@@ -9,6 +9,13 @@ use chumsky::{
 use crate::Kind;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum Scope {
+    Public,
+    Private,
+    Protected,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TagType {
     Module {
         name: String,
@@ -40,6 +47,7 @@ pub enum TagType {
     },
     Class(String, Option<String>),
     Field {
+        scope: Scope,
         name: String,
         ty: String,
         desc: Option<String>,
@@ -89,10 +97,17 @@ impl Emmy {
         let name = ident().padded();
 
         let desc = choice((
-            end().to(None),
+            newline().or(end()).to(None),
             triple.rewind().to(None),
-            comment.clone().map(Some),
+            comment.clone().padded().map(Some),
         ));
+
+        let scope = choice((
+            keyword("public").to(Scope::Public),
+            keyword("protected").to(Scope::Protected),
+            keyword("private").to(Scope::Private),
+        ))
+        .padded();
 
         let private = just("private").then_ignore(
             choice((
@@ -150,10 +165,16 @@ impl Emmy {
                     .then(desc.clone())
                     .map(|(name, desc)| TagType::Class(name, desc)),
                 just("field")
-                    .ignore_then(name)
-                    .then(ty.padded())
+                    .ignore_then(scope.or_not())
+                    .then(name)
+                    .then(ty)
                     .then(desc.clone())
-                    .map(|((name, ty), desc)| TagType::Field { name, ty, desc }),
+                    .map(|(((scope, name), ty), desc)| TagType::Field {
+                        scope: scope.unwrap_or(Scope::Public),
+                        name,
+                        ty,
+                        desc,
+                    }),
                 just("alias")
                     .ignore_then(name)
                     .then(ty.padded())
