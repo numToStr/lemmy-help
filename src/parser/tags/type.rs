@@ -2,14 +2,14 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{parser, Prefix, Scope, TagType, Usage};
+use crate::{parser, Kind, Prefix, TagType, Usage};
 
 #[derive(Debug, Clone)]
 pub struct Type {
     pub header: Vec<String>,
     pub prefix: Prefix,
     pub name: String,
-    pub scope: Scope,
+    pub kind: Kind,
     pub ty: String,
     pub desc: Option<String>,
     pub usage: Option<Usage>,
@@ -20,16 +20,16 @@ parser!(Type, {
         .repeated()
         .then(select! { TagType::Type(ty, desc) => (ty, desc) })
         .then(Usage::parse().or_not())
-        .then(select! { TagType::Expr { prefix, name, scope } => (prefix, name, scope) })
+        .then(select! { TagType::Expr { prefix, name, kind } => (prefix, name, kind) })
         .map(
-            |(((header, (ty, desc)), usage), (prefix, name, scope))| Self {
+            |(((header, (ty, desc)), usage), (prefix, name, kind))| Self {
                 header,
                 prefix: Prefix {
                     left: prefix.clone(),
                     right: prefix,
                 },
                 name,
-                scope,
+                kind,
                 ty,
                 desc,
                 usage,
@@ -43,7 +43,7 @@ impl Type {
     }
 
     pub fn is_public(&self, export: &str) -> bool {
-        self.scope != Scope::Local && self.prefix.left.as_deref() == Some(export)
+        self.kind != Kind::Local && self.prefix.left.as_deref() == Some(export)
     }
 }
 
@@ -56,13 +56,13 @@ impl Display for Type {
             format!(
                 "{}{}{}",
                 self.prefix.left.as_deref().unwrap_or_default(),
-                self.scope,
+                self.kind,
                 self.name
             ),
             format!(
                 "{}{}{}",
                 self.prefix.right.as_deref().unwrap_or_default(),
-                self.scope,
+                self.kind,
                 self.name
             )
         )?;

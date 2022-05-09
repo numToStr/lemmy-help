@@ -6,7 +6,7 @@ use chumsky::{
     Parser,
 };
 
-use crate::Scope;
+use crate::Kind;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TagType {
@@ -18,12 +18,12 @@ pub enum TagType {
     Func {
         prefix: Option<String>,
         name: String,
-        scope: Scope,
+        kind: Kind,
     },
     Expr {
         prefix: Option<String>,
         name: String,
-        scope: Scope,
+        kind: Kind,
     },
     Export(String),
     BriefStart,
@@ -73,10 +73,10 @@ impl Emmy {
 
         let dotted = choice((
             ident()
-                .then(just('.').to(Scope::Dot).or(just(':').to(Scope::Colon)))
+                .then(just('.').to(Kind::Dot).or(just(':').to(Kind::Colon)))
                 .then(ident())
                 .map(|((prefix, scope), name)| (Some(prefix), scope, name)),
-            ident().map(|name| (None, Scope::Local, name)),
+            ident().map(|name| (None, Kind::Local, name)),
         ))
         .padded();
 
@@ -189,7 +189,7 @@ impl Emmy {
                 func.clone().ignore_then(ident()).map(|name| TagType::Func {
                     name,
                     prefix: None,
-                    scope: Scope::Local,
+                    kind: Kind::Local,
                 }),
                 ident()
                     .padded()
@@ -197,29 +197,17 @@ impl Emmy {
                     .map(|name| TagType::Expr {
                         name,
                         prefix: None,
-                        scope: Scope::Local,
+                        kind: Kind::Local,
                     }),
             ))),
             func.clone()
                 .ignore_then(dotted)
-                .map(|(prefix, scope, name)| TagType::Func {
-                    prefix,
-                    name,
-                    scope,
-                }),
+                .map(|(prefix, kind, name)| TagType::Func { prefix, name, kind }),
             choice((
                 expr.clone()
                     .then_ignore(func)
-                    .map(|(prefix, scope, name)| TagType::Func {
-                        prefix,
-                        name,
-                        scope,
-                    }),
-                expr.map(|(prefix, scope, name)| TagType::Expr {
-                    prefix,
-                    name,
-                    scope,
-                }),
+                    .map(|(prefix, kind, name)| TagType::Func { prefix, name, kind }),
+                expr.map(|(prefix, kind, name)| TagType::Expr { prefix, name, kind }),
             )),
             keyword("return")
                 .ignore_then(ident().padded())

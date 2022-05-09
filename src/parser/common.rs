@@ -11,13 +11,13 @@ pub struct Prefix {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Scope {
+pub enum Kind {
     Dot,
     Colon,
     Local,
 }
 
-impl Display for Scope {
+impl Display for Kind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Dot => f.write_str("."),

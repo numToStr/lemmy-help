@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{parser, Prefix, Scope, See, TagType, Usage};
+use crate::{parser, Kind, Prefix, See, TagType, Usage};
 
 #[derive(Debug, Clone)]
 pub struct Param {
@@ -21,7 +21,7 @@ pub struct Return {
 #[derive(Debug, Clone)]
 pub struct Func {
     pub name: String,
-    pub scope: Scope,
+    pub kind: Kind,
     pub prefix: Prefix,
     pub desc: Vec<String>,
     pub params: Vec<Param>,
@@ -40,11 +40,11 @@ parser!(Func, {
     .then(select! { TagType::Return { ty, name, desc } => Return { ty, name, desc } }.repeated())
     .then(See::parse())
     .then(Usage::parse().or_not())
-    .then(select! { TagType::Func { prefix, name, scope } => (prefix, name, scope) })
+    .then(select! { TagType::Func { prefix, name, kind } => (prefix, name, kind) })
     .map(
-        |(((((desc, params), returns), see), usage), (prefix, name, scope))| Self {
+        |(((((desc, params), returns), see), usage), (prefix, name, kind))| Self {
             name,
-            scope,
+            kind,
             prefix: Prefix {
                 left: prefix.clone(),
                 right: prefix,
@@ -64,7 +64,7 @@ impl Func {
     }
 
     pub fn is_public(&self, export: &str) -> bool {
-        self.scope != Scope::Local && self.prefix.left.as_deref() == Some(export)
+        self.kind != Kind::Local && self.prefix.left.as_deref() == Some(export)
     }
 }
 
@@ -90,12 +90,12 @@ impl Display for Func {
             format!(
                 "{}{}{name}",
                 self.prefix.left.as_deref().unwrap_or_default(),
-                self.scope
+                self.kind
             ),
             format!(
                 "{}{}{}",
                 self.prefix.right.as_deref().unwrap_or_default(),
-                self.scope,
+                self.kind,
                 self.name
             )
         )?;
