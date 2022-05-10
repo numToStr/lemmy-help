@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{parser, See, TagType};
+use crate::{parser, Scope, See, TagType};
 
 #[derive(Debug, Clone)]
 pub struct Class {
@@ -14,6 +14,7 @@ pub struct Class {
 
 #[derive(Debug, Clone)]
 pub struct Field {
+    pub scope: Scope,
     pub name: String,
     pub ty: String,
     pub desc: Option<String>,
@@ -21,7 +22,12 @@ pub struct Field {
 
 parser!(Class, {
     select! { TagType::Class(name, desc) => (name, desc) }
-        .then(select! { TagType::Field { name, ty, desc } => Field { name, ty, desc } }.repeated())
+        .then(
+            select! {
+                TagType::Field { scope, name, ty, desc } => Field { scope, name, ty, desc }
+            }
+            .repeated(),
+        )
         .then(See::parse())
         .map(|(((name, desc), fields), see)| Self {
             name,
@@ -45,12 +51,14 @@ impl Display for Class {
             let mut table = tabular::Table::new("        {:<}  {:<}  {:<}");
 
             for field in &self.fields {
-                table.add_row(
-                    tabular::Row::new()
-                        .with_cell(&format!("{{{}}}", field.name))
-                        .with_cell(&format!("({})", field.ty))
-                        .with_cell(field.desc.as_deref().unwrap_or_default()),
-                );
+                if field.scope == Scope::Public {
+                    table.add_row(
+                        tabular::Row::new()
+                            .with_cell(&format!("{{{}}}", field.name))
+                            .with_cell(&format!("({})", field.ty))
+                            .with_cell(field.desc.as_deref().unwrap_or_default()),
+                    );
+                }
             }
 
             writeln!(f, "{}", table)?;

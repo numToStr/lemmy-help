@@ -285,7 +285,7 @@ Classes can be used to better structure your code and can be referenced as an ar
 
 ```lua
 ---@class <name> <desc>
----@field <name> <type> <desc>
+---@field [public|protected|private] <name> <type> <desc>
 ---@see <ref>
 ```
 
@@ -298,6 +298,8 @@ local H = {}
 ---@field legs number Total number of legs
 ---@field hands number Total number of hands
 ---@field brain boolean Does humans have brain?
+---@field protected heart boolean Heart is protected
+---@field private IQ number We need to hide this
 
 ---Creates a Human
 ---@return Human
