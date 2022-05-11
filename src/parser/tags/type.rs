@@ -80,7 +80,7 @@ impl Display for Type {
                 .with_cell(self.desc.as_deref().unwrap_or_default()),
         );
 
-        writeln!(f, "{}", table)?;
+        writeln!(f, "{table}")?;
 
         if let Some(usage) = &self.usage {
             writeln!(f, "{usage}")?;

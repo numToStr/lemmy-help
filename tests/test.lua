@@ -126,4 +126,12 @@ function U.no_emmy()
     print('Private func with no emmylua!')
 end
 
+-- You can define a (psuedo) enum using `alias`
+
+---@alias VMode
+---| 'line' Vertical motion
+---| 'char' Horizontal motion
+---| 'v'
+---| 'V' # Visual Line Mode
+
 return U

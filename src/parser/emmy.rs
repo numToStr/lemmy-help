@@ -2,7 +2,7 @@ use std::ops::Range;
 
 use chumsky::{
     prelude::{any, choice, end, filter, just, take_until, Simple},
-    text::{ident, keyword, newline, TextParser},
+    text::{ident, keyword, newline, whitespace, TextParser},
     Parser,
 };
 
@@ -54,9 +54,10 @@ pub enum TagType {
     },
     Alias {
         name: String,
-        ty: String,
+        ty: Option<String>,
         desc: Option<String>,
     },
+    Variant(String, Option<String>),
     Type(String, Option<String>),
     Tag(String),
     See(String),
@@ -126,86 +127,97 @@ impl Emmy {
 
         let misc = take_until(newline());
 
-        let tags = just('@')
-            .ignore_then(choice((
-                private.to(TagType::Skip),
-                just("mod")
-                    .ignore_then(ty.padded())
-                    .then(desc.clone())
-                    .map(|(name, desc)| TagType::Module { name, desc }),
-                just("divider")
-                    .ignore_then(any().padded())
-                    .map(TagType::Divider),
-                just("brief").ignore_then(
-                    choice((
-                        just("[[").to(TagType::BriefStart),
-                        just("]]").to(TagType::BriefEnd),
-                    ))
+        let variant = just('|')
+            .ignore_then(ty.padded())
+            .then_ignore(just('#').or_not())
+            .then(desc.clone())
+            .map(|(t, d)| TagType::Variant(t, d));
+
+        let tag = just('@').ignore_then(choice((
+            private.to(TagType::Skip),
+            just("mod")
+                .ignore_then(ty.padded())
+                .then(desc.clone())
+                .map(|(name, desc)| TagType::Module { name, desc }),
+            just("divider")
+                .ignore_then(any().padded())
+                .map(TagType::Divider),
+            just("brief").ignore_then(
+                choice((
+                    just("[[").to(TagType::BriefStart),
+                    just("]]").to(TagType::BriefEnd),
+                ))
+                .padded(),
+            ),
+            just("param")
+                .ignore_then(ty.padded()) // I am using `ty` here because param can have `?`
+                .then(ty.padded())
+                .then(desc.clone())
+                .map(|((name, ty), desc)| TagType::Param { name, ty, desc }),
+            just("return")
+                .ignore_then(
+                    ty.then(choice((
+                        newline().to((None, None)),
+                        ident()
+                            .then(newline().to(None).or(desc.clone().padded()))
+                            .padded()
+                            .map(|(name, desc)| (Some(name), desc)),
+                    )))
                     .padded(),
-                ),
-                just("param")
-                    .ignore_then(ty.padded()) // I am using `ty` here because param can have `?`
-                    .then(ty.padded())
-                    .then(desc.clone())
-                    .map(|((name, ty), desc)| TagType::Param { name, ty, desc }),
-                just("return")
-                    .ignore_then(
-                        ty.then(choice((
-                            newline().to((None, None)),
-                            ident()
-                                .then(newline().to(None).or(desc.clone().padded()))
-                                .padded()
-                                .map(|(name, desc)| (Some(name), desc)),
-                        )))
+                )
+                .map(|(ty, (name, desc))| TagType::Return { ty, name, desc }),
+            just("class")
+                .ignore_then(name)
+                .then(desc.clone())
+                .map(|(name, desc)| TagType::Class(name, desc)),
+            just("field")
+                .ignore_then(scope.or_not())
+                .then(name)
+                .then(ty)
+                .then(desc.clone())
+                .map(|(((scope, name), ty), desc)| TagType::Field {
+                    scope: scope.unwrap_or(Scope::Public),
+                    name,
+                    ty,
+                    desc,
+                }),
+            just("alias")
+                .then(whitespace())
+                .ignore_then(ident())
+                .then(choice((
+                    newline().to((None, None)),
+                    whitespace().ignore_then(ty.or_not().then(desc.clone())),
+                )))
+                .map(|(name, (ty, desc))| TagType::Alias { name, ty, desc }),
+            just("type").ignore_then(
+                ty.then(choice((newline().to(None), desc.padded())))
+                    .padded()
+                    .map(|(name, desc)| TagType::Type(name, desc)),
+            ),
+            just("tag")
+                .ignore_then(comment.clone().padded())
+                .map(TagType::Tag),
+            just("see")
+                .ignore_then(comment.clone().padded())
+                .map(TagType::See),
+            just("usage")
+                .ignore_then(
+                    just('`')
+                        .ignore_then(filter(|c| *c != '`').repeated())
+                        .then_ignore(just('`'))
                         .padded(),
-                    )
-                    .map(|(ty, (name, desc))| TagType::Return { ty, name, desc }),
-                just("class")
-                    .ignore_then(name)
-                    .then(desc.clone())
-                    .map(|(name, desc)| TagType::Class(name, desc)),
-                just("field")
-                    .ignore_then(scope.or_not())
-                    .then(name)
-                    .then(ty)
-                    .then(desc.clone())
-                    .map(|(((scope, name), ty), desc)| TagType::Field {
-                        scope: scope.unwrap_or(Scope::Public),
-                        name,
-                        ty,
-                        desc,
-                    }),
-                just("alias")
-                    .ignore_then(name)
-                    .then(ty.padded())
-                    .then(desc.clone())
-                    .map(|((name, ty), desc)| TagType::Alias { ty, name, desc }),
-                just("type").ignore_then(
-                    ty.then(choice((newline().to(None), desc.padded())))
-                        .padded()
-                        .map(|(name, desc)| TagType::Type(name, desc)),
-                ),
-                just("tag")
-                    .ignore_then(comment.clone().padded())
-                    .map(TagType::Tag),
-                just("see")
-                    .ignore_then(comment.clone().padded())
-                    .map(TagType::See),
-                just("usage")
-                    .ignore_then(
-                        just('`')
-                            .ignore_then(filter(|c| *c != '`').repeated())
-                            .then_ignore(just('`'))
-                            .padded(),
-                    )
-                    .collect()
-                    .map(TagType::Usage),
-            )))
-            .or(newline().to(TagType::Empty))
-            .or(comment.map(TagType::Comment));
+                )
+                .collect()
+                .map(TagType::Usage),
+        )));
 
         choice((
-            triple.ignore_then(tags),
+            triple.ignore_then(choice((
+                tag,
+                variant,
+                newline().to(TagType::Empty),
+                comment.map(TagType::Comment),
+            ))),
             local.ignore_then(choice((
                 func.clone().ignore_then(ident()).map(|name| TagType::Func {
                     name,
