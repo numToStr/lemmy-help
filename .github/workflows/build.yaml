@@ -88,19 +88,19 @@ jobs:
           override: true
           profile: minimal
 
-      - name: Test
-        uses: actions-rs/cargo@v1
-        with:
-          use-cross: ${{ matrix.job.use_cross }}
-          command: test
-          args: --target=${{ matrix.job.target }}
-
       - name: Build
         uses: actions-rs/cargo@v1
         with:
           use-cross: ${{ matrix.job.use_cross }}
           command: build
           args: --release --features=cli --target=${{ matrix.job.target }}
+
+      - name: Test
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: ${{ matrix.job.use_cross }}
+          command: test
+          args: --target=${{ matrix.job.target }}
 
       - name: Package
         shell: bash
