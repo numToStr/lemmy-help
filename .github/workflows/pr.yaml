@@ -1,0 +1,36 @@
+name: pr
+
+on:
+  pull_request:
+    paths-ignore:
+      - "LICENSE"
+      - "README.md"
+      - "emmylua.md"
+      - "stylua.toml"
+      - "todo.txt"
+    branches:
+      - master
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build & Test
+    strategy:
+      matrix:
+        job:
+          - { os: ubuntu-latest, target: x86_64-unknown-linux-gnu }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc }
+          - { os: macos-latest, target: x86_64-apple-darwin }
+    runs-on: ${{ matrix.job.os }}
+    timeout-minutes: 20
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v3
+
+      - name: Build
+        run: cargo build --release --features=cli
+
+      - name: Test
+        run: cargo test
