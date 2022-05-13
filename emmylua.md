@@ -7,7 +7,7 @@
 
 Following are the tags that you can use to create docs
 
-#### Brief
+### Brief
 
 A `brief` can be used to describe a module or even to add some footnote etc.
 
@@ -69,7 +69,7 @@ Some code blocks, but IDK whether it will be highlighted or not
 NOTE: remember there is no formatting or text wrapping
 ```
 
-#### Module
+### Module
 
 This tag can be used to add a heading for the module and change the prefix of every exported _function and type_.
 
@@ -141,7 +141,7 @@ U:create()                                                    *mod.Human:create*
         <
 ```
 
-#### Tag
+### Tag
 
 This can used to create an alternate tag for your module, functions etc.
 
@@ -155,7 +155,7 @@ This can used to create an alternate tag for your module, functions etc.
                                                               *another-cool-tag*
 ```
 
-#### Divider
+### Divider
 
 This tag can be used to add a divider/separator between section or anything you desire
 
@@ -179,7 +179,7 @@ This tag can be used to add a divider/separator between section or anything you 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
-#### Functions
+### Functions
 
 A function contains multiple tags which form its structure. Like `---@param` for parameter, `---@return` for the return value, `---@see` for other related things and `---@usage` for example
 
@@ -279,7 +279,7 @@ U.magical({this}, {that})                                            *U.magical*
         |U.sub|
 ```
 
-#### Class
+### Class
 
 Classes can be used to better structure your code and can be referenced as an argument to a function or it's return value. You can define it once and use it multiple times.
 
@@ -339,7 +339,7 @@ H:create()                                                            *H:create*
         <
 ```
 
-#### Type
+### Type
 
 You can use `---@type` to document static objects, constants etc.
 
@@ -393,7 +393,7 @@ U.chai                                                                  *U.chai*
         (Chai)
 ```
 
-#### Alias
+### Alias
 
 This can be used to make a type alias. It is helpful if you are using the same the type multiple times.
 
@@ -428,11 +428,48 @@ U.get_all()                                                          *U.get_all*
         {Lines}
 ```
 
+### Enum
+
+You can also define a (pseudo) enum using [`---@alias`](#alias).
+
+```lua
+local U = {}
+
+---@alias VMode
+---| 'line' Vertical motion
+---| 'char' Horizontal motion
+---| 'v'
+---| 'V' # Visual Line Mode
+
+---Global vim mode
+---@type VMode
+U.VMODE = 'line'
+
+return U
+```
+
+- Output
+
+```help
+VMode                                                                    *VMode*
+
+    Variants: ~
+        ('line')  Vertical motion
+        ('char')  Horizontal motion
+        ('v')
+        ('V')     Visual Line Mode
+
+
+U.VMODE                                                                *U.VMODE*
+    Global vim mode
+
+    Type: ~
+        (VMode)
+```
+
 ### Private
 
 You can use `---@private` tag to discard any part of the code that is exported but it is not considered to be a part of the public API
-
-> NOTE:
 
 ```lua
 local U = {}

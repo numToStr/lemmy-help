@@ -30,9 +30,7 @@ parser!(Node, Option<Self>, {
         Class::parse().map(Self::Class),
         Alias::parse().map(Self::Alias),
         Type::parse().map(Self::Type),
-        // We need this export to properly create the docs
-        // Like there is not point in creating docs for internal things
-        // NOTE: This is inserted by the lua parser
+        // We need this to match exported types/funcs etc.
         select! { TagType::Export(x) => Self::Export(x) },
     ))
     .map(Some)

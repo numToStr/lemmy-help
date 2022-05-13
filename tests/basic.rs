@@ -318,7 +318,15 @@ fn alias_and_type() {
     let src = r#"
     local U = {}
 
+    ---@alias NoDesc string
+
     ---@alias Lines string[] All the lines in the buffer
+
+    ---@alias VMode
+    ---| 'line' Vertical motion
+    ---| 'char' Horizontal motion
+    ---| 'v'
+    ---| 'V' # Visual Line Mode
 
     ---Returns all the content of the buffer
     ---@return Lines
@@ -330,6 +338,10 @@ fn alias_and_type() {
     ---@type Lines See |Lines|
     U.LINES = {}
 
+    ---Global vim mode
+    ---@type VMode
+    U.VMODE = 'line'
+
     return U
     "#;
 
@@ -340,11 +352,27 @@ fn alias_and_type() {
     assert_eq!(
         lemmy.to_string(),
         "\
+NoDesc                                                                  *NoDesc*
+
+
+    Type: ~
+        string
+
+
 Lines                                                                    *Lines*
     All the lines in the buffer
 
     Type: ~
         string[]
+
+
+VMode                                                                    *VMode*
+
+    Variants: ~
+        ('line')  Vertical motion
+        ('char')  Horizontal motion
+        ('v')     
+        ('V')     Visual Line Mode
 
 
 U.get_all()                                                          *U.get_all*
@@ -359,6 +387,13 @@ U.LINES                                                                *U.LINES*
 
     Type: ~
         (Lines)  See |Lines|
+
+
+U.VMODE                                                                *U.VMODE*
+    Global vim mode
+
+    Type: ~
+        (VMode)  
 
 
 "

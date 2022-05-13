@@ -61,7 +61,7 @@ impl Display for Class {
                 }
             }
 
-            writeln!(f, "{}", table)?;
+            writeln!(f, "{table}")?;
         }
 
         if !self.see.refs.is_empty() {

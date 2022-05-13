@@ -117,7 +117,7 @@ impl Display for Func {
                 );
             }
 
-            writeln!(f, "{}", table)?;
+            writeln!(f, "{table}")?;
         }
 
         if !self.returns.is_empty() {
@@ -138,7 +138,7 @@ impl Display for Func {
                 );
             }
 
-            writeln!(f, "{}", table)?;
+            writeln!(f, "{table}")?;
         }
 
         if !self.see.refs.is_empty() {
