@@ -82,7 +82,7 @@ impl Emmy {
 
         let dotted = choice((
             ident()
-                .then(just('.').to(Kind::Dot).or(just(':').to(Kind::Colon)))
+                .then(choice((just('.').to(Kind::Dot), just(':').to(Kind::Colon))))
                 .then(ident())
                 .map(|((prefix, scope), name)| (Some(prefix), scope, name)),
             ident().map(|name| (None, Kind::Local, name)),
@@ -91,14 +91,16 @@ impl Emmy {
 
         let expr = dotted.clone().padded().then_ignore(just('='));
 
-        let comment = take_until(newline().or(end())).map(|(x, _)| x.iter().collect());
+        let at_end = choice((newline(), end()));
+
+        let comment = take_until(at_end.clone()).map(|(x, _)| x.iter().collect());
 
         let ty = filter(|x: &char| !x.is_whitespace()).repeated().collect();
 
         let name = ident().padded();
 
         let desc = choice((
-            newline().or(end()).to(None),
+            at_end.clone().to(None),
             triple.rewind().to(None),
             comment.clone().padded().map(Some),
         ));
@@ -114,7 +116,7 @@ impl Emmy {
             choice((
                 // eat up all the emmylua, if any, then one valid token
                 triple
-                    .then(take_until(newline().or(end())))
+                    .then(take_until(at_end))
                     .padded()
                     .repeated()
                     .ignore_then(ident()),
@@ -155,16 +157,15 @@ impl Emmy {
                 .then(desc.clone())
                 .map(|((name, ty), desc)| TagType::Param { name, ty, desc }),
             just("return")
-                .ignore_then(
-                    ty.then(choice((
-                        newline().to((None, None)),
-                        ident()
-                            .then(newline().to(None).or(desc.clone().padded()))
-                            .padded()
-                            .map(|(name, desc)| (Some(name), desc)),
-                    )))
-                    .padded(),
-                )
+                .ignore_then(whitespace())
+                .ignore_then(ty)
+                .then(choice((
+                    newline().to((None, None)),
+                    whitespace()
+                        .ignore_then(ident())
+                        .then(desc.clone())
+                        .map(|(name, desc)| (Some(name), desc)),
+                )))
                 .map(|(ty, (name, desc))| TagType::Return { ty, name, desc }),
             just("class")
                 .ignore_then(name)
@@ -189,11 +190,11 @@ impl Emmy {
                     whitespace().ignore_then(ty.or_not().then(desc.clone())),
                 )))
                 .map(|(name, (ty, desc))| TagType::Alias { name, ty, desc }),
-            just("type").ignore_then(
-                ty.then(choice((newline().to(None), desc.padded())))
-                    .padded()
-                    .map(|(name, desc)| TagType::Type(name, desc)),
-            ),
+            just("type")
+                .ignore_then(whitespace())
+                .ignore_then(ty)
+                .then(desc)
+                .map(|(name, desc)| TagType::Type(name, desc)),
             just("tag")
                 .ignore_then(comment.clone().padded())
                 .map(TagType::Tag),
