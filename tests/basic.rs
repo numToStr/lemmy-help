@@ -161,13 +161,13 @@ fn functions() {
 
     ---Add two integer and print it
     ---@param this number First number
-    ---@param that number Second number
+    ---@param that number
     function U.sum(this, that)
         print(this + that)
     end
 
     ---Subtract second from the first integer
-    ---@param this number First number
+    ---@param this number
     ---@param that number Second number
     ---@return number
     ---@usage `require("module.U").sub(10, 5)`
@@ -201,14 +201,14 @@ fn functions() {
 
     Parameters: ~
         {this}  (number)  First number
-        {that}  (number)  Second number
+        {that}  (number)  
 
 
 U.sub({this}, {that})                                                    *U.sub*
     Subtract second from the first integer
 
     Parameters: ~
-        {this}  (number)  First number
+        {this}  (number)  
         {that}  (number)  Second number
 
     Returns: ~

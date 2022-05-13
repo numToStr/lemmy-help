@@ -151,7 +151,7 @@ impl Emmy {
             ),
             just("param")
                 .ignore_then(ty.padded()) // I am using `ty` here because param can have `?`
-                .then(ty.padded())
+                .then(ty)
                 .then(desc.clone())
                 .map(|((name, ty), desc)| TagType::Param { name, ty, desc }),
             just("return")
