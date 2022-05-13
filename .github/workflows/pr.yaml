@@ -16,7 +16,6 @@ env:
 
 jobs:
   build:
-    name: Build & Test
     strategy:
       matrix:
         job:
@@ -24,13 +23,16 @@ jobs:
           - { os: windows-latest, target: x86_64-pc-windows-msvc }
           - { os: macos-latest, target: x86_64-apple-darwin }
     runs-on: ${{ matrix.job.os }}
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - name: Git Checkout
         uses: actions/checkout@v3
 
-      - name: Build
-        run: cargo build --release --features=cli
-
       - name: Test
-        run: cargo test
+        run: cargo test --all-features
+
+      - name: Lint
+        run: cargo clippy --all-features
+
+      - name: Format
+        run: cargo fmt --check
