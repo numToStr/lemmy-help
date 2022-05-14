@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{parser, Scope, See, TagType};
+use crate::{parser, Prefix, Scope, See, TagType};
 
 #[derive(Debug, Clone)]
 pub struct Class {
@@ -10,6 +10,7 @@ pub struct Class {
     pub desc: Option<String>,
     pub fields: Vec<Field>,
     pub see: See,
+    pub prefix: Prefix,
 }
 
 #[derive(Debug, Clone)]
@@ -34,14 +35,26 @@ parser!(Class, {
             desc,
             fields,
             see,
+            prefix: Prefix::default(),
         })
 });
+
+impl Class {
+    pub fn rename_tag(&mut self, tag: String) {
+        self.prefix.right = Some(tag);
+    }
+}
 
 impl Display for Class {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use crate::{description, header};
 
-        header!(f, self.name)?;
+        if let Some(prefix) = &self.prefix.right {
+            header!(f, self.name, format!("{prefix}.{}", self.name))?;
+        } else {
+            header!(f, self.name)?;
+        }
+
         description!(f, self.desc.as_deref().unwrap_or_default())?;
         writeln!(f)?;
 

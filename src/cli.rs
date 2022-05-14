@@ -36,6 +36,7 @@ impl Cli {
                     c.modeline = false;
                 }
                 Short('a') | Long("prefix-alias") => c.rename.alias = true,
+                Short('c') | Long("prefix-class") => c.rename.class = true,
                 Value(val) => {
                     let file = PathBuf::from(&val);
 
@@ -86,6 +87,7 @@ ARGS:
 OPTIONS:
     -M, --no-modeline       Don't print modeline at the end
     -a, --prefix-alias      Prefix ---@alias tag with return/mod name
+    -c, --prefix-class      Prefix ---@class tag with return/mod name
     -h, --help              Print help information
     -v, --version           Print version information
 "

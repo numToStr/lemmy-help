@@ -39,6 +39,7 @@ use chumsky::{prelude::Simple, Parser, Stream};
 #[derive(Debug, Default)]
 pub struct Rename {
     pub alias: bool,
+    pub class: bool,
 }
 
 #[derive(Debug, Default)]
@@ -94,6 +95,12 @@ impl LemmyHelp {
                             alias.rename_tag(module.to_owned());
                         }
                         self.nodes.push(Node::Alias(alias))
+                    }
+                    Node::Class(mut class) => {
+                        if self.rename.class {
+                            class.rename_tag(module.to_owned());
+                        }
+                        self.nodes.push(Node::Class(class))
                     }
                     _ => self.nodes.push(ele),
                 }
