@@ -10,11 +10,20 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const DESC: &str = env!("CARGO_PKG_DESCRIPTION");
 pub const AUTHOR: &str = env!("CARGO_PKG_AUTHORS");
 
-#[derive(Default)]
 pub struct Cli {
     modeline: bool,
     rename: Rename,
     files: Vec<PathBuf>,
+}
+
+impl Default for Cli {
+    fn default() -> Self {
+        Self {
+            modeline: true,
+            rename: Rename::default(),
+            files: vec![],
+        }
+    }
 }
 
 impl Cli {
@@ -32,9 +41,7 @@ impl Cli {
                     Self::help();
                     std::process::exit(0);
                 }
-                Short('M') | Long("no-modeline") => {
-                    c.modeline = false;
-                }
+                Short('M') | Long("no-modeline") => c.modeline = false,
                 Short('a') | Long("prefix-alias") => c.rename.alias = true,
                 Short('c') | Long("prefix-class") => c.rename.class = true,
                 Value(val) => {
