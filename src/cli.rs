@@ -1,4 +1,4 @@
-use lemmy_help::LemmyHelp;
+use lemmy_help::{LemmyHelp, Rename};
 use lexopt::{
     Arg::{Long, Short, Value},
     Parser,
@@ -10,15 +10,16 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const DESC: &str = env!("CARGO_PKG_DESCRIPTION");
 pub const AUTHOR: &str = env!("CARGO_PKG_AUTHORS");
 
+#[derive(Default)]
 pub struct Cli {
-    files: Vec<PathBuf>,
     modeline: bool,
+    rename: Rename,
+    files: Vec<PathBuf>,
 }
 
 impl Cli {
     pub fn new() -> Result<Self, lexopt::Error> {
-        let mut files = vec![];
-        let mut modeline = true;
+        let mut c = Cli::default();
         let mut parser = Parser::from_env();
 
         while let Some(arg) = parser.next()? {
@@ -32,8 +33,9 @@ impl Cli {
                     std::process::exit(0);
                 }
                 Short('M') | Long("no-modeline") => {
-                    modeline = false;
+                    c.modeline = false;
                 }
+                Short('a') | Long("prefix-alias") => c.rename.alias = true,
                 Value(val) => {
                     let file = PathBuf::from(&val);
 
@@ -44,19 +46,19 @@ impl Cli {
                         ))));
                     }
 
-                    files.push(file)
+                    c.files.push(file)
                 }
                 _ => return Err(arg.unexpected()),
             }
         }
 
-        Ok(Self { files, modeline })
+        Ok(c)
     }
 
-    pub fn run(&self) {
-        let mut lemmy = LemmyHelp::new();
+    pub fn run(self) {
+        let mut lemmy = LemmyHelp::with_rename(self.rename);
 
-        for f in &self.files {
+        for f in self.files {
             let source = read_to_string(f).unwrap();
             lemmy.for_help(&source).unwrap();
         }
@@ -83,6 +85,7 @@ ARGS:
 
 OPTIONS:
     -M, --no-modeline       Don't print modeline at the end
+    -a, --prefix-alias      Prefix ---@alias tag with return/mod name
     -h, --help              Print help information
     -v, --version           Print version information
 "

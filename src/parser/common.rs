@@ -4,7 +4,7 @@ use chumsky::{select, Parser};
 
 use crate::{parser, TagType};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Prefix {
     pub left: Option<String>,
     pub right: Option<String>,

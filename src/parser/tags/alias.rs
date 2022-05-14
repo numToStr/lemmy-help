@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::{prelude::choice, select, Parser};
 
-use crate::{parser, TagType};
+use crate::{parser, Prefix, TagType};
 
 #[derive(Debug, Clone)]
 pub struct TypeDef {
@@ -20,13 +20,18 @@ pub enum AliasKind {
 pub struct Alias {
     pub name: String,
     pub kind: AliasKind,
+    pub prefix: Prefix,
 }
 
 parser!(Alias, {
     choice((
         select! {
             TagType::Alias { name, ty: Some(ty), desc } => {
-                Self { name, kind: AliasKind::Type(TypeDef { ty, desc }) }
+                Self {
+                    name,
+                    kind: AliasKind::Type(TypeDef { ty, desc }),
+                    prefix: Prefix::default(),
+                }
             },
         },
         select! { TagType::Alias { name, .. } => name }
@@ -35,15 +40,29 @@ parser!(Alias, {
                     .repeated()
                     .map(AliasKind::Enum),
             )
-            .map(|(name, kind)| Self { name, kind }),
+            .map(|(name, kind)| Self {
+                name,
+                kind,
+                prefix: Prefix::default(),
+            }),
     ))
 });
+
+impl Alias {
+    pub fn rename_tag(&mut self, tag: String) {
+        self.prefix.right = Some(tag);
+    }
+}
 
 impl Display for Alias {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use crate::{description, header};
 
-        header!(f, self.name)?;
+        if let Some(prefix) = &self.prefix.right {
+            header!(f, self.name, format!("{prefix}.{}", self.name))?;
+        } else {
+            header!(f, self.name)?;
+        }
 
         match &self.kind {
             AliasKind::Type(TypeDef { ty, desc }) => {

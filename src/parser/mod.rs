@@ -37,13 +37,22 @@ use chumsky::{prelude::Simple, Parser, Stream};
 // ---@return MY_TYPE[|OTHER_TYPE] [@comment]
 
 #[derive(Debug, Default)]
+pub struct Rename {
+    pub alias: bool,
+}
+
+#[derive(Debug, Default)]
 pub struct LemmyHelp {
+    rename: Rename,
     pub nodes: Vec<Node>,
 }
 
 impl LemmyHelp {
-    pub fn new() -> Self {
-        Self::default()
+    pub fn with_rename(rename: Rename) -> Self {
+        Self {
+            rename,
+            nodes: vec![],
+        }
     }
 
     pub fn parse(&mut self, src: &str) -> Result<&Self, Vec<Simple<TagType>>> {
@@ -79,6 +88,12 @@ impl LemmyHelp {
 
                             self.nodes.push(Node::Type(typ));
                         }
+                    }
+                    Node::Alias(mut alias) => {
+                        if self.rename.alias {
+                            alias.rename_tag(module.to_owned());
+                        }
+                        self.nodes.push(Node::Alias(alias))
                     }
                     _ => self.nodes.push(ele),
                 }

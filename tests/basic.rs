@@ -32,7 +32,7 @@ fn brief() {
     return U
     "#;
 
-    let mut lemmy = LemmyHelp::new();
+    let mut lemmy = LemmyHelp::default();
 
     lemmy.for_help(src).unwrap();
 
@@ -78,7 +78,7 @@ fn divider_and_tag() {
     return U
     ";
 
-    let mut lemmy = LemmyHelp::new();
+    let mut lemmy = LemmyHelp::default();
 
     lemmy.for_help(src).unwrap();
 
@@ -116,7 +116,7 @@ fn classes() {
     return U
     ";
 
-    let mut lemmy = LemmyHelp::new();
+    let mut lemmy = LemmyHelp::default();
 
     lemmy.for_help(src).unwrap();
 
@@ -190,7 +190,7 @@ fn functions() {
     return U
     "#;
 
-    let mut lemmy = LemmyHelp::new();
+    let mut lemmy = LemmyHelp::default();
 
     lemmy.for_help(src).unwrap();
 
@@ -271,7 +271,7 @@ fn module() {
     return U
     ";
 
-    let mut lemmy = LemmyHelp::new();
+    let mut lemmy = LemmyHelp::default();
 
     lemmy.for_help(src).unwrap();
 
@@ -345,7 +345,7 @@ fn alias_and_type() {
     return U
     "#;
 
-    let mut lemmy = LemmyHelp::new();
+    let mut lemmy = LemmyHelp::default();
 
     lemmy.for_help(src).unwrap();
 
@@ -425,7 +425,7 @@ fn private() {
     return U
     ";
 
-    let mut lemmy = LemmyHelp::new();
+    let mut lemmy = LemmyHelp::default();
 
     lemmy.for_help(src).unwrap();
 
