@@ -5,6 +5,38 @@ use chumsky::{select, Parser};
 use crate::{parser, Prefix, Scope, See, Table, TagType};
 
 #[derive(Debug, Clone)]
+pub struct Field {
+    pub scope: Scope,
+    pub name: String,
+    pub ty: String,
+    pub desc: Vec<String>,
+}
+
+parser!(Field, {
+    select! {
+        TagType::Comment(x) => x,
+        TagType::Empty => String::new()
+    }
+    .repeated()
+    .then(select! {
+        TagType::Field { scope, name, ty, desc } => (scope, name, ty, desc)
+    })
+    .map(|(header, (scope, name, ty, desc))| {
+        let desc = match desc {
+            Some(d) => vec![d],
+            None => header,
+        };
+
+        Self {
+            scope,
+            name,
+            ty,
+            desc,
+        }
+    })
+});
+
+#[derive(Debug, Clone)]
 pub struct Class {
     pub name: String,
     pub desc: Option<String>,
@@ -13,22 +45,9 @@ pub struct Class {
     pub prefix: Prefix,
 }
 
-#[derive(Debug, Clone)]
-pub struct Field {
-    pub scope: Scope,
-    pub name: String,
-    pub ty: String,
-    pub desc: Option<String>,
-}
-
 parser!(Class, {
     select! { TagType::Class(name, desc) => (name, desc) }
-        .then(
-            select! {
-                TagType::Field { scope, name, ty, desc } => Field { scope, name, ty, desc }
-            }
-            .repeated(),
-        )
+        .then(Field::parse().repeated())
         .then(See::parse())
         .map(|(((name, desc), fields), see)| Self {
             name,
@@ -68,7 +87,7 @@ impl Display for Class {
                     table.add_row([
                         &format!("{{{}}}", field.name),
                         &format!("({})", field.ty),
-                        field.desc.as_deref().unwrap_or_default(),
+                        &field.desc.join("\n"),
                     ]);
                 }
             }

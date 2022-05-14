@@ -186,6 +186,7 @@ A function contains multiple tags which form its structure. Like `---@param` for
 ```lua
 ---@comment
 ---@param <name> <type> <desc>
+---@comment
 ---@return <type> <name> <desc>
 ---@see <ref>
 ---@usage `<code>`
@@ -285,6 +286,7 @@ Classes can be used to better structure your code and can be referenced as an ar
 
 ```lua
 ---@class <name> <desc>
+---@comment
 ---@field [public|protected|private] <name> <type> <desc>
 ---@see <ref>
 ```
@@ -298,6 +300,9 @@ local H = {}
 ---@field legs number Total number of legs
 ---@field hands number Total number of hands
 ---@field brain boolean Does humans have brain?
+---Traits that one human can have
+---It could be one, two or hundered
+---@field trait table
 ---@field protected heart boolean Heart is protected
 ---@field private IQ number We need to hide this
 
@@ -325,6 +330,8 @@ Human                                                                    *Human*
         {legs}   (number)   Total number of legs
         {hands}  (number)   Total number of hands
         {brain}  (boolean)  Does humans have brain?
+        {trait}  (table)    Traits that one human can have
+                            It could be one, two or hundered
 
 
 H:create()                                                            *H:create*

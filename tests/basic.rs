@@ -113,6 +113,20 @@ fn classes() {
     ---@field protected __secret_1 number Secret ingredient first
     ---@field private __secret_2 number
 
+    ---@class CommentConfig Plugin's configuration
+    ---@field padding boolean Add a space b/w comment and the line
+    ---Whether the cursor should stay at its position
+    ---NOTE: This only affects NORMAL mode mappings and doesn't work with dot-repeat
+    ---
+    ---@field sticky boolean
+    ---Lines to be ignored while comment/uncomment.
+    ---Could be a regex string or a function that returns a regex string.
+    ---Example: Use '^$' to ignore empty lines
+    ---
+    ---@field ignore string|fun():string
+    ---@field pre_hook fun(ctx:CommentCtx):string Function to be called before comment/uncomment
+    ---@field post_hook fun(ctx:CommentCtx) Function to be called after comment/uncomment
+
     return U
     ";
 
@@ -140,6 +154,22 @@ SuperSecret                                                        *SuperSecret*
         {second}  (number)  Second ingredient
         {third}   (number)  Third ingredient
         {todo}    (number)
+
+
+CommentConfig                                                    *CommentConfig*
+    Plugin's configuration
+
+    Fields: ~
+        {padding}    (boolean)                     Add a space b/w comment and the line
+        {sticky}     (boolean)                     Whether the cursor should stay at its position
+                                                   NOTE: This only affects NORMAL mode mappings and doesn't work with dot-repeat
+
+        {ignore}     (string|fun():string)         Lines to be ignored while comment/uncomment.
+                                                   Could be a regex string or a function that returns a regex string.
+                                                   Example: Use '^$' to ignore empty lines
+
+        {pre_hook}   (fun(ctx:CommentCtx):string)  Function to be called before comment/uncomment
+        {post_hook}  (fun(ctx:CommentCtx))         Function to be called after comment/uncomment
 
 
 "
