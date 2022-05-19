@@ -138,7 +138,8 @@ impl Emmy {
         let tag = just('@').ignore_then(choice((
             private.to(TagType::Skip),
             just("mod")
-                .ignore_then(ty.padded())
+                .then_ignore(whitespace())
+                .ignore_then(ty)
                 .then(desc.clone())
                 .map(|(name, desc)| TagType::Module { name, desc }),
             just("divider")

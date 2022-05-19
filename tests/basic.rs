@@ -271,9 +271,18 @@ fn module() {
     return U
     ";
 
+    let src2 = r#"
+    ---@mod wo.desc
+
+    local U = {}
+
+    return U
+    "#;
+
     let mut lemmy = LemmyHelp::default();
 
     lemmy.for_help(src).unwrap();
+    lemmy.for_help(src2).unwrap();
 
     assert_eq!(
         lemmy.to_string(),
@@ -308,6 +317,9 @@ U:create()                                                    *mod.Human:create*
             require('Human'):create()
         <
 
+
+================================================================================
+                                                                       *wo.desc*
 
 "
     )
