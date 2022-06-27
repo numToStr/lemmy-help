@@ -1,4 +1,4 @@
-use lemmy_help::{LemmyHelp, Rename};
+use lemmy_help::{LemmyHelp, LemmyResult, Rename};
 use lexopt::{
     Arg::{Long, Short, Value},
     Parser,
@@ -63,12 +63,12 @@ impl Cli {
         Ok(c)
     }
 
-    pub fn run(self) {
+    pub fn run(self) -> LemmyResult<()> {
         let mut lemmy = LemmyHelp::with_rename(self.rename);
 
         for f in self.files {
-            let source = read_to_string(f).unwrap();
-            lemmy.for_help(&source).unwrap();
+            let source = read_to_string(f)?;
+            lemmy.for_help(&source)?;
         }
 
         print!("{lemmy}");
@@ -76,6 +76,8 @@ impl Cli {
         if self.modeline {
             println!("vim:tw=78:ts=8:noet:ft=help:norl:");
         }
+
+        Ok(())
     }
 
     pub fn help() {

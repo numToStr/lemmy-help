@@ -11,7 +11,9 @@ pub use tags::*;
 
 use std::fmt::Display;
 
-use chumsky::{prelude::Simple, Parser, Stream};
+use chumsky::{Parser, Stream};
+
+use crate::{LemmyError, LemmyResult};
 
 // A TYPE could be
 // - primary = string|number|boolean
@@ -56,14 +58,14 @@ impl LemmyHelp {
         }
     }
 
-    pub fn parse(&mut self, src: &str) -> Result<&Self, Vec<Simple<TagType>>> {
+    pub fn parse(&mut self, src: &str) -> LemmyResult<&Self> {
         self.nodes.append(&mut Self::lex(src)?);
 
         Ok(self)
     }
 
     /// Prepare nodes for help doc generation
-    pub fn for_help(&mut self, src: &str) -> Result<&Self, Vec<Simple<TagType>>> {
+    pub fn for_help(&mut self, src: &str) -> LemmyResult<&Self> {
         let mut nodes = Self::lex(src)?;
 
         if let Some(Node::Export(export)) = nodes.pop() {
@@ -110,11 +112,15 @@ impl LemmyHelp {
         Ok(self)
     }
 
-    fn lex(src: &str) -> Result<Vec<Node>, Vec<Simple<TagType>>> {
-        let tokens = Emmy::parse(src).unwrap();
+    fn lex(src: &str) -> LemmyResult<Vec<Node>> {
+        let tokens = Emmy::parse(src).map_err(LemmyError::Lexer)?;
         let stream = Stream::from_iter(src.len()..src.len() + 1, tokens.into_iter());
 
-        Node::parse().repeated().flatten().parse(stream)
+        Node::parse()
+            .repeated()
+            .flatten()
+            .parse(stream)
+            .map_err(LemmyError::Parser)
     }
 }
 
