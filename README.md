@@ -39,13 +39,35 @@ To properly generate docs you should follow emmylua spec. The parser is capable 
 
 Using the CLI is simple just give it the path to the lua files; it will parse them and prints the help doc to **stdout**
 
-> NOTE: The **order** of parsing + rendering is same as in which they are defined
-
 ```bash
-lemmy-help \
-    "/path/to/first/file" \
-    "/path/to/second/file" \
-    "/path/to/third/file" > doc.txt
+lemmy-help /path/to/{first,second,third}.lua > doc.txt
+```
+
+### Cli
+
+```help
+lemmy-help
+
+USAGE:
+    lemmy-help [FILES]...
+
+ARGS:
+    <FILES>...              Path to the files
+
+OPTIONS:
+    -M, --no-modeline       Don't print modeline at the end
+    -a, --prefix-alias      Prefix ---@alias tag with return/mod name
+    -c, --prefix-class      Prefix ---@class tag with return/mod name
+    -h, --help              Print help information
+    -v, --version           Print version information
+
+USAGE:
+    lemmy-help /path/to/first.lua /path/to/second.lua > doc.txt
+    lemmy-help -c -a /path/to/{first,second,third}.lua > doc.txt
+
+NOTES:
+    - The order of parsing + rendering is relative to the given files
+    - Types and Functions will be prefixed with ---@mod name
 ```
 
 ### Credits
