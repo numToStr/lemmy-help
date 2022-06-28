@@ -103,7 +103,7 @@ USAGE:
     {NAME} -c -a /path/to/{{first,second,third}}.lua > doc.txt
 
 NOTES:
-    - The order of parsing + rendering relative to the given files
+    - The order of parsing + rendering is relative to the given files
     - Types and Functions will be prefixed with ---@mod name
 "
         );
