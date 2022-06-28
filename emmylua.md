@@ -436,6 +436,7 @@ You can also define a (pseudo) enum using [`---@alias`](#alias).
 local U = {}
 
 ---@alias VMode
+---Vim operator-mode motions. Read `:h map-operator`
 ---| 'line' Vertical motion
 ---| 'char' Horizontal motion
 ---| 'v'
@@ -452,6 +453,7 @@ return U
 
 ```help
 VMode                                                                    *VMode*
+    Vim operator-mode motions. Read `:h map-operator`
 
     Variants: ~
         ('line')  Vertical motion

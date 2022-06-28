@@ -97,6 +97,14 @@ OPTIONS:
     -c, --prefix-class      Prefix ---@class tag with return/mod name
     -h, --help              Print help information
     -v, --version           Print version information
+
+USAGE:
+    {NAME} /path/to/first.lua /path/to/second.lua > doc.txt
+    {NAME} -c -a /path/to/{{first,second,third}}.lua > doc.txt
+
+NOTES:
+    - The order of parsing + rendering relative to the given files
+    - Types and Functions will be prefixed with ---@mod name
 "
         );
     }
