@@ -13,7 +13,7 @@ pub struct TypeDef {
 #[derive(Debug, Clone)]
 pub enum AliasKind {
     Type(TypeDef),
-    Enum(Vec<TypeDef>),
+    Enum(Vec<String>, Vec<TypeDef>),
 }
 
 #[derive(Debug, Clone)]
@@ -35,14 +35,11 @@ parser!(Alias, {
             },
         },
         select! { TagType::Alias { name, .. } => name }
-            .then(
-                select! { TagType::Variant(ty, desc) => TypeDef { ty, desc } }
-                    .repeated()
-                    .map(AliasKind::Enum),
-            )
-            .map(|(name, kind)| Self {
+            .then(select! { TagType::Comment(x) => x }.repeated())
+            .then(select! { TagType::Variant(ty, desc) => TypeDef { ty, desc } }.repeated())
+            .map(|((name, desc), variants)| Self {
                 name,
-                kind,
+                kind: AliasKind::Enum(desc, variants),
                 prefix: Prefix::default(),
             }),
     ))
@@ -71,7 +68,8 @@ impl Display for Alias {
                 description!(f, "Type: ~")?;
                 writeln!(f, "{:>w$}", ty, w = 8 + ty.len())?;
             }
-            AliasKind::Enum(variants) => {
+            AliasKind::Enum(desc, variants) => {
+                description!(f, &desc.join("\n"))?;
                 writeln!(f)?;
                 description!(f, "Variants: ~")?;
 
