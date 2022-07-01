@@ -8,8 +8,30 @@ use crate::{parser, Kind, Prefix, See, Table, TagType, Usage};
 pub struct Param {
     pub name: String,
     pub ty: String,
-    pub desc: Option<String>,
+    pub desc: Vec<String>,
 }
+
+parser!(Param, {
+    select! { TagType::Param { name, ty, desc } => (name, ty, desc) }
+        .then(
+            select! {
+                TagType::Comment(x) => x,
+                TagType::Empty => String::new()
+            }
+            .repeated(),
+        )
+        .map(|((name, ty, desc), extra)| {
+            let desc = match desc {
+                Some(d) => Vec::from([d])
+                    .into_iter()
+                    .chain(extra.into_iter())
+                    .collect(),
+                None => extra,
+            };
+
+            Self { name, ty, desc }
+        })
+});
 
 #[derive(Debug, Clone)]
 pub struct Return {
@@ -36,7 +58,7 @@ parser!(Func, {
         TagType::Empty => String::new()
     }
     .repeated()
-    .then(select! { TagType::Param { name, ty, desc } => Param { name, ty, desc } }.repeated())
+    .then(Param::parse().repeated())
     .then(select! { TagType::Return { ty, name, desc } => Return { ty, name, desc } }.repeated())
     .then(See::parse())
     .then(Usage::parse().or_not())
@@ -112,7 +134,7 @@ impl Display for Func {
                 table.add_row([
                     &format!("{{{}}}", param.name),
                     &format!("({})", param.ty),
-                    param.desc.as_deref().unwrap_or_default(),
+                    &param.desc.join("\n"),
                 ]);
             }
 

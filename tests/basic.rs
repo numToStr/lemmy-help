@@ -277,6 +277,85 @@ U.magical({this}, {that})                                            *U.magical*
 }
 
 #[test]
+fn multiline_param() {
+    let src = r#"
+    local U = {}
+
+    ---Trigger a rebuild of one or more projects.
+    ---@param opts table|nil optional configuration options:
+    ---  * {select_mode} (JdtProjectSelectMode) Show prompt
+    ---     to select projects or select all. Defaults
+    ---     to 'prompt'
+    ---
+    ---  * {full_build} (boolean) full rebuild or
+    ---     incremental build. Defaults to true (full build)
+    ---@param reserverd table|nil reserved for the future use
+    ---@return boolean
+    function U.multi_line(opts, reserverd)
+        print(vim.inspect(opts), vim.inspect(reserverd))
+
+        return true
+    end
+
+    ---Multiline but missing description
+    ---@param n number
+    ---This is a special
+    ---
+    ---number
+    ---@param m number
+    ---And this is also
+    ---
+    ---@return number
+    function U.missing_desc(n, m)
+        return n + m
+    end
+
+    return U
+    "#;
+
+    let mut lemmy = LemmyHelp::default();
+
+    lemmy.for_help(src).unwrap();
+
+    assert_eq!(
+        lemmy.to_string(),
+        "\
+U.multi_line({opts}, {reserverd})                                 *U.multi_line*
+    Trigger a rebuild of one or more projects.
+
+    Parameters: ~
+        {opts}       (table|nil)  optional configuration options:
+                                    * {select_mode} (JdtProjectSelectMode) Show prompt
+                                       to select projects or select all. Defaults
+                                       to 'prompt'
+
+                                    * {full_build} (boolean) full rebuild or
+                                       incremental build. Defaults to true (full build)
+        {reserverd}  (table|nil)  reserved for the future use
+
+    Returns: ~
+        {boolean}
+
+
+U.missing_desc({n}, {m})                                        *U.missing_desc*
+    Multiline but missing description
+
+    Parameters: ~
+        {n}  (number)  This is a special
+
+                       number
+        {m}  (number)  And this is also
+
+
+    Returns: ~
+        {number}
+
+
+"
+    )
+}
+
+#[test]
 fn module() {
     let src = "
     ---@mod mod.intro Introduction
