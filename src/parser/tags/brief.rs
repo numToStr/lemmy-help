@@ -22,7 +22,6 @@ parser!(Brief, {
 
 impl Display for Brief {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // TODO: add formatting
         writeln!(f, "{}", self.desc.join("\n"))
     }
 }

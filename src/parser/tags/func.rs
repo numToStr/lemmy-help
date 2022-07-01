@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{parser, Kind, Prefix, See, TagType, Usage};
+use crate::{parser, Kind, Prefix, See, Table, TagType, Usage};
 
 #[derive(Debug, Clone)]
 pub struct Param {
@@ -106,15 +106,14 @@ impl Display for Func {
         if !self.params.is_empty() {
             description!(f, "Parameters: ~")?;
 
-            let mut table = tabular::Table::new("        {:<}  {:<}  {:<}");
+            let mut table = Table::new();
 
             for param in &self.params {
-                table.add_row(
-                    tabular::Row::new()
-                        .with_cell(&format!("{{{}}}", param.name))
-                        .with_cell(&format!("({})", param.ty))
-                        .with_cell(param.desc.as_deref().unwrap_or_default()),
-                );
+                table.add_row([
+                    &format!("{{{}}}", param.name),
+                    &format!("({})", param.ty),
+                    param.desc.as_deref().unwrap_or_default(),
+                ]);
             }
 
             writeln!(f, "{table}")?;
@@ -123,19 +122,16 @@ impl Display for Func {
         if !self.returns.is_empty() {
             description!(f, "Returns: ~")?;
 
-            let mut table = tabular::Table::new("        {:<}  {:<}");
+            let mut table = Table::new();
 
             for entry in &self.returns {
-                table.add_row(
-                    tabular::Row::new()
-                        .with_cell(&format!("{{{}}}", entry.ty))
-                        .with_cell(
-                            entry
-                                .desc
-                                .as_deref()
-                                .unwrap_or_else(|| entry.name.as_deref().unwrap_or_default()),
-                        ),
-                );
+                table.add_row([
+                    &format!("{{{}}}", entry.ty),
+                    entry
+                        .desc
+                        .as_deref()
+                        .unwrap_or_else(|| entry.name.as_deref().unwrap_or_default()),
+                ]);
             }
 
             writeln!(f, "{table}")?;

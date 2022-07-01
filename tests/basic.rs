@@ -139,7 +139,7 @@ SuperSecret                                                        *SuperSecret*
         {first}   (number)  First ingredient
         {second}  (number)  Second ingredient
         {third}   (number)  Third ingredient
-        {todo}    (number)  
+        {todo}    (number)
 
 
 "
@@ -201,18 +201,18 @@ fn functions() {
 
     Parameters: ~
         {this}  (number)  First number
-        {that}  (number)  
+        {that}  (number)
 
 
 U.sub({this}, {that})                                                    *U.sub*
     Subtract second from the first integer
 
     Parameters: ~
-        {this}  (number)  
+        {this}  (number)
         {that}  (number)  Second number
 
     Returns: ~
-        {number}  
+        {number}
 
     Usage: ~
         >
@@ -303,14 +303,14 @@ U.DEFAULT                                                    *mod.Human.DEFAULT*
     Default traits of a human
 
     Type: ~
-        (Human)  
+        (Human)
 
 
 U:create()                                                    *mod.Human:create*
     Creates a Human
 
     Returns: ~
-        {Human}  
+        {Human}
 
     Usage: ~
         >
@@ -385,7 +385,7 @@ VMode                                                                    *VMode*
     Variants: ~
         ('line')  Vertical motion
         ('char')  Horizontal motion
-        ('v')     
+        ('v')
         ('V')     Visual Line Mode
 
 
@@ -393,7 +393,7 @@ U.get_all()                                                          *U.get_all*
     Returns all the content of the buffer
 
     Returns: ~
-        {Lines}  
+        {Lines}
 
 
 U.LINES                                                                *U.LINES*
@@ -407,7 +407,7 @@ U.VMODE                                                                *U.VMODE*
     Global vim mode
 
     Type: ~
-        (VMode)  
+        (VMode)
 
 
 "
