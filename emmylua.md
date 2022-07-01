@@ -350,6 +350,21 @@ U.magical = function(this, that)
     return (U.mul(this, that) / U.sum(that, this)), (U.sum(this, that) * U.sub(that, this))
 end
 
+---Trigger a rebuild of one or more projects.
+---@param opts table|nil optional configuration options:
+---  * {select_mode} (JdtProjectSelectMode) Show prompt
+---     to select projects or select all. Defaults
+---     to 'prompt'
+---
+---  * {full_build} (boolean) full rebuild or
+---     incremental build. Defaults to true (full build)
+---@param reserverd table|nil reserved for the future use
+---@return boolean
+function U.multi_line(opts, reserverd)
+    print(vim.inspect(opts), vim.inspect(reserverd))
+    return true
+end
+
 return U
 ```
 
@@ -395,6 +410,23 @@ U.magical({this}, {that})                                            *U.magical*
         |U.mul|
         |U.sum|
         |U.sub|
+
+
+U.multi_line({opts}, {reserverd})                                 *U.multi_line*
+    Trigger a rebuild of one or more projects.
+
+    Parameters: ~
+        {opts}       (table|nil)  optional configuration options:
+                                    * {select_mode} (JdtProjectSelectMode) Show prompt
+                                       to select projects or select all. Defaults
+                                       to 'prompt'
+
+                                    * {full_build} (boolean) full rebuild or
+                                       incremental build. Defaults to true (full build)
+        {reserverd}  (table|nil)  reserved for the future use
+
+    Returns: ~
+        {boolean}
 ```
 
 ### Class
