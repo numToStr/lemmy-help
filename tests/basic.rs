@@ -334,8 +334,10 @@ fn alias_and_type() {
 
     ---@alias Lines string[] All the lines in the buffer
 
+    ---Vim operator-mode motions.
+    ---
+    ---Read `:h map-operator`
     ---@alias VMode
-    ---Vim operator-mode motions. Read `:h map-operator`
     ---| 'line' Vertical motion
     ---| 'char' Horizontal motion
     ---| 'v'
@@ -380,7 +382,9 @@ Lines                                                                    *Lines*
 
 
 VMode                                                                    *VMode*
-    Vim operator-mode motions. Read `:h map-operator`
+    Vim operator-mode motions.
+
+    Read `:h map-operator`
 
     Variants: ~
         ('line')  Vertical motion

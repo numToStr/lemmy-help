@@ -34,14 +34,18 @@ parser!(Alias, {
                 }
             },
         },
-        select! { TagType::Alias { name, .. } => name }
-            .then(select! { TagType::Comment(x) => x }.repeated())
-            .then(select! { TagType::Variant(ty, desc) => TypeDef { ty, desc } }.repeated())
-            .map(|((name, desc), variants)| Self {
-                name,
-                kind: AliasKind::Enum(desc, variants),
-                prefix: Prefix::default(),
-            }),
+        select! {
+            TagType::Comment(x) => x,
+            TagType::Empty => String::new()
+        }
+        .repeated()
+        .then(select! { TagType::Alias { name, .. } => name })
+        .then(select! { TagType::Variant(ty, desc) => TypeDef { ty, desc } }.repeated())
+        .map(|((desc, name), variants)| Self {
+            name,
+            kind: AliasKind::Enum(desc, variants),
+            prefix: Prefix::default(),
+        }),
     ))
 });
 

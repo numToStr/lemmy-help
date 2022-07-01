@@ -128,8 +128,10 @@ end
 
 -- You can define a (psuedo) enum using `alias`
 
+---Vim operator-mode motions.
+---
+---Read `:h map-operator`
 ---@alias VMode
----Vim operator-mode motions. Read `:h map-operator`
 ---| 'line' Vertical motion
 ---| 'char' Horizontal motion
 ---| 'v'
