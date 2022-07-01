@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{parser, Prefix, Scope, See, TagType};
+use crate::{parser, Prefix, Scope, See, Table, TagType};
 
 #[derive(Debug, Clone)]
 pub struct Class {
@@ -61,16 +61,15 @@ impl Display for Class {
         if !self.fields.is_empty() {
             description!(f, "Fields: ~")?;
 
-            let mut table = tabular::Table::new("        {:<}  {:<}  {:<}");
+            let mut table = Table::new();
 
             for field in &self.fields {
                 if field.scope == Scope::Public {
-                    table.add_row(
-                        tabular::Row::new()
-                            .with_cell(&format!("{{{}}}", field.name))
-                            .with_cell(&format!("({})", field.ty))
-                            .with_cell(field.desc.as_deref().unwrap_or_default()),
-                    );
+                    table.add_row([
+                        &format!("{{{}}}", field.name),
+                        &format!("({})", field.ty),
+                        field.desc.as_deref().unwrap_or_default(),
+                    ]);
                 }
             }
 

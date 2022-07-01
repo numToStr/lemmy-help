@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{parser, Kind, Prefix, TagType, Usage};
+use crate::{parser, Kind, Prefix, Table, TagType, Usage};
 
 #[derive(Debug, Clone)]
 pub struct Type {
@@ -72,13 +72,12 @@ impl Display for Type {
 
         description!(f, "Type: ~")?;
 
-        let mut table = tabular::Table::new("        {:<}  {:<}");
+        let mut table = Table::new();
 
-        table.add_row(
-            tabular::Row::new()
-                .with_cell(&format!("({})", self.ty))
-                .with_cell(self.desc.as_deref().unwrap_or_default()),
-        );
+        table.add_row([
+            &format!("({})", self.ty),
+            self.desc.as_deref().unwrap_or_default(),
+        ]);
 
         writeln!(f, "{table}")?;
 

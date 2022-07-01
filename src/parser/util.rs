@@ -1,3 +1,27 @@
+pub struct Table(comfy_table::Table);
+
+impl Table {
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
+        let mut tbl = comfy_table::Table::new();
+        tbl.load_preset(comfy_table::presets::NOTHING);
+        // tbl.column_iter_mut().map(|c| c.set_padding((0, 0)));
+
+        Self(tbl)
+    }
+
+    pub fn add_row<T: Into<comfy_table::Row>>(&mut self, row: T) -> &Self {
+        self.0.add_row(row);
+        self
+    }
+}
+
+impl std::fmt::Display for Table {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "{}", textwrap::indent(&self.0.trim_fmt(), "       "))
+    }
+}
+
 #[macro_export]
 macro_rules! parser {
     ($id: ident, $ret: ty, $body: expr) => {

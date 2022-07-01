@@ -36,9 +36,9 @@ User                                                                    *U.User*
 
 
     Fields: ~
-        {name}   (string)  
-        {email}  (string)  
-        {id}     (ID)      
+        {name}   (string)
+        {email}  (string)
+        {id}     (ID)
 
 
 "
@@ -86,9 +86,9 @@ User                                                              *awesome.User*
 
 
     Fields: ~
-        {name}   (string)  
-        {email}  (string)  
-        {id}     (ID)      
+        {name}   (string)
+        {email}  (string)
+        {id}     (ID)
 
 
 "

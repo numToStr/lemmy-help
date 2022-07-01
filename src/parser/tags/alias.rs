@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::{prelude::choice, select, Parser};
 
-use crate::{parser, Prefix, TagType};
+use crate::{parser, Prefix, Table, TagType};
 
 #[derive(Debug, Clone)]
 pub struct TypeDef {
@@ -73,13 +73,12 @@ impl Display for Alias {
                 writeln!(f)?;
                 description!(f, "Variants: ~")?;
 
-                let mut table = tabular::Table::new("        {:<}  {:<}");
+                let mut table = Table::new();
                 for v in variants {
-                    table.add_row(
-                        tabular::Row::new()
-                            .with_cell(&format!("({})", v.ty))
-                            .with_cell(v.desc.as_deref().unwrap_or_default()),
-                    );
+                    table.add_row([
+                        &format!("({})", v.ty),
+                        v.desc.as_deref().unwrap_or_default(),
+                    ]);
                 }
 
                 write!(f, "{table}")?;

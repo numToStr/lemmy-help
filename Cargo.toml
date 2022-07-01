@@ -34,8 +34,8 @@ version = "0.15.0"
 default-features = false
 # optional = true
 
-[dependencies.tabular]
-version = "0.2.0"
+[dependencies.comfy-table]
+version = "6.0.0"
 default-features = false
 # optional = true
 
