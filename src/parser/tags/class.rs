@@ -15,7 +15,6 @@ pub struct Field {
 parser!(Field, {
     select! {
         TagType::Comment(x) => x,
-        TagType::Empty => String::new()
     }
     .repeated()
     .then(select! {

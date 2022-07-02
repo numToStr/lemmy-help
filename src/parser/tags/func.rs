@@ -16,7 +16,6 @@ parser!(Param, {
         .then(
             select! {
                 TagType::Comment(x) => x,
-                TagType::Empty => String::new()
             }
             .repeated(),
         )
@@ -55,7 +54,6 @@ pub struct Func {
 parser!(Func, {
     select! {
         TagType::Comment(x) => x,
-        TagType::Empty => String::new()
     }
     .repeated()
     .then(Param::parse().repeated())
