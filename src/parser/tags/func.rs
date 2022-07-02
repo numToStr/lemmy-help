@@ -33,7 +33,7 @@ pub struct Func {
 parser!(Func, {
     select! {
         TagType::Comment(x) => x,
-        TagType::Empty => "\n".to_string()
+        TagType::Empty => String::new()
     }
     .repeated()
     .then(select! { TagType::Param { name, ty, desc } => Param { name, ty, desc } }.repeated())

@@ -160,6 +160,8 @@ fn functions() {
     end
 
     ---Add two integer and print it
+    ---
+    ---NOTE: This will be part of the public API
     ---@param this number First number
     ---@param that number
     function U.sum(this, that)
@@ -170,7 +172,7 @@ fn functions() {
     ---@param this number
     ---@param that number Second number
     ---@return number
-    ---@usage `require("module.U").sub(10, 5)`
+    ---@usage `require('module.U').sub(10, 5)`
     function U.sub(this, that)
         return this - that
     end
@@ -196,8 +198,11 @@ fn functions() {
 
     assert_eq!(
         lemmy.to_string(),
-        r#"U.sum({this}, {that})                                                    *U.sum*
+        "\
+U.sum({this}, {that})                                                    *U.sum*
     Add two integer and print it
+
+    NOTE: This will be part of the public API
 
     Parameters: ~
         {this}  (number)  First number
@@ -216,7 +221,7 @@ U.sub({this}, {that})                                                    *U.sub*
 
     Usage: ~
         >
-            require("module.U").sub(10, 5)
+            require('module.U').sub(10, 5)
         <
 
 
@@ -237,7 +242,7 @@ U.magical({this}, {that})                                            *U.magical*
         |U.sub|
 
 
-"#
+"
     )
 }
 

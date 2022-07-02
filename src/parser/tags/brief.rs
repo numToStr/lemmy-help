@@ -13,7 +13,7 @@ pub struct Brief {
 parser!(Brief, {
     select! {
         TagType::Comment(x) => x,
-        TagType::Empty => "".into()
+        TagType::Empty => String::new()
     }
     .repeated()
     .delimited_by(just(TagType::BriefStart), just(TagType::BriefEnd))
