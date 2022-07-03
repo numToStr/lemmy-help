@@ -70,6 +70,36 @@ NOTES:
     - Types and Functions will be prefixed with ---@mod name
 ```
 
+### CI
+
+```yaml
+name: lemmy-help
+
+on: [push]
+
+env:
+  PLUGIN_NAME: plugin-name
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    name: emmylua to vimdoc
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Generating help
+        run: |
+          curl -Lq https://github.com/numToStr/lemmy-help/releases/latest/download/lemmy-help-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./lemmy-help [args] <path> > doc/${{env.PLUGIN_NAME}}.txt
+
+      - name: Commit
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          branch: ${{ github.head_ref }}
+          commit_message: "chore(docs): auto-generate vimdoc"
+          file_pattern: doc/*.txt
+```
+
 ### Credits
 
 - TJ's [docgen](https://github.com/tjdevries/tree-sitter-lua#docgen) module
