@@ -2,14 +2,13 @@
 
 [x] optional description
 [x] simple comments (bcz comments can appear before @class)
-[ ] @vararg
 [x] optional parameters (but IDK how to render is nicely)
 [ ] expand `Ty`
 [x] description in return
 [x] consider 80 char width
 [x] @usage/@example
-[ ] multiline @params description
-[ ] support table as param
+[x] multiline @param description
+[x] multiline @field description
 [x] multiple @see reference
 [x] func w/ no returns or no params
 [x] return with only type
@@ -25,3 +24,7 @@
     [x] ---@private
     [ ] ---@toc-entry & ---@toc-slot
 [ ] Error handling
+
+## Dropped
+
+[ ] @vararg
