@@ -17,12 +17,12 @@
 [x] enum via @alias
 [ ] also support string as an entry alongside path
 [x] long names
-[-] Non-Standard tags (should not interfere with LSP)
+[x] Non-Standard tags (should not interfere with LSP)
     [x] ---@module <tag> <description>
             (override the tagged name prefix like *U.comment* -> *comment-comment*)
     [x] ---@divider <char>
     [x] ---@private
-    [ ] ---@toc-entry & ---@toc-slot
+    [x] ---@toc <tag>
 [ ] Error handling
 
 ## Dropped

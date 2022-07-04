@@ -17,6 +17,7 @@ pub enum Scope {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TagType {
+    Toc(String),
     Module {
         name: String,
         desc: Option<String>,
@@ -137,6 +138,10 @@ impl Emmy {
 
         let tag = just('@').ignore_then(choice((
             private.to(TagType::Skip),
+            just("toc")
+                .then_ignore(whitespace())
+                .ignore_then(comment.clone())
+                .map(TagType::Toc),
             just("mod")
                 .then_ignore(whitespace())
                 .ignore_then(ty)

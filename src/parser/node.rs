@@ -18,6 +18,7 @@ pub enum Node {
     Alias(Alias),
     Type(Type),
     Export(String),
+    Toc(String),
 }
 
 parser!(Node, Option<Self>, {
@@ -30,11 +31,13 @@ parser!(Node, Option<Self>, {
         Class::parse().map(Self::Class),
         Alias::parse().map(Self::Alias),
         Type::parse().map(Self::Type),
-        // We need this to match exported types/funcs etc.
-        select! { TagType::Export(x) => Self::Export(x) },
+        select! {
+            TagType::Export(x) => Self::Export(x),
+            TagType::Toc(x) => Self::Toc(x),
+        },
     ))
     .map(Some)
-    // This will skip useless nodes
+    // Skip useless nodes
     .or(any().to(None))
 });
 

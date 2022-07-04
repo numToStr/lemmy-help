@@ -379,6 +379,49 @@ U:create()                                                    *mod.Human:create*
 }
 
 #[test]
+fn table_of_contents() {
+    let src = "
+    ---@toc my-plugin.contents
+
+    ---@mod first.module First Module
+
+    ---@mod second.module Second Module
+
+    ---@mod third.module Third Module
+
+    local U = {}
+
+    return U
+    ";
+
+    let mut lemmy = LemmyHelp::default();
+
+    lemmy.for_help(src).unwrap();
+
+    assert_eq!(
+        lemmy.to_string(),
+        "\
+================================================================================
+Table of Contents                                           *my-plugin.contents*
+
+First Module······················································|first.module|
+Second Module····················································|second.module|
+Third Module······················································|third.module|
+
+================================================================================
+First Module                                                      *first.module*
+
+================================================================================
+Second Module                                                    *second.module*
+
+================================================================================
+Third Module                                                      *third.module*
+
+"
+    );
+}
+
+#[test]
 fn alias_and_type() {
     let src = r#"
     local U = {}

@@ -120,7 +120,32 @@ impl LemmyHelp {
 impl Display for LemmyHelp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for node in &self.nodes {
-            writeln!(f, "{}", node)?;
+            if let Node::Toc(x) = node {
+                writeln!(
+                    f,
+                    "{}",
+                    Module {
+                        name: x.to_string(),
+                        desc: Some("Table of Contents".into())
+                    }
+                )?;
+
+                for nodde in &self.nodes {
+                    if let Node::Module(x) = nodde {
+                        let desc = x.desc.as_deref().unwrap_or_default();
+
+                        writeln!(
+                            f,
+                            "{desc}{}",
+                            format_args!("{:·>w$}", format!("|{}|", x.name), w = 80 - desc.len())
+                        )?;
+                    }
+                }
+
+                writeln!(f)?;
+            } else {
+                writeln!(f, "{node}")?;
+            }
         }
 
         write!(f, "")
