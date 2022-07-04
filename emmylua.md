@@ -9,7 +9,7 @@ Following are the tags that you can use to create docs
 
 ### Brief
 
-A `brief` can be used to describe a module or even to add some footnote etc.
+This tag can be used to describe a module or even to add some footnote etc.
 
 - Syntax
 
@@ -75,12 +75,14 @@ NOTE: remember there is no formatting or text wrapping
 
 ### Module
 
-This can be used to add a heading for the module and change the prefix of every exported _function and type_.
+This tag can be used to add a heading for a section. This tag also has the following properties:
 
-> NOTE:
->
-> 1. This can appear multiple times in a file but only the last `---@mod` will be used to rename prefixes.
-> 2. Also adds a entries in the [`Table of Contents`](#table-of-contents)
+1. This can appear multiple times in a file but only the last `---@mod` will be used to rename prefixes.
+
+   > Use `--prefix-{func,alias,class,type}` cli options to rename function, alias, class, and type name prefixes relatively
+   > See [`tests/renaming`](./tests/renaming.rs)
+
+2. Also adds a entries in the [`Table of Contents`](#table-of-contents)
 
 - Syntax
 
@@ -173,14 +175,14 @@ Human                                                                    *Human*
         {brain}  (boolean)  Does humans have brain?
 
 
-U.DEFAULT                                                    *mod.Human.DEFAULT*
+U.DEFAULT                                                            *U.DEFAULT*
     Default traits of a human
 
     Type: ~
         (Human)
 
 
-U:create()                                                    *mod.Human:create*
+U:create()                                                            *U:create*
     Creates a Human
 
     Returns: ~
@@ -194,7 +196,7 @@ U:create()                                                    *mod.Human:create*
 
 ### Table of Contents
 
-Following tag can be used to generate a _Table of Contents_ section. It uses [`---@mod`](#module) tags for the entries.
+This tag can be used to generate a _Table of Contents_ section. It uses [`---@mod`](#module) tags for the entries.
 
 - Syntax
 
@@ -240,7 +242,7 @@ Third Module                                                      *third.module*
 
 ### Tag
 
-This can used to create an alternate tag for your module, functions etc.
+This tag can used to create an alternate tag for your module, functions etc.
 
 - Syntax
 
@@ -525,7 +527,7 @@ U.chai                                                                  *U.chai*
 
 ### Alias
 
-This can be used to make a type alias. It is helpful if you are using the same the type multiple times.
+This tag can be used to make a type alias. It is helpful if you are using the same the type multiple times.
 
 - Syntax
 
@@ -568,7 +570,7 @@ U.get_all()                                                          *U.get_all*
 
 ### Enum
 
-You can also define a (pseudo) enum using [`---@alias`](#alias).
+You can define a (pseudo) enum using [`---@alias`](#alias).
 
 - Input
 
@@ -615,7 +617,13 @@ U.VMODE                                                                *U.VMODE*
 
 ### Private
 
-You can use `---@private` tag to discard any part of the code that is exported but it is not considered to be a part of the public API
+This tag can be used to discard any part of the code that is exported but it is not considered to be a part of the public API
+
+- Syntax
+
+```lua
+---@private
+```
 
 - Input
 

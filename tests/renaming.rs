@@ -1,26 +1,39 @@
 use lemmy_help::{LemmyHelp, Rename};
 
+const CODE: &str = r#"
+local U = {}
+
+---@alias ID string
+
+---@class User
+---@field name string
+---@field email string
+---@field id ID
+
+---A Pi
+---@type number
+U.Pi = 3.14
+
+---Creates a PI
+---@return number
+---@usage `require('Pi'):create()`
+function U:create()
+    return self.Pi
+end
+
+return U
+"#;
+
 #[test]
 fn rename_with_return() {
-    let src = r#"
-    local U = {}
-
-    ---@alias ID string
-
-    ---@class User
-    ---@field name string
-    ---@field email string
-    ---@field id ID
-
-    return U
-    "#;
-
     let mut lemmy = LemmyHelp::with_rename(Rename {
-        class: true,
+        func: true,
         alias: true,
+        class: true,
+        r#type: true,
     });
 
-    lemmy.for_help(src).unwrap();
+    lemmy.for_help(CODE).unwrap();
 
     assert_eq!(
         lemmy.to_string(),
@@ -41,33 +54,41 @@ User                                                                    *U.User*
         {id}     (ID)
 
 
+U.Pi                                                                      *U.Pi*
+    A Pi
+
+    Type: ~
+        (number)
+
+
+U:create()                                                            *U:create*
+    Creates a PI
+
+    Returns: ~
+        {number}
+
+    Usage: ~
+        >
+            require('Pi'):create()
+        <
+
+
 "
     );
 }
 
 #[test]
 fn rename_with_mod() {
-    let src = r#"
-    ---@mod awesome This is working
-
-    local U = {}
-
-    ---@alias ID string
-
-    ---@class User
-    ---@field name string
-    ---@field email string
-    ---@field id ID
-
-    return U
-    "#;
+    let src = format!("---@mod awesome This is working {CODE}");
 
     let mut lemmy = LemmyHelp::with_rename(Rename {
-        class: true,
+        func: true,
         alias: true,
+        class: true,
+        r#type: true,
     });
 
-    lemmy.for_help(src).unwrap();
+    lemmy.for_help(&src).unwrap();
 
     assert_eq!(
         lemmy.to_string(),
@@ -89,6 +110,25 @@ User                                                              *awesome.User*
         {name}   (string)
         {email}  (string)
         {id}     (ID)
+
+
+U.Pi                                                                *awesome.Pi*
+    A Pi
+
+    Type: ~
+        (number)
+
+
+U:create()                                                      *awesome:create*
+    Creates a PI
+
+    Returns: ~
+        {number}
+
+    Usage: ~
+        >
+            require('Pi'):create()
+        <
 
 
 "

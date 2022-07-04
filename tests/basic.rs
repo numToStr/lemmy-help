@@ -352,14 +352,14 @@ Human                                                                    *Human*
         {brain}  (boolean)  Does humans have brain?
 
 
-U.DEFAULT                                                    *mod.Human.DEFAULT*
+U.DEFAULT                                                            *U.DEFAULT*
     Default traits of a human
 
     Type: ~
         (Human)
 
 
-U:create()                                                    *mod.Human:create*
+U:create()                                                            *U:create*
     Creates a Human
 
     Returns: ~
