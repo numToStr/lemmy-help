@@ -85,6 +85,6 @@ impl Display for Type {
             writeln!(f, "{usage}")?;
         }
 
-        write!(f, "")
+        Ok(())
     }
 }

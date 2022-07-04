@@ -145,6 +145,6 @@ impl Display for Func {
             writeln!(f, "{usage}")?;
         }
 
-        write!(f, "")
+        Ok(())
     }
 }

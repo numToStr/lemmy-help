@@ -123,6 +123,6 @@ impl Display for LemmyHelp {
             writeln!(f, "{}", node)?;
         }
 
-        write!(f, "")
+        Ok(())
     }
 }

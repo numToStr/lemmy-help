@@ -62,6 +62,6 @@ impl std::fmt::Display for See {
         for s in &self.refs {
             writeln!(f, "        |{}|", s)?;
         }
-        write!(f, "")
+        Ok(())
     }
 }

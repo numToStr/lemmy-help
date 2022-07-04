@@ -99,6 +99,6 @@ impl Display for Class {
             writeln!(f, "{}", self.see)?;
         }
 
-        write!(f, "")
+        Ok(())
     }
 }
