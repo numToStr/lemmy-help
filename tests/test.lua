@@ -18,6 +18,8 @@
 ---
 ---@brief ]]
 
+---@toc test.contents
+
 ---@mod awesome.name Awesome module title
 
 local U = {}

@@ -11,11 +11,15 @@ Following are the tags that you can use to create docs
 
 A `brief` can be used to describe a module or even to add some footnote etc.
 
+- Syntax
+
 ```lua
 ---@brief [[
 ---@comment
 ---@brief ]]
 ```
+
+- Input
 
 ```lua
 ---@brief [[
@@ -73,11 +77,18 @@ NOTE: remember there is no formatting or text wrapping
 
 This can be used to add a heading for the module and change the prefix of every exported _function and type_.
 
-> NOTE: This can appear multiple times in a file but only the last `---@mod` will be used to rename prefixes.
+> NOTE:
+>
+> 1. This can appear multiple times in a file but only the last `---@mod` will be used to rename prefixes.
+> 2. Also adds a entries in the [`Table of Contents`](#table-of-contents)
+
+- Syntax
 
 ```lua
 ---@mod <name> [desc]
 ```
+
+- Input
 
 ```lua
 ---@mod mod.intro Introduction
@@ -181,14 +192,70 @@ U:create()                                                    *mod.Human:create*
         <
 ```
 
+### Table of Contents
+
+Following tag can be used to generate a _Table of Contents_ section. It uses [`---@mod`](#module) tags for the entries.
+
+- Syntax
+
+```lua
+---@toc <tag>
+```
+
+- Input
+
+```lua
+---@toc my-plugin.contents
+
+---@mod first.module First Module
+
+---@mod second.module Second Module
+
+---@mod third.module Third Module
+
+local U = {}
+
+return U
+```
+
+- Output
+
+```help
+================================================================================
+Table of Contents                                           *my-plugin.contents*
+
+First Module······················································|first.module|
+Second Module····················································|second.module|
+Third Module······················································|third.module|
+
+================================================================================
+First Module                                                      *first.module*
+
+================================================================================
+Second Module                                                    *second.module*
+
+================================================================================
+Third Module                                                      *third.module*
+```
+
 ### Tag
 
 This can used to create an alternate tag for your module, functions etc.
+
+- Syntax
+
+```lua
+---@tag <name>
+```
+
+- Input
 
 ```lua
 ---@tag cool-tag
 ---@tag another-cool-tag
 ```
+
+- Output
 
 ```
                                                                       *cool-tag*
@@ -199,9 +266,13 @@ This can used to create an alternate tag for your module, functions etc.
 
 This tag can be used to add a divider/separator between section or anything you desire
 
+- Syntax
+
 ```lua
 ---@divider <char>
 ```
+
+- Input
 
 ```lua
 ---@divider -
@@ -223,16 +294,20 @@ This tag can be used to add a divider/separator between section or anything you 
 
 A function contains multiple tags which form its structure. Like `---@param` for parameter, `---@return` for the return value, `---@see` for other related things and `---@usage` for example
 
+- Syntax
+
 ```lua
 ---@comment
----@param <name> <type> <desc>
+---@param <name> <type> [desc]
 ---@comment
----@return <type> <name> <desc>
+---@return <type> [name] [desc]
 ---@see <ref>
 ---@usage `<code>`
 ```
 
 > NOTE: All tag can be used multiple times except `---@usage`
+
+- Input
 
 ```lua
 local U = {}
@@ -324,14 +399,18 @@ U.magical({this}, {that})                                            *U.magical*
 
 Classes can be used to better structure your code and can be referenced as an argument to a function or it's return value. You can define it once and use it multiple times.
 
+- Syntax
+
 ```lua
----@class <name> <desc>
+---@class <name> [desc]
 ---@comment
----@field [public|protected|private] <name> <type> <desc>
+---@field [public|protected|private] <name> <type> [desc]
 ---@see <ref>
 ```
 
 > NOTE: `---@field` and `---@see` can be used multiple times
+
+- Input
 
 ```lua
 local H = {}
@@ -390,11 +469,15 @@ H:create()                                                            *H:create*
 
 You can use `---@type` to document static objects, constants etc.
 
+- Syntax
+
 ```lua
 ---@comment
----@type <type> <desc>
+---@type <type> [desc]
 ---@usage `<code>`
 ```
+
+- Input
 
 ```lua
 local U = {}
@@ -444,6 +527,14 @@ U.chai                                                                  *U.chai*
 
 This can be used to make a type alias. It is helpful if you are using the same the type multiple times.
 
+- Syntax
+
+```lua
+---@alias <name> <type> [desc]
+```
+
+- Input
+
 ```lua
 local U = {}
 
@@ -478,6 +569,8 @@ U.get_all()                                                          *U.get_all*
 ### Enum
 
 You can also define a (pseudo) enum using [`---@alias`](#alias).
+
+- Input
 
 ```lua
 local U = {}
@@ -523,6 +616,8 @@ U.VMODE                                                                *U.VMODE*
 ### Private
 
 You can use `---@private` tag to discard any part of the code that is exported but it is not considered to be a part of the public API
+
+- Input
 
 ```lua
 local U = {}
