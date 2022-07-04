@@ -71,15 +71,35 @@ NOTE: remember there is no formatting or text wrapping
 
 ### Module
 
-This tag can be used to add a heading for the module and change the prefix of every exported _function and type_.
+This can be used to add a heading for the module and change the prefix of every exported _function and type_.
 
-> NOTE: This should be defined **at the top** of the file.
+> NOTE: This can appear multiple times in a file but only the last `---@mod` will be used to rename prefixes.
 
 ```lua
 ---@mod <name> [desc]
 ```
 
 ```lua
+---@mod mod.intro Introduction
+---@brief [[
+---
+---We can have multiple `---@mod` tags so that we can have a block only for text.
+---This is for the cases where you want bunch of block only just for text
+---and does not contains any code.
+---
+---You can write anything in here like some usage or something:
+---
+--->
+---require('Comment').setup({
+---    ignore = '^$',
+---    pre_hook = function(ctx)
+---        require('Comment.jsx').calculate(ctx)
+---    end
+---})
+---<
+---
+---@brief ]]
+
 ---@mod mod.Human Human module
 
 local H = {}
@@ -110,6 +130,26 @@ return H
 - Output
 
 ```help
+================================================================================
+Introduction                                                         *mod.intro*
+
+
+We can have multiple `---@mod` tags so that we can have a block only for text.
+This is for the cases where you want bunch of block only just for text
+and does not contains any code.
+
+You can write anything in here like some usage or something:
+
+>
+require('Comment').setup({
+    ignore = '^$',
+    pre_hook = function(ctx)
+        require('Comment.jsx').calculate(ctx)
+    end
+})
+<
+
+
 ================================================================================
 Human module                                                         *mod.Human*
 

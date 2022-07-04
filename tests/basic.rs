@@ -279,6 +279,15 @@ U.magical({this}, {that})                                            *U.magical*
 #[test]
 fn module() {
     let src = "
+    ---@mod mod.intro Introduction
+    ---@brief [[
+    ---
+    ---We can have multiple `---@mod` tags so that we can have a block only for text.
+    ---This is for the cases where you want bunch of block only just for text
+    ---and does not contains any code.
+    ---
+    ---@brief ]]
+
     ---@mod mod.Human Human module
 
     local U = {}
@@ -322,6 +331,15 @@ fn module() {
     assert_eq!(
         lemmy.to_string(),
         "\
+================================================================================
+Introduction                                                         *mod.intro*
+
+
+We can have multiple `---@mod` tags so that we can have a block only for text.
+This is for the cases where you want bunch of block only just for text
+and does not contains any code.
+
+
 ================================================================================
 Human module                                                         *mod.Human*
 

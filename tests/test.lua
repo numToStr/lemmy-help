@@ -1,3 +1,23 @@
+---@mod mod.intro Introduction
+---@brief [[
+---
+---We can have multiple `---@mod` tags so that we can have a block only for text.
+---This is for the cases where you want bunch of block only just for text
+---and does not contains any code.
+---
+---You can write anything in here like some usage or something:
+---
+--->
+---require('Comment').setup({
+---    ignore = '^$',
+---    pre_hook = function(ctx)
+---        require('Comment.jsx').calculate(ctx)
+---    end
+---})
+---<
+---
+---@brief ]]
+
 ---@mod awesome.name Awesome module title
 
 local U = {}

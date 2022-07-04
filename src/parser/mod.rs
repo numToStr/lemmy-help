@@ -67,10 +67,9 @@ impl LemmyHelp {
         let mut nodes = Self::lex(src)?;
 
         if let Some(Node::Export(export)) = nodes.pop() {
-            let module = if let Some(Node::Module(Module { name, .. })) = nodes.first().cloned() {
-                name
-            } else {
-                export.to_owned()
+            let module = match nodes.iter().rev().find(|x| matches!(x, Node::Module(_))) {
+                Some(Node::Module(m)) => m.name.to_owned(),
+                _ => export.to_owned(),
             };
 
             for ele in nodes {
