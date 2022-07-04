@@ -38,8 +38,14 @@ use chumsky::{prelude::Simple, Parser, Stream};
 
 #[derive(Debug, Default)]
 pub struct Rename {
+    /// Prefix `function` name with `---@mod` name
+    pub func: bool,
+    /// Prefix `---@alias` tag with `return/---@mod` name
     pub alias: bool,
+    /// Prefix ---@class tag with return/---@mod name
     pub class: bool,
+    /// Prefix `---@type` tag with `---@mod` name
+    pub r#type: bool,
 }
 
 #[derive(Debug, Default)]
@@ -77,15 +83,17 @@ impl LemmyHelp {
                     Node::Export(..) => {}
                     Node::Func(mut func) => {
                         if func.is_public(&export) {
-                            func.rename_tag(module.to_owned());
-
+                            if self.rename.func {
+                                func.rename_tag(module.to_owned());
+                            }
                             self.nodes.push(Node::Func(func));
                         }
                     }
                     Node::Type(mut typ) => {
                         if typ.is_public(&export) {
-                            typ.rename_tag(module.to_owned());
-
+                            if self.rename.r#type {
+                                typ.rename_tag(module.to_owned());
+                            }
                             self.nodes.push(Node::Type(typ));
                         }
                     }

@@ -42,8 +42,10 @@ impl Cli {
                     std::process::exit(0);
                 }
                 Short('M') | Long("no-modeline") => c.modeline = false,
+                Short('f') | Long("prefix-func") => c.rename.func = true,
                 Short('a') | Long("prefix-alias") => c.rename.alias = true,
                 Short('c') | Long("prefix-class") => c.rename.class = true,
+                Short('t') | Long("prefix-type") => c.rename.r#type = true,
                 Value(val) => {
                     let file = PathBuf::from(&val);
 
@@ -93,8 +95,10 @@ ARGS:
 
 OPTIONS:
     -M, --no-modeline       Don't print modeline at the end
-    -a, --prefix-alias      Prefix ---@alias tag with return/mod name
-    -c, --prefix-class      Prefix ---@class tag with return/mod name
+    -f, --prefix-func       Prefix function name with ---@mod name
+    -a, --prefix-alias      Prefix ---@alias tag with return/---@mod name
+    -c, --prefix-class      Prefix ---@class tag with return/---@mod name
+    -t, --prefix-type       Prefix ---@type tag with ---@mod name
     -h, --help              Print help information
     -v, --version           Print version information
 
@@ -104,7 +108,6 @@ USAGE:
 
 NOTES:
     - The order of parsing + rendering is relative to the given files
-    - Types and Functions will be prefixed with ---@mod name
 "
         );
     }
