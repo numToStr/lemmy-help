@@ -56,8 +56,10 @@ ARGS:
 
 OPTIONS:
     -M, --no-modeline       Don't print modeline at the end
-    -a, --prefix-alias      Prefix ---@alias tag with return/mod name
-    -c, --prefix-class      Prefix ---@class tag with return/mod name
+    -f, --prefix-func       Prefix function name with ---@mod name
+    -a, --prefix-alias      Prefix ---@alias tag with return/---@mod name
+    -c, --prefix-class      Prefix ---@class tag with return/---@mod name
+    -t, --prefix-type       Prefix ---@type tag with ---@mod name
     -h, --help              Print help information
     -v, --version           Print version information
 
@@ -67,7 +69,6 @@ USAGE:
 
 NOTES:
     - The order of parsing + rendering is relative to the given files
-    - Types and Functions will be prefixed with ---@mod name
 ```
 
 ### CI
