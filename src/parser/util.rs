@@ -27,16 +27,16 @@ macro_rules! parser {
     ($id: ident, $ret: ty, $body: expr) => {
         impl $id {
             pub fn parse() -> impl chumsky::Parser<
-                crate::TagType,
+                $crate::TagType,
                 $ret,
-                Error = chumsky::prelude::Simple<crate::TagType>,
+                Error = chumsky::prelude::Simple<$crate::TagType>,
             > {
                 $body
             }
         }
     };
     ($id: ident, $body: expr) => {
-        crate::parser!($id, Self, $body);
+        $crate::parser!($id, Self, $body);
     };
 }
 
@@ -57,7 +57,7 @@ macro_rules! header {
         }
     }};
     ($f:expr, $name:expr) => {
-        crate::header!($f, $name, $name)
+        $crate::header!($f, $name, $name)
     };
 }
 

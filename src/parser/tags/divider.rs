@@ -5,7 +5,7 @@ use chumsky::select;
 use crate::{parser, TagType};
 
 #[derive(Debug, Clone)]
-pub struct Divider(char);
+pub struct Divider(pub char);
 
 parser!(Divider, {
     select! { TagType::Divider(rune) => Self(rune) }

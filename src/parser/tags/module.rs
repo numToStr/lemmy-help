@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::select;
 
-use crate::{parser, TagType};
+use crate::{parser, Divider, TagType};
 
 #[derive(Debug, Clone)]
 pub struct Module {
@@ -18,11 +18,10 @@ impl Display for Module {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let desc = self.desc.as_deref().unwrap_or_default();
 
-        writeln!(f, "{}", "=".repeat(80))?;
+        Divider('=').fmt(f)?;
         writeln!(
             f,
-            "{}{}",
-            desc,
+            "{desc}{}",
             format_args!("{:>w$}", format!("*{}*", self.name), w = 80 - desc.len())
         )
     }
