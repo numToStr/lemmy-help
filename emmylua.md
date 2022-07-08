@@ -688,3 +688,54 @@ return U
 U.ok()                                                                    *U.ok*
     Only this will be documented
 ```
+
+### Export
+
+This tag is used to manually tag the exported object. This is required for cases where `lemmy-help` is unable to parse the `return` statement at the end such as `return setmetatable(...)`. But keep in mind the following:
+
+1. Anything after this tag is NA, so make sure this is the last tag
+2. Tag should be followed by the exact identifier that needs to be exported
+3. This has nothing to do with `---@mod`
+
+- Syntax
+
+```lua
+---@export <name>
+```
+
+- Input
+
+```lua
+---@mod module.config Configuration
+
+local Config = {}
+
+---Get the config
+---@return number
+function Config:get()
+    return 3.14
+end
+
+---@export Config
+return setmetatable(Config, {
+    __index = function(this, k)
+        return this.state[k]
+    end,
+    __newindex = function(this, k, v)
+        this.state[k] = v
+    end,
+})
+```
+
+- Output
+
+```help
+================================================================================
+Configuration                                                    *module.config*
+
+Config:get()                                                        *Config:get*
+    Get the config
+
+    Returns: ~
+        {number}
+```

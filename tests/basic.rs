@@ -632,3 +632,48 @@ U.ok()                                                                    *U.ok*
 "
     )
 }
+
+#[test]
+fn export() {
+    let src = "
+    ---@mod module.config Configuration
+
+    local Config = {}
+
+    ---Get the config
+    ---@return number
+    function Config:get()
+        return 3.14
+    end
+
+    ---@export Config
+    return setmetatable(Config, {
+        __index = function(this, k)
+            return this.state[k]
+        end,
+        __newindex = function(this, k, v)
+            this.state[k] = v
+        end,
+    })
+    ";
+
+    let mut lemmy = LemmyHelp::default();
+
+    lemmy.for_help(src).unwrap();
+
+    assert_eq!(
+        lemmy.to_string(),
+        "\
+================================================================================
+Configuration                                                    *module.config*
+
+Config:get()                                                        *Config:get*
+    Get the config
+
+    Returns: ~
+        {number}
+
+
+"
+    )
+}
