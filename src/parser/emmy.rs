@@ -216,6 +216,11 @@ impl Emmy {
                 )
                 .collect()
                 .map(TagType::Usage),
+            just("export")
+                .then(whitespace())
+                .ignore_then(ident())
+                .then_ignore(take_until(end()))
+                .map(TagType::Export),
         )));
 
         choice((
@@ -250,7 +255,7 @@ impl Emmy {
                 expr.map(|(prefix, kind, name)| TagType::Expr { prefix, name, kind }),
             )),
             keyword("return")
-                .ignore_then(ident().padded())
+                .ignore_then(name)
                 .then_ignore(end())
                 .map(TagType::Export),
             misc.to(TagType::Skip),

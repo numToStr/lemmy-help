@@ -1,3 +1,5 @@
+---@toc test.contents
+
 ---@mod mod.intro Introduction
 ---@brief [[
 ---
@@ -17,8 +19,6 @@
 ---<
 ---
 ---@brief ]]
-
----@toc test.contents
 
 ---@mod awesome.name Awesome module title
 
