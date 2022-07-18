@@ -16,25 +16,27 @@ pub struct Type {
 }
 
 parser!(Type, {
-    select! { TagType::Comment(x) => x }
-        .repeated()
-        .then(select! { TagType::Type(ty, desc) => (ty, desc) })
-        .then(Usage::parse().or_not())
-        .then(select! { TagType::Expr { prefix, name, kind } => (prefix, name, kind) })
-        .map(
-            |(((header, (ty, desc)), usage), (prefix, name, kind))| Self {
-                header,
-                prefix: Prefix {
-                    left: prefix.clone(),
-                    right: prefix,
-                },
-                name,
-                kind,
-                ty,
-                desc,
-                usage,
+    select! {
+        TagType::Comment(x) => x
+    }
+    .repeated()
+    .then(select! { TagType::Type(ty, desc) => (ty, desc) })
+    .then(Usage::parse().or_not())
+    .then(select! { TagType::Expr { prefix, name, kind } => (prefix, name, kind) })
+    .map(
+        |(((header, (ty, desc)), usage), (prefix, name, kind))| Self {
+            header,
+            prefix: Prefix {
+                left: prefix.clone(),
+                right: prefix,
             },
-        )
+            name,
+            kind,
+            ty,
+            desc,
+            usage,
+        },
+    )
 });
 
 impl Type {

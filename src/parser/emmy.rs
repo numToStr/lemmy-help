@@ -64,7 +64,6 @@ pub enum TagType {
     See(String),
     Usage(String),
     Comment(String),
-    Empty,
     Skip,
 }
 
@@ -227,7 +226,7 @@ impl Emmy {
             triple.ignore_then(choice((
                 tag,
                 variant,
-                newline().to(TagType::Empty),
+                newline().to(TagType::Comment(String::new())),
                 comment.map(TagType::Comment),
             ))),
             local.ignore_then(choice((

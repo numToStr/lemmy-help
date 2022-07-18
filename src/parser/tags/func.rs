@@ -13,13 +13,7 @@ pub struct Param {
 
 parser!(Param, {
     select! { TagType::Param { name, ty, desc } => (name, ty, desc) }
-        .then(
-            select! {
-                TagType::Comment(x) => x,
-                TagType::Empty => String::new()
-            }
-            .repeated(),
-        )
+        .then(select! { TagType::Comment(x) => x }.repeated())
         .map(|((name, ty, desc), extra)| {
             let desc = match desc {
                 Some(d) => Vec::from([d])
@@ -55,7 +49,6 @@ pub struct Func {
 parser!(Func, {
     select! {
         TagType::Comment(x) => x,
-        TagType::Empty => String::new()
     }
     .repeated()
     .then(Param::parse().repeated())

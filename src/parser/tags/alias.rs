@@ -36,7 +36,6 @@ parser!(Alias, {
         },
         select! {
             TagType::Comment(x) => x,
-            TagType::Empty => String::new()
         }
         .repeated()
         .then(select! { TagType::Alias { name, .. } => name })
