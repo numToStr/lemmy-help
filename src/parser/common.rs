@@ -1,5 +1,3 @@
-use std::fmt::Display;
-
 use chumsky::{select, Parser};
 
 use crate::{parser, TagType};
@@ -17,12 +15,12 @@ pub enum Kind {
     Local,
 }
 
-impl Display for Kind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Kind {
+    pub fn as_char(&self) -> char {
         match self {
-            Self::Dot => f.write_str("."),
-            Self::Colon => f.write_str(":"),
-            Self::Local => f.write_str("#PRIVATE#"),
+            Self::Dot => '.',
+            Self::Colon => ':',
+            Self::Local => unreachable!(), // This should never happens
         }
     }
 }

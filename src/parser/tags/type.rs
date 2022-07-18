@@ -56,13 +56,13 @@ impl Display for Type {
             format!(
                 "{}{}{}",
                 self.prefix.left.as_deref().unwrap_or_default(),
-                self.kind,
+                self.kind.as_char(),
                 self.name
             ),
             format!(
                 "{}{}{}",
                 self.prefix.right.as_deref().unwrap_or_default(),
-                self.kind,
+                self.kind.as_char(),
                 self.name
             )
         )?;

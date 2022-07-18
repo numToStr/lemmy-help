@@ -112,12 +112,12 @@ impl Display for Func {
             format!(
                 "{}{}{name}",
                 self.prefix.left.as_deref().unwrap_or_default(),
-                self.kind
+                self.kind.as_char()
             ),
             format!(
                 "{}{}{}",
                 self.prefix.right.as_deref().unwrap_or_default(),
-                self.kind,
+                self.kind.as_char(),
                 self.name
             )
         )?;
