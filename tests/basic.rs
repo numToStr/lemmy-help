@@ -526,10 +526,12 @@ fn alias_and_type() {
 
     ---List of all the lines in the buffer
     ---@type Lines See |Lines|
+    ---@see something
     U.LINES = {}
 
     ---Global vim mode
     ---@type VMode
+    ---@usage `print(require('plugin').VMODE)`
     U.VMODE = 'line'
 
     return U
@@ -581,12 +583,20 @@ U.LINES                                                                *U.LINES*
     Type: ~
         (Lines)  See |Lines|
 
+    See: ~
+        |something|
+
 
 U.VMODE                                                                *U.VMODE*
     Global vim mode
 
     Type: ~
         (VMode)
+
+    Usage: ~
+        >
+            print(require('plugin').VMODE)
+        <
 
 
 "

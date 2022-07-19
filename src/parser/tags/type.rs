@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{parser, Kind, Prefix, Table, TagType, Usage};
+use crate::{parser, Kind, Prefix, See, Table, TagType, Usage};
 
 #[derive(Debug, Clone)]
 pub struct Type {
@@ -12,6 +12,7 @@ pub struct Type {
     pub kind: Kind,
     pub ty: String,
     pub desc: Option<String>,
+    pub see: See,
     pub usage: Option<Usage>,
 }
 
@@ -21,10 +22,11 @@ parser!(Type, {
     }
     .repeated()
     .then(select! { TagType::Type(ty, desc) => (ty, desc) })
+    .then(See::parse())
     .then(Usage::parse().or_not())
     .then(select! { TagType::Expr { prefix, name, kind } => (prefix, name, kind) })
     .map(
-        |(((header, (ty, desc)), usage), (prefix, name, kind))| Self {
+        |((((header, (ty, desc)), see), usage), (prefix, name, kind))| Self {
             header,
             prefix: Prefix {
                 left: prefix.clone(),
@@ -34,6 +36,7 @@ parser!(Type, {
             kind,
             ty,
             desc,
+            see,
             usage,
         },
     )
@@ -82,6 +85,10 @@ impl Display for Type {
         ]);
 
         writeln!(f, "{table}")?;
+
+        if !self.see.refs.is_empty() {
+            writeln!(f, "{}", self.see)?;
+        }
 
         if let Some(usage) = &self.usage {
             writeln!(f, "{usage}")?;
