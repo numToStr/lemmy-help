@@ -303,6 +303,7 @@ A function contains multiple tags which form its structure. Like `---@param` for
 ---@param <name> <type> [desc]
 ---@comment
 ---@return <type> [name] [desc]
+---@comment
 ---@see <ref>
 ---@usage `<code>`
 ```
@@ -359,7 +360,8 @@ end
 ---  * {full_build} (boolean) full rebuild or
 ---     incremental build. Defaults to true (full build)
 ---@param reserverd table|nil reserved for the future use
----@return boolean
+---@return boolean _ This is description of return
+---statement that can be expanded to mutliple lines
 function U.multi_line(opts, reserverd)
     print(vim.inspect(opts), vim.inspect(reserverd))
     return true
@@ -426,7 +428,8 @@ U.multi_line({opts}, {reserverd})                                 *U.multi_line*
         {reserverd}  (table|nil)  reserved for the future use
 
     Returns: ~
-        {boolean}
+        {boolean}  This is description of return
+                   statement that can be expanded to mutliple lines
 ```
 
 ### Class
