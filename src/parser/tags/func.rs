@@ -31,8 +31,26 @@ parser!(Param, {
 pub struct Return {
     pub ty: String,
     pub name: Option<String>,
-    pub desc: Option<String>,
+    pub desc: Vec<String>,
 }
+
+parser!(Return, {
+    select! {
+        TagType::Return { ty, name, desc } => (ty, name, desc)
+    }
+    .then(select! { TagType::Comment(x) => x }.repeated())
+    .map(|((ty, name, desc), extra)| {
+        let desc = match desc {
+            Some(d) => Vec::from([d])
+                .into_iter()
+                .chain(extra.into_iter())
+                .collect(),
+            None => extra,
+        };
+
+        Self { name, ty, desc }
+    })
+});
 
 #[derive(Debug, Clone)]
 pub struct Func {
@@ -52,7 +70,7 @@ parser!(Func, {
     }
     .repeated()
     .then(Param::parse().repeated())
-    .then(select! { TagType::Return { ty, name, desc } => Return { ty, name, desc } }.repeated())
+    .then(Return::parse().repeated())
     .then(See::parse())
     .then(Usage::parse().or_not())
     .then(select! { TagType::Func { prefix, name, kind } => (prefix, name, kind) })
@@ -125,9 +143,9 @@ impl Display for Func {
 
             for param in &self.params {
                 table.add_row([
-                    &format!("{{{}}}", param.name),
-                    &format!("({})", param.ty),
-                    &param.desc.join("\n"),
+                    format!("{{{}}}", param.name),
+                    format!("({})", param.ty),
+                    param.desc.join("\n"),
                 ]);
             }
 
@@ -141,11 +159,12 @@ impl Display for Func {
 
             for entry in &self.returns {
                 table.add_row([
-                    &format!("{{{}}}", entry.ty),
-                    entry
-                        .desc
-                        .as_deref()
-                        .unwrap_or_else(|| entry.name.as_deref().unwrap_or_default()),
+                    format!("{{{}}}", entry.ty),
+                    if entry.desc.is_empty() {
+                        entry.name.clone().unwrap_or_default()
+                    } else {
+                        entry.desc.join("\n")
+                    },
                 ]);
             }
 

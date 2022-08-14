@@ -202,6 +202,8 @@ fn functions() {
     ---@param this number
     ---@param that number Second number
     ---@return number
+    ---Some secret number that
+    ---we don't know about
     ---@usage `require('module.U').sub(10, 5)`
     function U.sub(this, that)
         return this - that
@@ -212,6 +214,9 @@ fn functions() {
     ---@param that number Non-magical number #2
     ---@return number _ The magical number #1
     ---@return number _ The magical number #2
+    ---and the fun part is the description can span
+    ---
+    ---over mulitple lines and preserves empty lines
     ---@see U.mul
     ---@see U.sum
     ---@see U.sub
@@ -247,7 +252,8 @@ U.sub({this}, {that})                                                    *U.sub*
         {that}  (number)  Second number
 
     Returns: ~
-        {number}
+        {number}  Some secret number that
+                  we don't know about
 
     Usage: ~
         >
@@ -265,6 +271,9 @@ U.magical({this}, {that})                                            *U.magical*
     Returns: ~
         {number}  The magical number #1
         {number}  The magical number #2
+                  and the fun part is the description can span
+
+                  over mulitple lines and preserves empty lines
 
     See: ~
         |U.mul|
