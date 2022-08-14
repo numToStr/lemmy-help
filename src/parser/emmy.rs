@@ -63,6 +63,8 @@ pub enum TagType {
     Tag(String),
     See(String),
     Usage(String),
+    UsageStart,
+    UsageEnd,
     Comment(String),
     Skip,
 }
@@ -206,15 +208,18 @@ impl Emmy {
             just("see")
                 .ignore_then(comment.clone().padded())
                 .map(TagType::See),
-            just("usage")
-                .ignore_then(
+            just("usage").ignore_then(
+                choice((
+                    just("[[").to(TagType::UsageStart),
+                    just("]]").to(TagType::UsageEnd),
                     just('`')
                         .ignore_then(filter(|c| *c != '`').repeated())
                         .then_ignore(just('`'))
-                        .padded(),
-                )
-                .collect()
-                .map(TagType::Usage),
+                        .collect()
+                        .map(TagType::Usage),
+                ))
+                .padded(),
+            ),
             just("export")
                 .then(whitespace())
                 .ignore_then(ident())

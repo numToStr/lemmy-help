@@ -1,4 +1,7 @@
-use chumsky::{select, Parser};
+use chumsky::{
+    prelude::{choice, just},
+    select, Parser,
+};
 
 use crate::{parser, TagType};
 
@@ -31,14 +34,20 @@ pub struct Usage {
 }
 
 parser!(Usage, {
-    select! { TagType::Usage(code) => Self { code } }
+    choice((
+        select! { TagType::Comment(x) => x }
+            .repeated()
+            .delimited_by(just(TagType::UsageStart), just(TagType::UsageEnd))
+            .map(|x| Self { code: x.join("\n") }),
+        select! { TagType::Usage(code) => Self { code } },
+    ))
 });
 
 impl std::fmt::Display for Usage {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         crate::description!(f, "Usage: ~")?;
         writeln!(f, "{:>9}", ">")?;
-        writeln!(f, "{:>w$}", self.code, w = 12 + self.code.len())?;
+        writeln!(f, "{}", textwrap::indent(&self.code, "            "))?;
         writeln!(f, "{:>9}", "<")
     }
 }

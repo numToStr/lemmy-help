@@ -395,7 +395,12 @@ fn module() {
 
     ---Creates a Human
     ---@return Human
-    ---@usage `require('Human'):create()`
+    ---@usage [[
+    ---local H = require('Human')
+    ---local human = H:create()
+    ---
+    ---print(getmetatable(human))
+    ---@usage ]]
     function U:create()
         return setmetatable(self.DEFAULT, { __index = self })
     end
@@ -455,7 +460,10 @@ U:create()                                                            *U:create*
 
     Usage: ~
         >
-            require('Human'):create()
+            local H = require('Human')
+            local human = H:create()
+
+            print(getmetatable(human))
         <
 
 

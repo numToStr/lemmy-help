@@ -74,7 +74,11 @@ end
 ---@param this number First number
 ---@param that number Second number
 ---@return number
----@usage `require("module.U").sub(10, 5)`
+---@usage [[
+---require("module.U").sub({
+---    wrapping = true
+---})
+---@usage ]]
 function U.sub(this, that)
     return this - that
 end

@@ -308,7 +308,19 @@ A function contains multiple tags which form its structure. Like `---@param` for
 ---@usage `<code>`
 ```
 
-> NOTE: All tag can be used multiple times except `---@usage`
+> NOTE:
+>
+> 1. All tag can be used multiple times except `---@usage`
+>
+> 2. `---@usage` tag also has a multiline syntax
+>
+> ```lua
+> ---@usage [[
+> ---TEXT
+> ---TEXT
+> ---TEXT
+> ---@usage ]]
+> ```
 
 - Input
 
@@ -326,6 +338,7 @@ end
 ---Add two integer and print it
 ---@param this number First number
 ---@param that number Second number
+---@usage `require("module.U").sum(10, 5)`
 function U.sum(this, that)
     print(this + that)
 end
@@ -334,7 +347,11 @@ end
 ---@param this number First number
 ---@param that number Second number
 ---@return number
----@usage `require("module.U").sub(10, 5)`
+---@usage [[
+---local M = require("module.U")
+---
+---print(M.sub(10 - 5))
+---@usage ]]
 function U.sub(this, that)
     return this - that
 end
@@ -380,6 +397,10 @@ U.sum({this}, {that})                                                    *U.sum*
         {this}  (number)  First number
         {that}  (number)  Second number
 
+    Usage: ~
+        >
+            require("module.U").sum(10, 5)
+        <
 
 U.sub({this}, {that})                                                    *U.sub*
     Subtract second from the first integer
@@ -393,7 +414,9 @@ U.sub({this}, {that})                                                    *U.sub*
 
     Usage: ~
         >
-            require("module.U").sub(10, 5)
+            local M = require("module.U")
+
+            print(M.sub(10 - 5))
         <
 
 
