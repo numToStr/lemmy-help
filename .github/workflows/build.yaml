@@ -5,7 +5,6 @@ on:
     tags:
       - "*"
 env:
-  MSRV: 1.60.0
   CARGO: cargo
 
 jobs:
@@ -52,6 +51,8 @@ jobs:
           PKG_AUTHORS=$(sed -n 's/^authors = \["\(.*\)"\]/\1/p' Cargo.toml)
           PKG_HOMEPAGE=$(sed -n 's/^homepage = "\(.*\)"/\1/p' Cargo.toml)
           PKG_BASENAME="${PKG_NAME}-${{ matrix.job.target }}"
+
+          echo "MSRV=$(sed -n 's/^rust-version = "\(.*\)"/\1/p' Cargo.toml)" >> $GITHUB_ENV
 
           echo ::set-output name=PKG_VERSION::${PKG_VERSION}
           echo ::set-output name=PKG_NAME::${PKG_NAME}
