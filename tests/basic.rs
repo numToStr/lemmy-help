@@ -213,7 +213,7 @@ fn functions() {
     ---@param this number Non-magical number #1
     ---@param that number Non-magical number #2
     ---@return number _ The magical number #1
-    ---@return number _ The magical number #2
+    ---@return number #The magical number #2
     ---and the fun part is the description can span
     ---
     ---over mulitple lines and preserves empty lines

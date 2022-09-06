@@ -41,6 +41,7 @@ pub enum TagType {
         ty: String,
         desc: Option<String>,
     },
+    /// ---@return <type> [<name> [comment] | [name] #<comment>]
     Return {
         ty: String,
         name: Option<String>,
@@ -168,10 +169,14 @@ impl Emmy {
                 .ignore_then(ty)
                 .then(choice((
                     newline().to((None, None)),
-                    whitespace()
-                        .ignore_then(ident())
-                        .then(desc.clone())
-                        .map(|(name, desc)| (Some(name), desc)),
+                    whitespace().ignore_then(choice((
+                        just('#')
+                            .ignore_then(comment.clone())
+                            .map(|x| (None, Some(x))),
+                        ident()
+                            .then(desc.clone())
+                            .map(|(name, desc)| (Some(name), desc)),
+                    ))),
                 )))
                 .map(|(ty, (name, desc))| TagType::Return { ty, name, desc }),
             just("class")

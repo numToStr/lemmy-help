@@ -1,9 +1,6 @@
 ## Writing Emmylua
 
-- Spec - https://emmylua.github.io/annotation.html
-- LLS - https://github.com/sumneko/lua-language-server/wiki/EmmyLua-Annotations
-
-> NOTE: `lemmy-help` follows LLS implementation more closely than the spec
+> **NOTE** - `lemmy-help` follows [LLS implementation](https://github.com/sumneko/lua-language-server/wiki/Annotations) of emmylua annotations
 
 Following are the tags that you can use to create docs
 
@@ -302,7 +299,7 @@ A function contains multiple tags which form its structure. Like `---@param` for
 ---@comment
 ---@param <name> <type> [desc]
 ---@comment
----@return <type> [name] [desc]
+---@return <type> [<name> [comment] | [name] #<comment>]
 ---@comment
 ---@see <ref>
 ---@usage `<code>`
