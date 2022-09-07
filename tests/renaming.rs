@@ -40,13 +40,11 @@ fn rename_with_return() {
         "\
 ID                                                                        *U.ID*
 
-
     Type: ~
         string
 
 
 User                                                                    *U.User*
-
 
     Fields: ~
         {name}   (string)
@@ -98,13 +96,11 @@ This is working                                                        *awesome*
 
 ID                                                                  *awesome.ID*
 
-
     Type: ~
         string
 
 
 User                                                              *awesome.User*
-
 
     Fields: ~
         {name}   (string)

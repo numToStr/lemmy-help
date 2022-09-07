@@ -1,6 +1,6 @@
 ## Writing Emmylua
 
-> **NOTE** - `lemmy-help` follows [LLS implementation](https://github.com/sumneko/lua-language-server/wiki/Annotations) of emmylua annotations
+> **NOTE** - `lemmy-help` follows [LLS implementation](https://github.com/sumneko/lua-language-server/wiki/Annotations) of emmylua annotations with some little addons to better support the vimdoc generation.
 
 Following are the tags that you can use to create docs
 
@@ -459,7 +459,8 @@ Classes can be used to better structure your code and can be referenced as an ar
 - Syntax
 
 ```lua
----@class <name> [desc]
+---@comment
+---@class <name>
 ---@comment
 ---@field [public|protected|private] <name> <type> [desc]
 ---@see <ref>
@@ -472,7 +473,8 @@ Classes can be used to better structure your code and can be referenced as an ar
 ```lua
 local H = {}
 
----@class Human The Homosapien
+---The Homosapien
+---@class Human
 ---@field legs number Total number of legs
 ---@field hands number Total number of hands
 ---@field brain boolean Does humans have brain?
@@ -530,7 +532,7 @@ You can use `---@type` to document static objects, constants etc.
 
 ```lua
 ---@comment
----@type <type> [desc]
+---@type <type>
 ---@see <tag>
 ---@usage `<code>`
 ```
@@ -588,7 +590,8 @@ This tag can be used to make a type alias. It is helpful if you are using the sa
 - Syntax
 
 ```lua
----@alias <name> <type> [desc]
+---@comment
+---@alias <name> <type>
 ```
 
 - Input
@@ -596,7 +599,8 @@ This tag can be used to make a type alias. It is helpful if you are using the sa
 ```lua
 local U = {}
 
----@alias Lines string[] All the lines in the buffer
+---All the lines in the buffer
+---@alias Lines string[]
 
 ---Returns all the content of the buffer
 ---@return Lines
@@ -628,6 +632,13 @@ U.get_all()                                                          *U.get_all*
 
 You can define a (pseudo) enum using [`---@alias`](#alias).
 
+- Syntax
+
+```lua
+---@alias <name> <type>
+---| '<value>' [# description]
+```
+
 - Input
 
 ```lua
@@ -637,8 +648,8 @@ local U = {}
 ---
 ---Read `:h map-operator`
 ---@alias VMode
----| 'line' Vertical motion
----| 'char' Horizontal motion
+---| '"line"' # Vertical motion
+---| '"char"' # Horizontal motion
 ---| 'v'
 ---| 'V' # Visual Line Mode
 
@@ -658,10 +669,10 @@ VMode                                                                    *VMode*
     Read `:h map-operator`
 
     Variants: ~
-        ('line')  Vertical motion
-        ('char')  Horizontal motion
-        ('v')
-        ('V')     Visual Line Mode
+        ("line")  Vertical motion
+        ("char")  Horizontal motion
+        (v)
+        (V)       Visual Line Mode
 
 
 U.VMODE                                                                *U.VMODE*

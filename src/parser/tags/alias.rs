@@ -5,47 +5,42 @@ use chumsky::{prelude::choice, select, Parser};
 use crate::{parser, Prefix, Table, TagType};
 
 #[derive(Debug, Clone)]
-pub struct TypeDef {
-    pub ty: String,
-    pub desc: Option<String>,
-}
-
-#[derive(Debug, Clone)]
 pub enum AliasKind {
-    Type(TypeDef),
-    Enum(Vec<String>, Vec<TypeDef>),
+    Type(String),
+    Enum(Vec<(String, Option<String>)>),
 }
 
 #[derive(Debug, Clone)]
 pub struct Alias {
     pub name: String,
+    pub desc: Vec<String>,
     pub kind: AliasKind,
     pub prefix: Prefix,
 }
 
 parser!(Alias, {
-    choice((
+    select! {
+        TagType::Comment(x) => x,
+    }
+    .repeated()
+    .then(choice((
         select! {
-            TagType::Alias { name, ty: Some(ty), desc } => {
-                Self {
-                    name,
-                    kind: AliasKind::Type(TypeDef { ty, desc }),
-                    prefix: Prefix::default(),
-                }
-            },
+            TagType::Alias(name, Some(ty)) => (name, AliasKind::Type(ty))
         },
-        select! {
-            TagType::Comment(x) => x,
-        }
-        .repeated()
-        .then(select! { TagType::Alias { name, .. } => name })
-        .then(select! { TagType::Variant(ty, desc) => TypeDef { ty, desc } }.repeated())
-        .map(|((desc, name), variants)| Self {
-            name,
-            kind: AliasKind::Enum(desc, variants),
-            prefix: Prefix::default(),
-        }),
-    ))
+        select! { TagType::Alias(name, ..) => name }.then(
+            select! {
+                TagType::Variant(ty, desc) => (ty, desc)
+            }
+            .repeated()
+            .map(AliasKind::Enum),
+        ),
+    )))
+    .map(|(desc, (name, kind))| Self {
+        name,
+        desc,
+        kind,
+        prefix: Prefix::default(),
+    })
 });
 
 impl Alias {
@@ -64,24 +59,23 @@ impl Display for Alias {
             header!(f, self.name)?;
         }
 
+        if !self.desc.is_empty() {
+            description!(f, &self.desc.join("\n"))?;
+        }
+
+        writeln!(f)?;
+
         match &self.kind {
-            AliasKind::Type(TypeDef { ty, desc }) => {
-                description!(f, desc.as_deref().unwrap_or_default())?;
-                writeln!(f)?;
+            AliasKind::Type(ty) => {
                 description!(f, "Type: ~")?;
                 writeln!(f, "{:>w$}", ty, w = 8 + ty.len())?;
             }
-            AliasKind::Enum(desc, variants) => {
-                description!(f, &desc.join("\n"))?;
-                writeln!(f)?;
+            AliasKind::Enum(variants) => {
                 description!(f, "Variants: ~")?;
 
                 let mut table = Table::new();
-                for v in variants {
-                    table.add_row([
-                        &format!("({})", v.ty),
-                        v.desc.as_deref().unwrap_or_default(),
-                    ]);
+                for (ty, desc) in variants {
+                    table.add_row([&format!("({})", ty), desc.as_deref().unwrap_or_default()]);
                 }
 
                 write!(f, "{table}")?;

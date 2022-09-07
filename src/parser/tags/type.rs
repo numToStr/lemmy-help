@@ -2,16 +2,15 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{parser, Kind, Prefix, See, Table, TagType, Usage};
+use crate::{parser, Kind, Prefix, See, TagType, Usage};
 
 #[derive(Debug, Clone)]
 pub struct Type {
-    pub header: Vec<String>,
+    pub desc: Vec<String>,
     pub prefix: Prefix,
     pub name: String,
     pub kind: Kind,
     pub ty: String,
-    pub desc: Option<String>,
     pub see: See,
     pub usage: Option<Usage>,
 }
@@ -21,25 +20,22 @@ parser!(Type, {
         TagType::Comment(x) => x
     }
     .repeated()
-    .then(select! { TagType::Type(ty, desc) => (ty, desc) })
+    .then(select! { TagType::Type(ty) => ty })
     .then(See::parse())
     .then(Usage::parse().or_not())
     .then(select! { TagType::Expr { prefix, name, kind } => (prefix, name, kind) })
-    .map(
-        |((((header, (ty, desc)), see), usage), (prefix, name, kind))| Self {
-            header,
-            prefix: Prefix {
-                left: prefix.clone(),
-                right: prefix,
-            },
-            name,
-            kind,
-            ty,
-            desc,
-            see,
-            usage,
+    .map(|((((desc, ty), see), usage), (prefix, name, kind))| Self {
+        desc,
+        prefix: Prefix {
+            left: prefix.clone(),
+            right: prefix,
         },
-    )
+        name,
+        kind,
+        ty,
+        see,
+        usage,
+    })
 });
 
 impl Type {
@@ -72,19 +68,18 @@ impl Display for Type {
             )
         )?;
 
-        description!(f, &self.header.join("\n"))?;
+        if !self.desc.is_empty() {
+            description!(f, &self.desc.join("\n"))?;
+        }
+
         writeln!(f)?;
 
         description!(f, "Type: ~")?;
-
-        let mut table = Table::new();
-
-        table.add_row([
-            &format!("({})", self.ty),
-            self.desc.as_deref().unwrap_or_default(),
-        ]);
-
-        writeln!(f, "{table}")?;
+        f.write_fmt(format_args!(
+            "{:>w$}\n\n",
+            format!("({})", self.ty),
+            w = 10 + self.ty.len()
+        ))?;
 
         if !self.see.refs.is_empty() {
             writeln!(f, "{}", self.see)?;

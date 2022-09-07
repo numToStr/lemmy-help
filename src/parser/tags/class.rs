@@ -38,17 +38,19 @@ parser!(Field, {
 #[derive(Debug, Clone)]
 pub struct Class {
     pub name: String,
-    pub desc: Option<String>,
+    pub desc: Vec<String>,
     pub fields: Vec<Field>,
     pub see: See,
     pub prefix: Prefix,
 }
 
 parser!(Class, {
-    select! { TagType::Class(name, desc) => (name, desc) }
+    select! { TagType::Comment(c) => c }
+        .repeated()
+        .then(select! { TagType::Class(name) => name })
         .then(Field::parse().repeated())
         .then(See::parse())
-        .map(|(((name, desc), fields), see)| Self {
+        .map(|(((desc, name), fields), see)| Self {
             name,
             desc,
             fields,
@@ -73,7 +75,9 @@ impl Display for Class {
             header!(f, self.name)?;
         }
 
-        description!(f, self.desc.as_deref().unwrap_or_default())?;
+        if !self.desc.is_empty() {
+            description!(f, &self.desc.join("\n"))?;
+        }
         writeln!(f)?;
 
         if !self.fields.is_empty() {

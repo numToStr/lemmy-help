@@ -100,12 +100,13 @@ fn classes() {
     let src = "
     local U = {}
 
-    ---@class Human The Homosapien
+    ---The Homosapien
+    ---@class Human
     ---@field legs number Total number of legs
     ---@field hands number Total number of hands
     ---@field brain boolean Does humans have brain?
 
-    ---@class SuperSecret Secret stuff
+    ---@class SuperSecret
     ---@field first number First ingredient
     ---@field public second number Second ingredient
     ---@field third number Third ingredient
@@ -113,7 +114,8 @@ fn classes() {
     ---@field protected __secret_1 number Secret ingredient first
     ---@field private __secret_2 number
 
-    ---@class CommentConfig Plugin's configuration
+    ---Plugin's configuration
+    ---@class CommentConfig
     ---@field padding boolean Add a space b/w comment and the line
     ---Whether the cursor should stay at its position
     ---NOTE: This only affects NORMAL mode mappings and doesn't work with dot-repeat
@@ -147,7 +149,6 @@ Human                                                                    *Human*
 
 
 SuperSecret                                                        *SuperSecret*
-    Secret stuff
 
     Fields: ~
         {first}   (number)  First ingredient
@@ -380,7 +381,8 @@ fn module() {
 
     local U = {}
 
-    ---@class Human The Homosapien
+    ---The Homosapien
+    ---@class Human
     ---@field legs number Total number of legs
     ---@field hands number Total number of hands
     ---@field brain boolean Does humans have brain?
@@ -524,14 +526,15 @@ fn alias_and_type() {
 
     ---@alias NoDesc string
 
-    ---@alias Lines string[] All the lines in the buffer
+    ---All the lines in the buffer
+    ---@alias Lines string[]
 
     ---Vim operator-mode motions.
     ---
     ---Read `:h map-operator`
     ---@alias VMode
-    ---| 'line' Vertical motion
-    ---| 'char' Horizontal motion
+    ---| '"line"' # Vertical motion
+    ---| '"char"' # Horizontal motion
     ---| 'v'
     ---| 'V' # Visual Line Mode
 
@@ -542,7 +545,8 @@ fn alias_and_type() {
     end
 
     ---List of all the lines in the buffer
-    ---@type Lines See |Lines|
+    ---It can be more than one
+    ---@type Lines
     ---@see something
     U.LINES = {}
 
@@ -560,9 +564,7 @@ fn alias_and_type() {
 
     assert_eq!(
         lemmy.to_string(),
-        "\
-NoDesc                                                                  *NoDesc*
-
+        r#"NoDesc                                                                  *NoDesc*
 
     Type: ~
         string
@@ -581,10 +583,10 @@ VMode                                                                    *VMode*
     Read `:h map-operator`
 
     Variants: ~
-        ('line')  Vertical motion
-        ('char')  Horizontal motion
-        ('v')
-        ('V')     Visual Line Mode
+        ("line")  Vertical motion
+        ("char")  Horizontal motion
+        (v)
+        (V)       Visual Line Mode
 
 
 U.get_all()                                                          *U.get_all*
@@ -596,9 +598,10 @@ U.get_all()                                                          *U.get_all*
 
 U.LINES                                                                *U.LINES*
     List of all the lines in the buffer
+    It can be more than one
 
     Type: ~
-        (Lines)  See |Lines|
+        (Lines)
 
     See: ~
         |something|
@@ -616,7 +619,7 @@ U.VMODE                                                                *U.VMODE*
         <
 
 
-"
+"#
     )
 }
 
