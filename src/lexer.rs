@@ -6,7 +6,22 @@ use chumsky::{
     Parser,
 };
 
-use crate::Kind;
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum Kind {
+    Dot,
+    Colon,
+    Local,
+}
+
+impl Kind {
+    pub fn as_char(&self) -> char {
+        match self {
+            Self::Dot => '.',
+            Self::Colon => ':',
+            Self::Local => '#',
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Scope {
@@ -17,76 +32,118 @@ pub enum Scope {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TagType {
+    /// ```lua
     /// ---@toc <name>
+    /// ```
     Toc(String),
+    /// ```lua
     /// ---@mod <name> [desc]
+    /// ```
     Module(String, Option<String>),
+    /// ```lua
     /// ---@divider <char>
+    /// ```
     Divider(char),
+    /// ```lua
     /// function one.two() end
     /// one.two = function() end
+    /// ```
     Func {
         prefix: Option<String>,
         name: String,
         kind: Kind,
     },
+    /// ```lua
     /// one = 1
     /// one.two = 12
+    /// ```
     Expr {
         prefix: Option<String>,
         name: String,
         kind: Kind,
     },
+    /// ```lua
     /// ---@export <module>
     /// or
     /// return <module>\eof
+    /// ```
     Export(String),
+    /// ```lua
     /// ---@brief [[
+    /// ```
     BriefStart,
+    /// ```lua
     /// ---@brief ]]
+    /// ```
     BriefEnd,
+    /// ```lua
     /// ---@param <name[?]> <type[|type...]> [description]
+    /// ```
     Param {
         name: String,
         ty: String,
         desc: Option<String>,
     },
+    /// ```lua
     /// ---@return <type> [<name> [comment] | [name] #<comment>]
+    /// ```
     Return {
         ty: String,
         name: Option<String>,
         desc: Option<String>,
     },
+    /// ```lua
     /// ---@class <name>
+    /// ```
     Class(String),
+    /// ```lua
     /// ---@field [public|private|protected] <name> <type> [description]
+    /// ```
     Field {
         scope: Scope,
         name: String,
         ty: String,
         desc: Option<String>,
     },
-    /// # Simple Alias
+    /// ```lua
+    /// -- Simple Alias
     /// ---@alias <name> <type>
     ///
-    /// # Enum alias
+    /// -- Enum alias
     /// ---@alias <name>
+    /// ```
     Alias(String, Option<String>),
+    /// ```lua
     /// ---| '<value>' [# description]
+    /// ```
     Variant(String, Option<String>),
+    /// ```lua
     /// ---@type <type>
+    /// ```
     Type(String),
+    /// ```lua
     /// ---@tag <name>
+    /// ```
     Tag(String),
+    /// ```lua
     /// ---@see <name>
+    /// ```
     See(String),
+    /// ```lua
     /// ---@usage `<code>`
+    /// ```
     Usage(String),
+    /// ```lua
     /// ---@usage [[
+    /// ```
     UsageStart,
+    /// ```lua
     /// ---@usage ]]
+    /// ```
     UsageEnd,
+    /// ```lua
     /// ---TEXT
+    /// ```
     Comment(String),
     /// Text nodes which are not needed
     Skip,
@@ -98,6 +155,7 @@ type Spanned = (TagType, Range<usize>);
 pub struct Lexer;
 
 impl Lexer {
+    /// Parse emmylua/lua files into rust token
     pub fn parse(src: &str) -> Result<Vec<Spanned>, Vec<Simple<char>>> {
         let triple = just("---");
         let space = just(' ').repeated().at_least(1);

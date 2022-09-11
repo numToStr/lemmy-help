@@ -26,7 +26,7 @@ return U
 
 #[test]
 fn rename_with_return() {
-    let mut lemmy = LemmyHelp::with_rename(Rename {
+    let mut lemmy = LemmyHelp::new(Rename {
         func: true,
         alias: true,
         class: true,
@@ -79,7 +79,7 @@ U:create()                                                            *U:create*
 fn rename_with_mod() {
     let src = format!("---@mod awesome This is working {CODE}");
 
-    let mut lemmy = LemmyHelp::with_rename(Rename {
+    let mut lemmy = LemmyHelp::new(Rename {
         func: true,
         alias: true,
         class: true,

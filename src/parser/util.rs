@@ -1,7 +1,6 @@
 pub struct Table(comfy_table::Table);
 
 impl Table {
-    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         let mut tbl = comfy_table::Table::new();
         tbl.load_preset(comfy_table::presets::NOTHING);
@@ -22,25 +21,25 @@ impl std::fmt::Display for Table {
     }
 }
 
-#[macro_export]
-macro_rules! parser {
+macro_rules! impl_parse {
     ($id: ident, $ret: ty, $body: expr) => {
         impl $id {
             pub fn parse() -> impl chumsky::Parser<
-                $crate::TagType,
+                $crate::lexer::TagType,
                 $ret,
-                Error = chumsky::prelude::Simple<$crate::TagType>,
+                Error = chumsky::prelude::Simple<$crate::lexer::TagType>,
             > {
                 $body
             }
         }
     };
     ($id: ident, $body: expr) => {
-        $crate::parser!($id, Self, $body);
+        crate::parser::impl_parse!($id, Self, $body);
     };
 }
 
-#[macro_export]
+pub(super) use impl_parse;
+
 macro_rules! header {
     ($f:expr, $name:expr, $tag:expr) => {{
         let len = $name.len();
@@ -57,13 +56,16 @@ macro_rules! header {
         }
     }};
     ($f:expr, $name:expr) => {
-        $crate::header!($f, $name, $name)
+        crate::parser::header!($f, $name, $name)
     };
 }
 
-#[macro_export]
+pub(super) use header;
+
 macro_rules! description {
     ($f:expr, $desc:expr) => {
         writeln!($f, "{}", textwrap::indent($desc, "    "))
     };
 }
+
+pub(super) use description;

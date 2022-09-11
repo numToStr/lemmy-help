@@ -2,7 +2,12 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{parser, Kind, Prefix, See, Table, TagType, Usage};
+use crate::{
+    lexer::{Kind, TagType},
+    parser::{description, header, impl_parse, Prefix, See, Table},
+};
+
+use super::Usage;
 
 #[derive(Debug, Clone)]
 pub struct Param {
@@ -11,7 +16,7 @@ pub struct Param {
     pub desc: Vec<String>,
 }
 
-parser!(Param, {
+impl_parse!(Param, {
     select! { TagType::Param { name, ty, desc } => (name, ty, desc) }
         .then(select! { TagType::Comment(x) => x }.repeated())
         .map(|((name, ty, desc), extra)| {
@@ -34,7 +39,7 @@ pub struct Return {
     pub desc: Vec<String>,
 }
 
-parser!(Return, {
+impl_parse!(Return, {
     select! {
         TagType::Return { ty, name, desc } => (ty, name, desc)
     }
@@ -64,7 +69,7 @@ pub struct Func {
     pub usage: Option<Usage>,
 }
 
-parser!(Func, {
+impl_parse!(Func, {
     select! {
         TagType::Comment(x) => x,
     }
@@ -103,8 +108,6 @@ impl Func {
 
 impl Display for Func {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use crate::{description, header};
-
         let name = if !self.params.is_empty() {
             let args = self
                 .params
@@ -120,12 +123,12 @@ impl Display for Func {
 
         header!(
             f,
-            format!(
+            &format!(
                 "{}{}{name}",
                 self.prefix.left.as_deref().unwrap_or_default(),
                 self.kind.as_char()
             ),
-            format!(
+            &format!(
                 "{}{}{}",
                 self.prefix.right.as_deref().unwrap_or_default(),
                 self.kind.as_char(),

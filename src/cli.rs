@@ -66,7 +66,7 @@ impl Cli {
     }
 
     pub fn run(self) {
-        let mut lemmy = LemmyHelp::with_rename(self.rename);
+        let mut lemmy = LemmyHelp::new(self.rename);
 
         for f in self.files {
             let source = read_to_string(f).unwrap();
@@ -80,6 +80,7 @@ impl Cli {
         }
     }
 
+    #[inline]
     pub fn help() {
         print!(
             "\

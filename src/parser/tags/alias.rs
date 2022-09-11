@@ -2,7 +2,10 @@ use std::fmt::Display;
 
 use chumsky::{prelude::choice, select, Parser};
 
-use crate::{parser, Prefix, Table, TagType};
+use crate::{
+    lexer::TagType,
+    parser::{description, header, impl_parse, Prefix, Table},
+};
 
 #[derive(Debug, Clone)]
 pub enum AliasKind {
@@ -18,7 +21,7 @@ pub struct Alias {
     pub prefix: Prefix,
 }
 
-parser!(Alias, {
+impl_parse!(Alias, {
     select! {
         TagType::Comment(x) => x,
     }
@@ -51,16 +54,14 @@ impl Alias {
 
 impl Display for Alias {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use crate::{description, header};
-
         if let Some(prefix) = &self.prefix.right {
-            header!(f, self.name, format!("{prefix}.{}", self.name))?;
+            header!(f, &self.name, format!("{prefix}.{}", self.name))?;
         } else {
-            header!(f, self.name)?;
+            header!(f, &self.name)?;
         }
 
         if !self.desc.is_empty() {
-            description!(f, &self.desc.join("\n"))?;
+            crate::parser::description!(f, &self.desc.join("\n"))?;
         }
 
         writeln!(f)?;
@@ -78,7 +79,7 @@ impl Display for Alias {
                     table.add_row([&format!("({})", ty), desc.as_deref().unwrap_or_default()]);
                 }
 
-                write!(f, "{table}")?;
+                f.write_str(&table.to_string())?;
             }
         }
 

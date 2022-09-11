@@ -2,15 +2,14 @@ use std::fmt::Display;
 
 use chumsky::{prelude::just, select, Parser};
 
-use crate::{parser, TagType};
+use crate::{lexer::TagType, parser::impl_parse};
 
-/// ---@brief [[ TEXT @brief ]]
 #[derive(Debug, Clone)]
 pub struct Brief {
     pub desc: Vec<String>,
 }
 
-parser!(Brief, {
+impl_parse!(Brief, {
     select! {
         TagType::Comment(x) => x,
     }

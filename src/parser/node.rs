@@ -1,11 +1,16 @@
 use std::fmt::Display;
 
 use chumsky::{
-    prelude::{any, choice},
-    select, Parser,
+    prelude::{any, choice, Simple},
+    select, Parser, Stream,
 };
 
-use crate::{parser, Alias, Brief, Class, Divider, Func, Module, Tag, TagType, Type};
+use crate::{
+    lexer::{Lexer, TagType},
+    parser::{Alias, Brief, Class, Divider, Func, Module, Tag, Type},
+};
+
+use super::impl_parse;
 
 #[derive(Debug, Clone)]
 pub enum Node {
@@ -21,7 +26,7 @@ pub enum Node {
     Toc(String),
 }
 
-parser!(Node, Option<Self>, {
+impl_parse!(Node, Option<Self>, {
     choice((
         Module::parse().map(Self::Module),
         Divider::parse().map(Self::Divider),
@@ -40,6 +45,34 @@ parser!(Node, Option<Self>, {
     // Skip useless nodes
     .or(any().to(None))
 });
+
+impl Node {
+    /// Creates stream of AST nodes from emmylua
+    ///
+    /// ```
+    /// let src = r#"
+    /// local U = {}
+    ///
+    /// ---Add two integar and print it
+    /// ---@param this number First number
+    /// ---@param that number Second number
+    /// function U.sum(this, that)
+    ///     print(this + that)
+    /// end
+    ///
+    /// return U
+    /// "#;
+    ///
+    /// let nodes = lemmy_help::parser::Node::new(src).unwrap();
+    /// assert!(!nodes.is_empty());
+    /// ```
+    pub fn new(src: &str) -> Result<Vec<Node>, Vec<Simple<TagType>>> {
+        let tokens = Lexer::parse(src).unwrap();
+        let stream = Stream::from_iter(src.len()..src.len() + 1, tokens.into_iter());
+
+        Node::parse().repeated().flatten().parse(stream)
+    }
+}
 
 impl Display for Node {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
