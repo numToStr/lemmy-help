@@ -133,7 +133,10 @@ impl Display for Func {
             )
         )?;
 
-        description!(f, &self.desc.join("\n"))?;
+        if !self.desc.is_empty() {
+            description!(f, &self.desc.join("\n"))?;
+        }
+
         writeln!(f)?;
 
         if !self.params.is_empty() {

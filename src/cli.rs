@@ -88,12 +88,12 @@ impl Cli {
 {DESC}
 
 USAGE:
-    {NAME} [FILES]...
+    {NAME} [FLAGS] <FILES>...
 
 ARGS:
     <FILES>...              Path to the files
 
-OPTIONS:
+FLAGS:
     -M, --no-modeline       Don't print modeline at the end
     -f, --prefix-func       Prefix function name with ---@mod name
     -a, --prefix-alias      Prefix ---@alias tag with return/---@mod name

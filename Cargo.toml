@@ -2,7 +2,7 @@
 name = "lemmy-help"
 version = "0.6.0"
 description = "Emmylua parser and transformer"
-authors = ["numToStr <sudo@vikasraj.dev>"]
+authors = ["numToStr <hello@vikasraj.dev>"]
 edition = "2021"
 rust-version = "1.63.0"
 homepage = "https://github.com/numToStr/lemmy-help"

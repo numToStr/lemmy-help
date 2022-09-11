@@ -11,7 +11,7 @@ pub struct Module {
 }
 
 parser!(Module, {
-    select! { TagType::Module { name, desc } => Self { name, desc } }
+    select! { TagType::Module(name, desc) => Self { name, desc } }
 });
 
 impl Display for Module {

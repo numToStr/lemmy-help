@@ -49,12 +49,12 @@ lemmy-help /path/to/{first,second,third}.lua > doc.txt
 lemmy-help
 
 USAGE:
-    lemmy-help [FILES]...
+    lemmy-help [FLAGS] <FILES>...
 
 ARGS:
     <FILES>...              Path to the files
 
-OPTIONS:
+FLAGS:
     -M, --no-modeline       Don't print modeline at the end
     -f, --prefix-func       Prefix function name with ---@mod name
     -a, --prefix-alias      Prefix ---@alias tag with return/---@mod name

@@ -2,8 +2,8 @@ mod util;
 pub use util::*;
 mod common;
 pub use common::*;
-mod emmy;
-pub use emmy::*;
+mod lexer;
+pub use lexer::*;
 mod node;
 pub use node::*;
 mod tags;
@@ -12,29 +12,6 @@ pub use tags::*;
 use std::fmt::Display;
 
 use chumsky::{prelude::Simple, Parser, Stream};
-
-// A TYPE could be
-// - primary = string|number|boolean
-// - fn = func(...):string
-// - enum = "one"|"two"|"three"
-// - or: primary (| primary)+
-// - optional = primary?
-// - table = table<string, string>
-// - array = primary[]
-
-// ---@tag @comment
-
-// ---@field [public|protected|private] field_name FIELD_TYPE[|OTHER_TYPE] [@comment]
-
-// ---@param param_name MY_TYPE[|other_type] [@comment]
-
-// ---@type MY_TYPE[|OTHER_TYPE] [@comment]
-
-// ---@alias NEW_NAME TYPE [@comment]
-
-// ---@see @comment
-
-// ---@return MY_TYPE[|OTHER_TYPE] [@comment]
 
 #[derive(Debug, Default)]
 pub struct Rename {
@@ -118,7 +95,7 @@ impl LemmyHelp {
     }
 
     fn lex(src: &str) -> Result<Vec<Node>, Vec<Simple<TagType>>> {
-        let tokens = Emmy::parse(src).unwrap();
+        let tokens = Lexer::parse(src).unwrap();
         let stream = Stream::from_iter(src.len()..src.len() + 1, tokens.into_iter());
 
         Node::parse().repeated().flatten().parse(stream)
