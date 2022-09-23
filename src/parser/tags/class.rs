@@ -2,7 +2,10 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{parser, Prefix, Scope, See, Table, TagType};
+use crate::{
+    lexer::{Scope, TagType},
+    parser::{description, header, impl_parse, Prefix, See, Table},
+};
 
 #[derive(Debug, Clone)]
 pub struct Field {
@@ -12,7 +15,7 @@ pub struct Field {
     pub desc: Vec<String>,
 }
 
-parser!(Field, {
+impl_parse!(Field, {
     select! {
         TagType::Comment(x) => x,
     }
@@ -44,7 +47,7 @@ pub struct Class {
     pub prefix: Prefix,
 }
 
-parser!(Class, {
+impl_parse!(Class, {
     select! { TagType::Comment(c) => c }
         .repeated()
         .then(select! { TagType::Class(name) => name })
@@ -67,12 +70,10 @@ impl Class {
 
 impl Display for Class {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use crate::{description, header};
-
         if let Some(prefix) = &self.prefix.right {
-            header!(f, self.name, format!("{prefix}.{}", self.name))?;
+            header!(f, &self.name, format!("{prefix}.{}", self.name))?;
         } else {
-            header!(f, self.name)?;
+            header!(f, &self.name)?;
         }
 
         if !self.desc.is_empty() {

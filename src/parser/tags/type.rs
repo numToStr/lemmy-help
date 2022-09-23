@@ -2,7 +2,12 @@ use std::fmt::Display;
 
 use chumsky::{select, Parser};
 
-use crate::{parser, Kind, Prefix, See, TagType, Usage};
+use crate::{
+    lexer::{Kind, TagType},
+    parser::{description, header, impl_parse, Prefix, See},
+};
+
+use super::Usage;
 
 #[derive(Debug, Clone)]
 pub struct Type {
@@ -15,7 +20,7 @@ pub struct Type {
     pub usage: Option<Usage>,
 }
 
-parser!(Type, {
+impl_parse!(Type, {
     select! {
         TagType::Comment(x) => x
     }
@@ -50,17 +55,15 @@ impl Type {
 
 impl Display for Type {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use crate::{description, header};
-
         header!(
             f,
-            format!(
+            &format!(
                 "{}{}{}",
                 self.prefix.left.as_deref().unwrap_or_default(),
                 self.kind.as_char(),
                 self.name
             ),
-            format!(
+            &format!(
                 "{}{}{}",
                 self.prefix.right.as_deref().unwrap_or_default(),
                 self.kind.as_char(),

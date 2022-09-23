@@ -2,12 +2,12 @@ use std::fmt::Display;
 
 use chumsky::select;
 
-use crate::{parser, TagType};
+use crate::{lexer::TagType, parser::impl_parse};
 
 #[derive(Debug, Clone)]
 pub struct Divider(pub char);
 
-parser!(Divider, {
+impl_parse!(Divider, {
     select! { TagType::Divider(rune) => Self(rune) }
 });
 

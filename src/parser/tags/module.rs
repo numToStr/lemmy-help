@@ -2,7 +2,10 @@ use std::fmt::Display;
 
 use chumsky::select;
 
-use crate::{parser, Divider, TagType};
+use crate::{
+    lexer::TagType,
+    parser::{impl_parse, Divider},
+};
 
 #[derive(Debug, Clone)]
 pub struct Module {
@@ -10,7 +13,7 @@ pub struct Module {
     pub desc: Option<String>,
 }
 
-parser!(Module, {
+impl_parse!(Module, {
     select! { TagType::Module(name, desc) => Self { name, desc } }
 });
 

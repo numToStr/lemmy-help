@@ -2,12 +2,12 @@ use std::fmt::Display;
 
 use chumsky::select;
 
-use crate::{parser, TagType};
+use crate::{lexer::TagType, parser::impl_parse};
 
 #[derive(Debug, Clone)]
 pub struct Tag(String);
 
-parser!(Tag, {
+impl_parse!(Tag, {
     select! { TagType::Tag(x) => Self(x) }
 });
 
