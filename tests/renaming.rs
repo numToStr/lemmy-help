@@ -1,4 +1,4 @@
-use lemmy_help::{LemmyHelp, Rename};
+use lemmy_help::{vimdoc::VimDoc, FromEmmy, LemmyHelp, Rename};
 
 const CODE: &str = r#"
 local U = {}
@@ -36,7 +36,7 @@ fn rename_with_return() {
     lemmy.for_help(CODE).unwrap();
 
     assert_eq!(
-        lemmy.to_string(),
+        VimDoc::from_emmy(&lemmy, ()).to_string(),
         "\
 ID                                                                        *U.ID*
 
@@ -89,7 +89,7 @@ fn rename_with_mod() {
     lemmy.for_help(&src).unwrap();
 
     assert_eq!(
-        lemmy.to_string(),
+        VimDoc::from_emmy(&lemmy, ()).to_string(),
         "\
 ================================================================================
 This is working                                                        *awesome*

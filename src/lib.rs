@@ -1,11 +1,28 @@
+#[cfg(feature = "vimdoc")]
+pub mod vimdoc;
+
 pub mod lexer;
 pub mod parser;
 
-use chumsky::prelude::Simple;
-use parser::{Module, Node};
 use std::fmt::Display;
 
+use chumsky::prelude::Simple;
+use parser::Node;
+
 use crate::lexer::TagType;
+
+pub trait Nodes {
+    fn nodes(&self) -> &Vec<Node>;
+}
+
+pub trait FromEmmy: Display {
+    type Settings;
+    fn from_emmy(t: &impl Nodes, s: Self::Settings) -> Self;
+}
+
+pub trait AsDoc<T: FromEmmy> {
+    fn as_doc(&self, s: T::Settings) -> T;
+}
 
 #[derive(Debug, Default)]
 pub struct Rename {
@@ -22,7 +39,19 @@ pub struct Rename {
 #[derive(Debug, Default)]
 pub struct LemmyHelp {
     rename: Rename,
-    pub nodes: Vec<Node>,
+    nodes: Vec<Node>,
+}
+
+impl Nodes for LemmyHelp {
+    fn nodes(&self) -> &Vec<Node> {
+        &self.nodes
+    }
+}
+
+impl<T: FromEmmy> AsDoc<T> for LemmyHelp {
+    fn as_doc(&self, s: T::Settings) -> T {
+        T::from_emmy(self, s)
+    }
 }
 
 impl LemmyHelp {
@@ -43,7 +72,9 @@ impl LemmyHelp {
     /// Parse given lua source code to generate AST representation
     ///
     /// ```
-    /// let mut lemmy = lemmy_help::LemmyHelp::default();
+    /// use lemmy_help::{LemmyHelp, Nodes};
+    ///
+    /// let mut lemmy = LemmyHelp::default();
     /// let src = r#"
     /// local U = {}
     ///
@@ -58,7 +89,7 @@ impl LemmyHelp {
     /// "#;
     ///
     /// let ast = lemmy.parse(&src).unwrap();
-    /// assert!(!ast.nodes.is_empty());
+    /// assert!(!ast.nodes().is_empty());
     /// ```
     pub fn parse(&mut self, src: &str) -> Result<&Self, Vec<Simple<TagType>>> {
         self.nodes.append(&mut Node::new(src)?);
@@ -113,40 +144,5 @@ impl LemmyHelp {
         };
 
         Ok(self)
-    }
-}
-
-impl Display for LemmyHelp {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for node in &self.nodes {
-            if let Node::Toc(x) = node {
-                writeln!(
-                    f,
-                    "{}",
-                    Module {
-                        name: x.to_string(),
-                        desc: Some("Table of Contents".into()),
-                    }
-                )?;
-
-                for nodde in &self.nodes {
-                    if let Node::Module(x) = nodde {
-                        let desc = x.desc.as_deref().unwrap_or_default();
-
-                        writeln!(
-                            f,
-                            "{desc}{}",
-                            format_args!("{:·>w$}", format!("|{}|", x.name), w = 80 - desc.len())
-                        )?;
-                    }
-                }
-
-                writeln!(f)?;
-            } else {
-                writeln!(f, "{node}")?;
-            }
-        }
-
-        Ok(())
     }
 }

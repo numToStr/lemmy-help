@@ -1,5 +1,3 @@
-use std::fmt::Display;
-
 use chumsky::{
     prelude::{any, choice, Simple},
     select, Parser, Stream,
@@ -71,21 +69,5 @@ impl Node {
         let stream = Stream::from_iter(src.len()..src.len() + 1, tokens.into_iter());
 
         Node::parse().repeated().flatten().parse(stream)
-    }
-}
-
-impl Display for Node {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match &self {
-            Self::Brief(x) => x.fmt(f),
-            Self::Tag(x) => x.fmt(f),
-            Self::Func(x) => x.fmt(f),
-            Self::Class(x) => x.fmt(f),
-            Self::Alias(x) => x.fmt(f),
-            Self::Type(x) => x.fmt(f),
-            Self::Module(x) => x.fmt(f),
-            Self::Divider(x) => x.fmt(f),
-            _ => unimplemented!(),
-        }
     }
 }

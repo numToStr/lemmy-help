@@ -1,10 +1,8 @@
-use std::fmt::Display;
-
 use chumsky::{select, Parser};
 
 use crate::{
     lexer::{Kind, TagType},
-    parser::{description, header, impl_parse, Prefix, See},
+    parser::{impl_parse, Prefix, See},
 };
 
 use super::Usage;
@@ -50,48 +48,5 @@ impl Type {
 
     pub fn is_public(&self, export: &str) -> bool {
         self.kind != Kind::Local && self.prefix.left.as_deref() == Some(export)
-    }
-}
-
-impl Display for Type {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        header!(
-            f,
-            &format!(
-                "{}{}{}",
-                self.prefix.left.as_deref().unwrap_or_default(),
-                self.kind.as_char(),
-                self.name
-            ),
-            &format!(
-                "{}{}{}",
-                self.prefix.right.as_deref().unwrap_or_default(),
-                self.kind.as_char(),
-                self.name
-            )
-        )?;
-
-        if !self.desc.is_empty() {
-            description!(f, &self.desc.join("\n"))?;
-        }
-
-        writeln!(f)?;
-
-        description!(f, "Type: ~")?;
-        f.write_fmt(format_args!(
-            "{:>w$}\n\n",
-            format!("({})", self.ty),
-            w = 10 + self.ty.len()
-        ))?;
-
-        if !self.see.refs.is_empty() {
-            writeln!(f, "{}", self.see)?;
-        }
-
-        if let Some(usage) = &self.usage {
-            writeln!(f, "{usage}")?;
-        }
-
-        Ok(())
     }
 }

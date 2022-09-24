@@ -81,7 +81,7 @@ jobs:
 
       - name: Test
         shell: bash
-        run: ${{ env.CARGO }} test --target=${{ matrix.job.target }}
+        run: ${{ env.CARGO }} test --features=vimdoc --target=${{ matrix.job.target }}
 
       - name: Package
         shell: bash

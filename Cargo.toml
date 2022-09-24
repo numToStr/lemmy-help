@@ -27,23 +27,13 @@ required-features = ["cli"]
 
 [dependencies]
 chumsky = { version = "0.8.0", default-features = false }
-
-[dependencies.textwrap]
-version = "0.15.1"
-default-features = false
-# optional = true
-
-[dependencies.comfy-table]
-version = "6.1.0"
-default-features = false
-# optional = true
-
-[dependencies.lexopt]
-version = "0.2.1"
-optional = true
+textwrap = { version = "0.15.1", default-features = false, optional = true }
+comfy-table = { version = "6.1.0", default-features = false, optional = true }
+lexopt = { version = "0.2.1", default-features = false, optional = true }
 
 [features]
-cli = ["dep:lexopt"]
+vimdoc = ["dep:textwrap", "dep:comfy-table"]
+cli = ["vimdoc", "dep:lexopt"]
 
 [profile.release]
 lto = true
