@@ -3,10 +3,7 @@ use chumsky::{
     select, Parser,
 };
 
-use crate::{
-    lexer::TagType,
-    parser::{description, impl_parse},
-};
+use crate::{lexer::TagType, parser::impl_parse};
 
 #[derive(Debug, Clone)]
 pub struct Usage {
@@ -22,12 +19,3 @@ impl_parse!(Usage, {
         select! { TagType::Usage(code) => Self { code } },
     ))
 });
-
-impl std::fmt::Display for Usage {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        description!(f, "Usage: ~")?;
-        writeln!(f, "{:>9}", ">")?;
-        writeln!(f, "{}", textwrap::indent(&self.code, "            "))?;
-        writeln!(f, "{:>9}", "<")
-    }
-}

@@ -1,4 +1,5 @@
-use lemmy_help::{LemmyHelp, Rename};
+use lemmy_help::{vimdoc::VimDoc, FromEmmy, LemmyHelp, Rename};
+
 use lexopt::{
     Arg::{Long, Short, Value},
     Parser,
@@ -73,7 +74,7 @@ impl Cli {
             lemmy.for_help(&source).unwrap();
         }
 
-        print!("{lemmy}");
+        print!("{}", VimDoc::from_emmy(&lemmy, ()));
 
         if self.modeline {
             println!("vim:tw=78:ts=8:noet:ft=help:norl:");

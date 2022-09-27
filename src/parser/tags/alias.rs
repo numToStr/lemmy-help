@@ -1,10 +1,8 @@
-use std::fmt::Display;
-
 use chumsky::{prelude::choice, select, Parser};
 
 use crate::{
     lexer::TagType,
-    parser::{description, header, impl_parse, Prefix, Table},
+    parser::{impl_parse, Prefix},
 };
 
 #[derive(Debug, Clone)]
@@ -49,40 +47,5 @@ impl_parse!(Alias, {
 impl Alias {
     pub fn rename_tag(&mut self, tag: String) {
         self.prefix.right = Some(tag);
-    }
-}
-
-impl Display for Alias {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if let Some(prefix) = &self.prefix.right {
-            header!(f, &self.name, format!("{prefix}.{}", self.name))?;
-        } else {
-            header!(f, &self.name)?;
-        }
-
-        if !self.desc.is_empty() {
-            crate::parser::description!(f, &self.desc.join("\n"))?;
-        }
-
-        writeln!(f)?;
-
-        match &self.kind {
-            AliasKind::Type(ty) => {
-                description!(f, "Type: ~")?;
-                writeln!(f, "{:>w$}", ty, w = 8 + ty.len())?;
-            }
-            AliasKind::Enum(variants) => {
-                description!(f, "Variants: ~")?;
-
-                let mut table = Table::new();
-                for (ty, desc) in variants {
-                    table.add_row([&format!("({})", ty), desc.as_deref().unwrap_or_default()]);
-                }
-
-                f.write_str(&table.to_string())?;
-            }
-        }
-
-        writeln!(f)
     }
 }

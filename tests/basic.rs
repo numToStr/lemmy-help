@@ -1,4 +1,4 @@
-use lemmy_help::LemmyHelp;
+use lemmy_help::{vimdoc::VimDoc, FromEmmy, LemmyHelp};
 
 #[test]
 fn brief() {
@@ -37,7 +37,7 @@ fn brief() {
     lemmy.for_help(src).unwrap();
 
     assert_eq!(
-        lemmy.to_string(),
+        VimDoc::from_emmy(&lemmy, ()).to_string(),
         r#"Any summary you wanted to write you can write here.
 There is no formatting here,
 the way you write in here, will be shown
@@ -83,7 +83,7 @@ fn divider_and_tag() {
     lemmy.for_help(src).unwrap();
 
     assert_eq!(
-        lemmy.to_string(),
+        VimDoc::from_emmy(&lemmy, ()).to_string(),
         "\
 ================================================================================
 
@@ -137,7 +137,7 @@ fn classes() {
     lemmy.for_help(src).unwrap();
 
     assert_eq!(
-        lemmy.to_string(),
+        VimDoc::from_emmy(&lemmy, ()).to_string(),
         "\
 Human                                                                    *Human*
     The Homosapien
@@ -233,7 +233,7 @@ fn functions() {
     lemmy.for_help(src).unwrap();
 
     assert_eq!(
-        lemmy.to_string(),
+        VimDoc::from_emmy(&lemmy, ()).to_string(),
         "\
 U.sum({this}, {that})                                                    *U.sum*
     Add two integer and print it
@@ -328,7 +328,7 @@ fn multiline_param() {
     lemmy.for_help(src).unwrap();
 
     assert_eq!(
-        lemmy.to_string(),
+        VimDoc::from_emmy(&lemmy, ()).to_string(),
         "\
 U.multi_line({opts}, {reserverd})                                 *U.multi_line*
     Trigger a rebuild of one or more projects.
@@ -424,7 +424,7 @@ fn module() {
     lemmy.for_help(src2).unwrap();
 
     assert_eq!(
-        lemmy.to_string(),
+        VimDoc::from_emmy(&lemmy, ()).to_string(),
         "\
 ================================================================================
 Introduction                                                         *mod.intro*
@@ -497,7 +497,7 @@ fn table_of_contents() {
     lemmy.for_help(src).unwrap();
 
     assert_eq!(
-        lemmy.to_string(),
+        VimDoc::from_emmy(&lemmy, ()).to_string(),
         "\
 ================================================================================
 Table of Contents                                           *my-plugin.contents*
@@ -563,7 +563,7 @@ fn alias_and_type() {
     lemmy.for_help(src).unwrap();
 
     assert_eq!(
-        lemmy.to_string(),
+        VimDoc::from_emmy(&lemmy, ()).to_string(),
         r#"NoDesc                                                                  *NoDesc*
 
     Type: ~
@@ -653,7 +653,7 @@ fn private() {
     lemmy.for_help(src).unwrap();
 
     assert_eq!(
-        lemmy.to_string(),
+        VimDoc::from_emmy(&lemmy, ()).to_string(),
         "\
 U.ok()                                                                    *U.ok*
     Only this will be documented
@@ -692,7 +692,7 @@ fn export() {
     lemmy.for_help(src).unwrap();
 
     assert_eq!(
-        lemmy.to_string(),
+        VimDoc::from_emmy(&lemmy, ()).to_string(),
         "\
 ================================================================================
 Configuration                                                    *module.config*
