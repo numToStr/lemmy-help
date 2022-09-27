@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::parser::Type;
 
-use super::{description, header, see::SeeDoc, usage::UsageDoc};
+use super::{description, header, see::SeeDoc, usage::UsageDoc, Table};
 
 #[derive(Debug)]
 pub struct TypeDoc<'a>(pub &'a Type);
@@ -10,7 +10,7 @@ pub struct TypeDoc<'a>(pub &'a Type);
 impl Display for TypeDoc<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let Type {
-            desc,
+            desc: (extract, desc),
             prefix,
             name,
             kind,
@@ -35,18 +35,18 @@ impl Display for TypeDoc<'_> {
             )
         )?;
 
-        if !desc.is_empty() {
-            description!(f, &desc.join("\n"))?;
+        if !extract.is_empty() {
+            description!(f, &extract.join("\n"))?;
         }
 
         writeln!(f)?;
 
         description!(f, "Type: ~")?;
-        f.write_fmt(format_args!(
-            "{:>w$}\n\n",
-            format!("({})", ty),
-            w = 10 + ty.len()
-        ))?;
+
+        let mut table = Table::new();
+        table.add_row([&format!("({})", ty), desc.as_deref().unwrap_or_default()]);
+
+        writeln!(f, "{table}")?;
 
         if !see.refs.is_empty() {
             writeln!(f, "{}", SeeDoc(see))?;

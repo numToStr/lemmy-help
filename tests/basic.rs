@@ -546,8 +546,8 @@ fn alias_and_type() {
 
     ---List of all the lines in the buffer
     ---It can be more than one
-    ---@type Lines
-    ---@see something
+    ---@type Lines lines in a buffer
+    ---@see Lines
     U.LINES = {}
 
     ---Global vim mode
@@ -601,10 +601,10 @@ U.LINES                                                                *U.LINES*
     It can be more than one
 
     Type: ~
-        (Lines)
+        (Lines)  lines in a buffer
 
     See: ~
-        |something|
+        |Lines|
 
 
 U.VMODE                                                                *U.VMODE*
