@@ -532,7 +532,7 @@ You can use `---@type` to document static objects, constants etc.
 
 ```lua
 ---@comment
----@type <type>
+---@type <type> [desc]
 ---@see <tag>
 ---@usage `<code>`
 ```

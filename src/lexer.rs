@@ -118,9 +118,9 @@ pub enum TagType {
     /// ```
     Variant(String, Option<String>),
     /// ```lua
-    /// ---@type <type>
+    /// ---@type <type> [desc]
     /// ```
-    Type(String),
+    Type(String, Option<String>),
     /// ```lua
     /// ---@tag <name>
     /// ```
@@ -273,7 +273,8 @@ impl Lexer {
             just("type")
                 .ignore_then(space)
                 .ignore_then(ty)
-                .map(TagType::Type),
+                .then(desc)
+                .map(|(ty, desc)| TagType::Type(ty, desc)),
             just("tag")
                 .ignore_then(space)
                 .ignore_then(comment)
