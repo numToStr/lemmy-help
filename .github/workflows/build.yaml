@@ -70,7 +70,7 @@ jobs:
 
       - name: Install Cross
         shell: bash
-        if: ${{ startsWith(matrix.job.target, 'aarch64-') }}
+        if: ${{ startsWith(matrix.job.target, 'aarch64') || endsWith(matrix.job.target, 'musl') }}
         run: |
           cargo install cross
           echo "CARGO=cross" >> $GITHUB_ENV

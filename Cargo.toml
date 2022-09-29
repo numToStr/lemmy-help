@@ -1,6 +1,6 @@
 [package]
 name = "lemmy-help"
-version = "0.6.0"
+version = "0.7.0"
 description = "Emmylua parser and transformer"
 authors = ["numToStr <hello@vikasraj.dev>"]
 edition = "2021"
