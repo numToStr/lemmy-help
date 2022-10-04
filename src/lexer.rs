@@ -1,3 +1,6 @@
+mod ty;
+pub use ty::*;
+
 use std::ops::Range;
 
 use chumsky::{
@@ -81,14 +84,15 @@ pub enum TagType {
     /// ```
     Param {
         name: String,
-        ty: String,
+        optional: bool,
+        ty: Ty,
         desc: Option<String>,
     },
     /// ```lua
     /// ---@return <type> [<name> [comment] | [name] #<comment>]
     /// ```
     Return {
-        ty: String,
+        ty: Ty,
         name: Option<String>,
         desc: Option<String>,
     },
@@ -102,7 +106,7 @@ pub enum TagType {
     Field {
         scope: Scope,
         name: String,
-        ty: String,
+        ty: Ty,
         desc: Option<String>,
     },
     /// ```lua
@@ -112,7 +116,7 @@ pub enum TagType {
     /// -- Enum alias
     /// ---@alias <name>
     /// ```
-    Alias(String, Option<String>),
+    Alias(String, Option<Ty>),
     /// ```lua
     /// ---| '<value>' [# description]
     /// ```
@@ -120,7 +124,7 @@ pub enum TagType {
     /// ```lua
     /// ---@type <type> [desc]
     /// ```
-    Type(String, Option<String>),
+    Type(Ty, Option<String>),
     /// ```lua
     /// ---@tag <name>
     /// ```
@@ -162,18 +166,11 @@ impl Lexer {
         let till_eol = take_until(newline());
 
         let comment = till_eol.map(|(x, _)| x.iter().collect());
-        let desc = space.ignore_then(comment).or_not();
-
-        // Source: https://github.com/sumneko/lua-language-server/wiki/Annotations#documenting-types
-        // A TYPE could be
-        // - primary = string|number|boolean
-        // - fn = func(...):string
-        // - enum = "one"|"two"|"three"
-        // - or: primary (| primary)+
-        // - optional = primary?
-        // - table = table<string, string>
-        // - array = primary[]
-        let ty = filter(|x: &char| !x.is_whitespace()).repeated().collect();
+        let desc = choice((
+            space.ignore_then(comment),
+            space.or_not().ignore_then(just('#')).ignore_then(comment),
+        ))
+        .or_not();
 
         let scope = choice((
             keyword("public").to(Scope::Public),
@@ -219,7 +216,7 @@ impl Lexer {
                 .map(TagType::Toc),
             just("mod")
                 .then_ignore(space)
-                .ignore_then(ty)
+                .ignore_then(filter(|c: &char| !c.is_whitespace()).repeated().collect())
                 .then(desc)
                 .map(|(name, desc)| TagType::Module(name, desc)),
             just("divider")
@@ -232,14 +229,19 @@ impl Lexer {
             ))),
             just("param")
                 .ignore_then(space)
-                .ignore_then(ty) // I am using `ty` here because param can have `?`
+                .ignore_then(ident().then(just('?').or_not().map(|x| x.is_some())))
                 .then_ignore(space)
-                .then(ty)
+                .then(Ty::parse())
                 .then(desc)
-                .map(|((name, ty), desc)| TagType::Param { name, ty, desc }),
+                .map(|(((name, optional), ty), desc)| TagType::Param {
+                    name,
+                    optional,
+                    ty,
+                    desc,
+                }),
             just("return")
                 .ignore_then(space)
-                .ignore_then(ty)
+                .ignore_then(Ty::parse())
                 .then(choice((
                     newline().to((None, None)),
                     space.ignore_then(choice((
@@ -257,7 +259,7 @@ impl Lexer {
                 .then_ignore(space)
                 .then(ident())
                 .then_ignore(space)
-                .then(ty)
+                .then(Ty::parse())
                 .then(desc)
                 .map(|(((scope, name), ty), desc)| TagType::Field {
                     scope: scope.unwrap_or(Scope::Public),
@@ -268,11 +270,11 @@ impl Lexer {
             just("alias")
                 .ignore_then(space)
                 .ignore_then(ident())
-                .then(space.ignore_then(ty).or_not())
+                .then(space.ignore_then(Ty::parse()).or_not())
                 .map(|(name, ty)| TagType::Alias(name, ty)),
             just("type")
                 .ignore_then(space)
-                .ignore_then(ty)
+                .ignore_then(Ty::parse())
                 .then(desc)
                 .map(|(ty, desc)| TagType::Type(ty, desc)),
             just("tag")
