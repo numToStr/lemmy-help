@@ -166,11 +166,7 @@ impl Lexer {
         let till_eol = take_until(newline());
 
         let comment = till_eol.map(|(x, _)| x.iter().collect());
-        let desc = choice((
-            space.ignore_then(comment),
-            space.or_not().ignore_then(just('#')).ignore_then(comment),
-        ))
-        .or_not();
+        let desc = space.ignore_then(comment).or_not();
 
         let scope = choice((
             keyword("public").to(Scope::Public),
