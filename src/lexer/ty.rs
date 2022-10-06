@@ -4,7 +4,7 @@ use chumsky::{
     prelude::Simple,
     primitive::{choice, just},
     recursive::recursive,
-    text::{ident, TextParser},
+    text::{ident, whitespace, TextParser},
     Parser,
 };
 
@@ -22,9 +22,10 @@ pub enum Ty {
     Userdata,
     Lightuserdata,
     Union(Vec<Ty>), // TODO: 1) Box<Ty> 2) union of static 'string' or number
-    Array(Box<Ty>), // TODO: Box<Ty>
+    Array(Box<Ty>),
     Table(Option<(Box<Ty>, Box<Ty>)>),
     Fun(Vec<(String, Ty)>, Option<Box<Ty>>),
+    Dict(Vec<(String, Ty)>),
 }
 
 impl Ty {
@@ -48,10 +49,14 @@ impl Ty {
             // ));
 
             fn array(
-                p: impl Parser<char, Ty, Error = Simple<char>>,
+                p: impl Parser<char, Ty, Error = Simple<char>> + Clone,
+                inner: impl Parser<char, Ty, Error = Simple<char>>,
             ) -> impl Parser<char, Ty, Error = Simple<char>> {
-                p.then(just("[]").repeated())
-                    .foldl(|arr, _| Ty::Array(Box::new(arr)))
+                choice((
+                    p.clone().then_ignore(just('|')).chain(inner).map(Ty::Union),
+                    p.then(just("[]").repeated())
+                        .foldl(|arr, _| Ty::Array(Box::new(arr))),
+                ))
             }
 
             let any = just("any").to(Ty::Unknown);
@@ -66,16 +71,15 @@ impl Ty {
             let userdata = just("userdata").to(Ty::Userdata);
             let lightuserdata = just("lightuserdata").to(Ty::Lightuserdata);
 
+            let list_like = ident()
+                .padded()
+                .then_ignore(colon)
+                .then(inner.clone())
+                .separated_by(comma)
+                .allow_trailing();
+
             let fun = just("fun")
-                .ignore_then(
-                    ident()
-                        .padded()
-                        .then_ignore(colon)
-                        .then(inner.clone())
-                        .separated_by(comma)
-                        .allow_trailing()
-                        .delimited_by(just('('), just(')')),
-                )
+                .ignore_then(list_like.clone().delimited_by(just('('), just(')')))
                 .then(colon.ignore_then(inner.clone().map(Box::new)).or_not())
                 .map(|(param, ret)| Ty::Fun(param, ret));
 
@@ -90,23 +94,25 @@ impl Ty {
                 )
                 .map(Ty::Table);
 
+            let dict = list_like
+                .delimited_by(just('{').then(whitespace()), whitespace().then(just('}')))
+                .map(Ty::Dict);
+
             choice((
-                array(any),
-                array(unknown),
-                array(nil),
-                array(boolean),
-                array(string),
-                array(num),
-                array(int),
-                array(function),
-                array(thread),
-                array(userdata),
-                array(lightuserdata),
-                array(fun),
-                array(table),
-                // inner
-                //     .then_ignore(just('[').then(just(']')))
-                //     .map(|x| Ty::Array(Box::new(x))),
+                array(any, inner.clone()),
+                array(unknown, inner.clone()),
+                array(nil, inner.clone()),
+                array(boolean, inner.clone()),
+                array(string, inner.clone()),
+                array(num, inner.clone()),
+                array(int, inner.clone()),
+                array(function, inner.clone()),
+                array(thread, inner.clone()),
+                array(userdata, inner.clone()),
+                array(lightuserdata, inner.clone()),
+                array(fun, inner.clone()),
+                array(table, inner.clone()),
+                array(dict, inner),
                 // inner
                 //     .clone()
                 //     .then_ignore(just('|'))
@@ -124,12 +130,19 @@ fn ty_parse() {
         // "table<string, fun(a: string): string>",
         // "table<fun(), table<string, number>>",
         // "table<string, fun(a: string, b: table<string, boolean>)>",
-        // Not working
-        "string|string|string",
-        // "fun(a: string, c: string[], d: number[][]): table<string, number>[]",
+        // "{ get: string, set: string }",
+        // "{ get: fun(a: unknown): unknown, set: fun(a: unknown) }",
         // "table<string, string>[]",
-        // "fun(a: string, b: string|number, c: string[], d: number[][])",
+        // "string",
+        "any[]",
+        // Not working
+        // "any|any|any",
+        // "any|string|number",
+        // "any|string|number|fun(a: string)|table<string, number>",
+        // "fun(a: string, c: string, d: number): table<string, number[]>[]",
+        // "fun(a: string, c: string[], d: number[][]): table<string, number>[]",
         // "table<string, string|string[]|boolean>[]",
+        // "fun(a: string, b: string|number|boolean, c: string[], d: number[][]): string|string[]",
     ];
 
     for t in conds {
