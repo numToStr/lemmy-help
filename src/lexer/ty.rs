@@ -47,48 +47,71 @@ impl Ty {
             //     just("lightuserdata").to(Ty::Lightuserdata),
             // ));
 
+            fn array(
+                p: impl Parser<char, Ty, Error = Simple<char>>,
+            ) -> impl Parser<char, Ty, Error = Simple<char>> {
+                p.then(just("[]").repeated())
+                    .foldl(|arr, _| Ty::Array(Box::new(arr)))
+            }
+
+            let any = just("any").to(Ty::Unknown);
+            let unknown = just("unknown").to(Ty::Unknown);
+            let nil = just("nil").to(Ty::Nil);
+            let boolean = just("boolean").to(Ty::Boolean);
+            let string = just("string").to(Ty::String);
+            let num = just("number").to(Ty::Number);
+            let int = just("integer").to(Ty::Integer);
+            let function = just("function").to(Ty::Function);
+            let thread = just("thread").to(Ty::Thread);
+            let userdata = just("userdata").to(Ty::Userdata);
+            let lightuserdata = just("lightuserdata").to(Ty::Lightuserdata);
+
+            let fun = just("fun")
+                .ignore_then(
+                    ident()
+                        .padded()
+                        .then_ignore(colon)
+                        .then(inner.clone())
+                        .separated_by(comma)
+                        .allow_trailing()
+                        .delimited_by(just('('), just(')')),
+                )
+                .then(colon.ignore_then(inner.clone().map(Box::new)).or_not())
+                .map(|(param, ret)| Ty::Fun(param, ret));
+
+            let table = just("table")
+                .ignore_then(
+                    just('<')
+                        .ignore_then(inner.clone().map(Box::new))
+                        .then_ignore(comma)
+                        .then(inner.clone().map(Box::new))
+                        .then_ignore(just('>'))
+                        .or_not(),
+                )
+                .map(Ty::Table);
+
             choice((
-                just("any").to(Ty::Unknown),
-                just("unknown").to(Ty::Unknown),
-                just("nil").to(Ty::Nil),
-                just("boolean").to(Ty::Boolean),
-                just("string").to(Ty::String),
-                just("number").to(Ty::Number),
-                just("integer").to(Ty::Integer),
-                just("function").to(Ty::Function),
-                just("thread").to(Ty::Thread),
-                just("userdata").to(Ty::Userdata),
-                just("lightuserdata").to(Ty::Lightuserdata),
-                just("fun")
-                    .ignore_then(
-                        ident()
-                            .padded()
-                            .then_ignore(colon)
-                            .then(inner.clone())
-                            .separated_by(comma)
-                            .allow_trailing()
-                            .delimited_by(just('('), just(')')),
-                    )
-                    .then(colon.ignore_then(inner.clone().map(Box::new)).or_not())
-                    .map(|(param, ret)| Ty::Fun(param, ret)),
-                just("table")
-                    .ignore_then(
-                        just('<')
-                            .ignore_then(inner.clone().map(Box::new))
-                            .then_ignore(comma)
-                            .then(inner.clone().map(Box::new))
-                            .then_ignore(just('>'))
-                            .or_not(),
-                    )
-                    .map(Ty::Table),
-                // inner
-                //     .clone()
-                //     .then_ignore(just('|'))
-                //     .chain(inner.clone().separated_by(just('|')))
-                //     .map(Ty::Union),
+                array(any),
+                array(unknown),
+                array(nil),
+                array(boolean),
+                array(string),
+                array(num),
+                array(int),
+                array(function),
+                array(thread),
+                array(userdata),
+                array(lightuserdata),
+                array(fun),
+                array(table),
                 // inner
                 //     .then_ignore(just('[').then(just(']')))
                 //     .map(|x| Ty::Array(Box::new(x))),
+                // inner
+                //     .clone()
+                //     .then_ignore(just('|'))
+                //     .chain(inner.separated_by(just('|')))
+                //     .map(Ty::Union),
             ))
         })
     }
@@ -97,13 +120,16 @@ impl Ty {
 #[test]
 fn ty_parse() {
     let conds = [
-        "fun(a: string, b: string, c: function, d: fun(z: string)): table<string, string>",
-        "table<string, fun(a: string): string>",
-        "table<fun(), table<string, number>>",
-        "table<string, fun(a: string, b: table<string, boolean>)>",
+        // "fun(a: string, b: string, c: function, d: fun(z: string)): table<string, string>",
+        // "table<string, fun(a: string): string>",
+        // "table<fun(), table<string, number>>",
+        // "table<string, fun(a: string, b: table<string, boolean>)>",
         // Not working
-        "fun(a: string, b: string|number, c: string[], d: number[][])",
-        "table<string, string|number>[]",
+        "string|string|string",
+        // "fun(a: string, c: string[], d: number[][]): table<string, number>[]",
+        // "table<string, string>[]",
+        // "fun(a: string, b: string|number, c: string[], d: number[][])",
+        // "table<string, string|string[]|boolean>[]",
     ];
 
     for t in conds {
