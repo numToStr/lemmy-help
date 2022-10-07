@@ -20,10 +20,12 @@ impl Display for FuncDoc<'_> {
             usage,
         } = self.0;
 
+        let is_opt = |opt| if opt { "?" } else { "" };
+
         let name_with_param = if !params.is_empty() {
             let args = params
                 .iter()
-                .map(|x| format!("{{{}}}", x.name))
+                .map(|param| format!("{{{}{}}}", param.name, is_opt(param.optional)))
                 .collect::<Vec<String>>()
                 .join(", ");
 
@@ -60,7 +62,7 @@ impl Display for FuncDoc<'_> {
 
             for param in params {
                 table.add_row([
-                    format!("{{{}}}", param.name),
+                    format!("{{{}{}}}", param.name, is_opt(param.optional)),
                     format!("({})", param.ty),
                     param.desc.join("\n"),
                 ]);

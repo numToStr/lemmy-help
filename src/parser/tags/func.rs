@@ -11,15 +11,16 @@ use super::Usage;
 pub struct Param {
     pub name: String,
     pub ty: Ty,
+    pub optional: bool,
     pub desc: Vec<String>,
 }
 
 impl_parse!(Param, {
     select! {
-        TagType::Param { name, ty, desc, .. } => (name, ty, desc)
+        TagType::Param { name, ty,  optional, desc, } => (name, ty, optional, desc,)
     }
     .then(select! { TagType::Comment(x) => x }.repeated())
-    .map(|((name, ty, desc), extra)| {
+    .map(|((name, ty, optional, desc), extra)| {
         let desc = match desc {
             Some(d) => Vec::from([d])
                 .into_iter()
@@ -28,7 +29,12 @@ impl_parse!(Param, {
             None => extra,
         };
 
-        Self { name, ty, desc }
+        Self {
+            name,
+            ty,
+            optional,
+            desc,
+        }
     })
 });
 

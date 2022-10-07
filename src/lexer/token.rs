@@ -161,13 +161,20 @@ pub enum Ty {
     Union(Box<Ty>, Box<Ty>),
     Array(Box<Ty>),
     Table(Option<(Box<Ty>, Box<Ty>)>),
-    Fun(Vec<(String, Ty)>, Option<Box<Ty>>),
-    Dict(Vec<(String, Ty)>),
+    Fun(Vec<((String, bool), Ty)>, Option<Box<Ty>>),
+    Dict(Vec<((String, bool), Ty)>),
     Ref(String),
 }
 
 impl Display for Ty {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        fn list_like(args: &[((String, bool), Ty)]) -> String {
+            args.iter()
+                .map(|((arg, opt), ty)| format!("{arg}{}:{ty}", if *opt { "?" } else { "" }))
+                .collect::<Vec<String>>()
+                .join(",")
+        }
+
         match self {
             Self::Nil => f.write_str("nil"),
             Self::Any => f.write_str("any"),
@@ -187,29 +194,17 @@ impl Display for Ty {
                 None => f.write_str("table"),
             },
             Self::Fun(args, ret) => {
-                write!(
-                    f,
-                    "fun({})",
-                    args.iter()
-                        .map(|(arg, ty)| format!("{arg}:{ty}"))
-                        .collect::<Vec<String>>()
-                        .join(",")
-                )?;
+                f.write_str("fun(")?;
+                f.write_str(&list_like(args))?;
+                f.write_str(")")?;
                 if let Some(ret) = ret {
-                    write!(f, ":{}", ret)?;
+                    write!(f, ":{ret}")?;
                 }
                 Ok(())
             }
             Self::Dict(kv) => {
                 f.write_str("{")?;
-                write!(
-                    f,
-                    "{}",
-                    kv.iter()
-                        .map(|(arg, ty)| format!("{arg}:{ty}"))
-                        .collect::<Vec<String>>()
-                        .join(",")
-                )?;
+                f.write_str(&list_like(kv))?;
                 f.write_str("}")
             }
             Self::Ref(id) => f.write_str(id),

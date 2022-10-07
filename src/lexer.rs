@@ -246,6 +246,7 @@ impl Lexer {
 
             let list_like = ident()
                 .padded()
+                .then(just('?').or_not().map(|x| x.is_some()))
                 .then_ignore(colon)
                 .then(inner.clone())
                 .separated_by(comma)
