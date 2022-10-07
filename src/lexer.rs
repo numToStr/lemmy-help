@@ -63,6 +63,8 @@ impl Lexer {
             )
             .map(|(t, d)| TagType::Variant(t, d));
 
+        let ty_name = Self::ty_name();
+
         let tag = just('@').ignore_then(choice((
             private.to(TagType::Skip),
             just("toc")
@@ -107,7 +109,7 @@ impl Lexer {
                 .map(|(ty, (name, desc))| TagType::Return { ty, name, desc }),
             just("class")
                 .ignore_then(space)
-                .ignore_then(ident())
+                .ignore_then(ty_name.clone())
                 .map(TagType::Class),
             just("field")
                 .ignore_then(space.ignore_then(scope).or_not())
@@ -124,7 +126,7 @@ impl Lexer {
                 }),
             just("alias")
                 .ignore_then(space)
-                .ignore_then(ident())
+                .ignore_then(ty_name)
                 .then(space.ignore_then(Self::ty()).or_not())
                 .map(|(name, ty)| TagType::Alias(name, ty)),
             just("type")
@@ -204,7 +206,6 @@ impl Lexer {
                 .map(TagType::Export),
             till_eol.to(TagType::Skip),
         ))
-        // .padded_by(private)
         .padded()
         .map_with_span(|t, r| (t, r))
         .repeated()
@@ -228,6 +229,7 @@ impl Lexer {
             let userdata = just("userdata").to(Ty::Userdata);
             let lightuserdata = just("lightuserdata").to(Ty::Lightuserdata);
 
+            #[inline]
             fn union_array(
                 p: impl Parser<char, Ty, Error = Simple<char>> + Clone,
                 inner: impl Parser<char, Ty, Error = Simple<char>>,
@@ -269,10 +271,7 @@ impl Lexer {
                 .delimited_by(just('{').then(whitespace()), whitespace().then(just('}')))
                 .map(Ty::Dict);
 
-            let ty_name = filter(|x: &char| x.is_alphanumeric() || C.contains(x))
-                .repeated()
-                .collect()
-                .map(Ty::Ref);
+            let ty_name = Self::ty_name().map(Ty::Ref);
 
             choice((
                 union_array(any, inner.clone()),
@@ -292,6 +291,13 @@ impl Lexer {
                 union_array(ty_name, inner),
             ))
         })
+    }
+
+    #[inline]
+    fn ty_name() -> impl Parser<char, String, Error = Simple<char>> + Clone {
+        filter(|x: &char| x.is_alphanumeric() || C.contains(x))
+            .repeated()
+            .collect()
     }
 }
 

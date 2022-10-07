@@ -158,7 +158,7 @@ pub enum Ty {
     Thread,
     Userdata,
     Lightuserdata,
-    Union(Box<Ty>, Box<Ty>), // TODO: 2) union of static 'string' or number
+    Union(Box<Ty>, Box<Ty>),
     Array(Box<Ty>),
     Table(Option<(Box<Ty>, Box<Ty>)>),
     Fun(Vec<(String, Ty)>, Option<Box<Ty>>),
@@ -183,7 +183,7 @@ impl Display for Ty {
             Self::Union(rhs, lhs) => write!(f, "{rhs}|{lhs}"),
             Self::Array(ty) => write!(f, "{ty}[]"),
             Self::Table(spec) => match spec {
-                Some((k, v)) => write!(f, "table<{k}, {v}>"),
+                Some((k, v)) => write!(f, "table<{k},{v}>"),
                 None => f.write_str("table"),
             },
             Self::Fun(args, ret) => {
@@ -191,26 +191,26 @@ impl Display for Ty {
                     f,
                     "fun({})",
                     args.iter()
-                        .map(|(arg, ty)| format!("{arg}: {ty}"))
+                        .map(|(arg, ty)| format!("{arg}:{ty}"))
                         .collect::<Vec<String>>()
                         .join(",")
                 )?;
                 if let Some(ret) = ret {
-                    write!(f, ": {}", ret)?;
+                    write!(f, ":{}", ret)?;
                 }
                 Ok(())
             }
             Self::Dict(kv) => {
-                f.write_str("{ ")?;
+                f.write_str("{")?;
                 write!(
                     f,
                     "{}",
                     kv.iter()
-                        .map(|(arg, ty)| format!("{arg}: {ty}"))
+                        .map(|(arg, ty)| format!("{arg}:{ty}"))
                         .collect::<Vec<String>>()
                         .join(",")
                 )?;
-                f.write_str(" }")
+                f.write_str("}")
             }
             Self::Ref(id) => f.write_str(id),
         }
