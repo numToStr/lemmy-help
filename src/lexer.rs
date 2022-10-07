@@ -274,6 +274,10 @@ impl Lexer {
 
             let ty_name = Self::ty_name().map(Ty::Ref);
 
+            let parens = inner
+                .clone()
+                .delimited_by(just('(').padded(), just(')').padded());
+
             choice((
                 union_array(any, inner.clone()),
                 union_array(unknown, inner.clone()),
@@ -289,6 +293,7 @@ impl Lexer {
                 union_array(fun, inner.clone()),
                 union_array(table, inner.clone()),
                 union_array(dict, inner.clone()),
+                union_array(parens, inner.clone()),
                 union_array(ty_name, inner),
             ))
         })
@@ -320,8 +325,13 @@ fn ty_parse() {
         "any|string|number|fun(a: string)|table<string, number>|userdata[]",
         "fun(a: string, c: string, d: number): table<string, number[]>[]",
         "fun(a: string, c: string[], d: number[][]): table<string, number>[]",
-        "table<string, string|string[]|boolean>[]",
+        "string[]|string", // THIS IS BROKEN
+        "table<string, string|string[]|boolean>[]", // THIS IS BROKEN
         "fun(a: string, b: string|number|boolean, c: string[], d: number[][]): string|string[]",
+        "table<string, { get: string, set: string }>[]",
+        "(string|number|table<string, string[]>)[]",
+        "table<string, string|string[]|boolean>[]",
+        "fun(a: string, b: (string|table<string, number>)[]|boolean, c: string[], d: number[][]): string|string[]",
     ];
 
     for t in conds {
