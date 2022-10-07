@@ -1,157 +1,14 @@
-mod ty;
-pub use ty::*;
+mod token;
+pub use token::*;
 
 use std::ops::Range;
 
 use chumsky::{
     prelude::{any, choice, end, filter, just, take_until, Simple},
-    text::{ident, keyword, newline, TextParser},
+    recursive::recursive,
+    text::{ident, keyword, newline, whitespace, TextParser},
     Parser,
 };
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Kind {
-    Dot,
-    Colon,
-    Local,
-}
-
-impl Kind {
-    pub fn as_char(&self) -> char {
-        match self {
-            Self::Dot => '.',
-            Self::Colon => ':',
-            Self::Local => '#',
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Scope {
-    Public,
-    Private,
-    Protected,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum TagType {
-    /// ```lua
-    /// ---@toc <name>
-    /// ```
-    Toc(String),
-    /// ```lua
-    /// ---@mod <name> [desc]
-    /// ```
-    Module(String, Option<String>),
-    /// ```lua
-    /// ---@divider <char>
-    /// ```
-    Divider(char),
-    /// ```lua
-    /// function one.two() end
-    /// one.two = function() end
-    /// ```
-    Func {
-        prefix: Option<String>,
-        name: String,
-        kind: Kind,
-    },
-    /// ```lua
-    /// one = 1
-    /// one.two = 12
-    /// ```
-    Expr {
-        prefix: Option<String>,
-        name: String,
-        kind: Kind,
-    },
-    /// ```lua
-    /// ---@export <module>
-    /// or
-    /// return <module>\eof
-    /// ```
-    Export(String),
-    /// ```lua
-    /// ---@brief [[
-    /// ```
-    BriefStart,
-    /// ```lua
-    /// ---@brief ]]
-    /// ```
-    BriefEnd,
-    /// ```lua
-    /// ---@param <name[?]> <type[|type...]> [description]
-    /// ```
-    Param {
-        name: String,
-        optional: bool,
-        ty: Ty,
-        desc: Option<String>,
-    },
-    /// ```lua
-    /// ---@return <type> [<name> [comment] | [name] #<comment>]
-    /// ```
-    Return {
-        ty: Ty,
-        name: Option<String>,
-        desc: Option<String>,
-    },
-    /// ```lua
-    /// ---@class <name>
-    /// ```
-    Class(String),
-    /// ```lua
-    /// ---@field [public|private|protected] <name> <type> [description]
-    /// ```
-    Field {
-        scope: Scope,
-        name: String,
-        ty: Ty,
-        desc: Option<String>,
-    },
-    /// ```lua
-    /// -- Simple Alias
-    /// ---@alias <name> <type>
-    ///
-    /// -- Enum alias
-    /// ---@alias <name>
-    /// ```
-    Alias(String, Option<Ty>),
-    /// ```lua
-    /// ---| '<value>' [# description]
-    /// ```
-    Variant(String, Option<String>),
-    /// ```lua
-    /// ---@type <type> [desc]
-    /// ```
-    Type(Ty, Option<String>),
-    /// ```lua
-    /// ---@tag <name>
-    /// ```
-    Tag(String),
-    /// ```lua
-    /// ---@see <name>
-    /// ```
-    See(String),
-    /// ```lua
-    /// ---@usage `<code>`
-    /// ```
-    Usage(String),
-    /// ```lua
-    /// ---@usage [[
-    /// ```
-    UsageStart,
-    /// ```lua
-    /// ---@usage ]]
-    /// ```
-    UsageEnd,
-    /// ```lua
-    /// ---TEXT
-    /// ```
-    Comment(String),
-    /// Text nodes which are not needed
-    Skip,
-}
 
 type Spanned = (TagType, Range<usize>);
 
@@ -227,7 +84,7 @@ impl Lexer {
                 .ignore_then(space)
                 .ignore_then(ident().then(just('?').or_not().map(|x| x.is_some())))
                 .then_ignore(space)
-                .then(Ty::parse())
+                .then(Self::ty())
                 .then(desc)
                 .map(|(((name, optional), ty), desc)| TagType::Param {
                     name,
@@ -237,7 +94,7 @@ impl Lexer {
                 }),
             just("return")
                 .ignore_then(space)
-                .ignore_then(Ty::parse())
+                .ignore_then(Self::ty())
                 .then(choice((
                     newline().to((None, None)),
                     space.ignore_then(choice((
@@ -255,7 +112,7 @@ impl Lexer {
                 .then_ignore(space)
                 .then(ident())
                 .then_ignore(space)
-                .then(Ty::parse())
+                .then(Self::ty())
                 .then(desc)
                 .map(|(((scope, name), ty), desc)| TagType::Field {
                     scope: scope.unwrap_or(Scope::Public),
@@ -266,11 +123,11 @@ impl Lexer {
             just("alias")
                 .ignore_then(space)
                 .ignore_then(ident())
-                .then(space.ignore_then(Ty::parse()).or_not())
+                .then(space.ignore_then(Self::ty()).or_not())
                 .map(|(name, ty)| TagType::Alias(name, ty)),
             just("type")
                 .ignore_then(space)
-                .ignore_then(Ty::parse())
+                .ignore_then(Self::ty())
                 .then(desc)
                 .map(|(ty, desc)| TagType::Type(ty, desc)),
             just("tag")
@@ -345,9 +202,115 @@ impl Lexer {
                 .map(TagType::Export),
             till_eol.to(TagType::Skip),
         ))
+        // .padded_by(private)
         .padded()
         .map_with_span(|t, r| (t, r))
         .repeated()
         .parse(src)
+    }
+
+    pub(crate) fn ty() -> impl Parser<char, Ty, Error = Simple<char>> {
+        recursive(|inner| {
+            let comma = just(',').padded();
+            let colon = just(':').padded();
+
+            let any = just("any").to(Ty::Any);
+            let unknown = just("unknown").to(Ty::Unknown);
+            let nil = just("nil").to(Ty::Nil);
+            let boolean = just("boolean").to(Ty::Boolean);
+            let string = just("string").to(Ty::String);
+            let num = just("number").to(Ty::Number);
+            let int = just("integer").to(Ty::Integer);
+            let function = just("function").to(Ty::Function);
+            let thread = just("thread").to(Ty::Thread);
+            let userdata = just("userdata").to(Ty::Userdata);
+            let lightuserdata = just("lightuserdata").to(Ty::Lightuserdata);
+
+            fn union_array(
+                p: impl Parser<char, Ty, Error = Simple<char>> + Clone,
+                inner: impl Parser<char, Ty, Error = Simple<char>>,
+            ) -> impl Parser<char, Ty, Error = Simple<char>> {
+                choice((
+                    // NOTE: Not the way I wanted i.e., Ty::Union(Vec<Ty>) it to be, but it's better than nothing
+                    p.clone()
+                        .then(just('|').padded().ignore_then(inner))
+                        .map(|(x, y)| Ty::Union(Box::new(x), Box::new(y))),
+                    p.then(just("[]").repeated())
+                        .foldl(|arr, _| Ty::Array(Box::new(arr))),
+                ))
+            }
+
+            let list_like = ident()
+                .padded()
+                .then_ignore(colon)
+                .then(inner.clone())
+                .separated_by(comma)
+                .allow_trailing();
+
+            let fun = just("fun")
+                .ignore_then(list_like.clone().delimited_by(just('('), just(')')))
+                .then(colon.ignore_then(inner.clone().map(Box::new)).or_not())
+                .map(|(param, ret)| Ty::Fun(param, ret));
+
+            let table = just("table")
+                .ignore_then(
+                    just('<')
+                        .ignore_then(inner.clone().map(Box::new))
+                        .then_ignore(comma)
+                        .then(inner.clone().map(Box::new))
+                        .then_ignore(just('>'))
+                        .or_not(),
+                )
+                .map(Ty::Table);
+
+            let dict = list_like
+                .delimited_by(just('{').then(whitespace()), whitespace().then(just('}')))
+                .map(Ty::Dict);
+
+            choice((
+                union_array(any, inner.clone()),
+                union_array(unknown, inner.clone()),
+                union_array(nil, inner.clone()),
+                union_array(boolean, inner.clone()),
+                union_array(string, inner.clone()),
+                union_array(num, inner.clone()),
+                union_array(int, inner.clone()),
+                union_array(function, inner.clone()),
+                union_array(thread, inner.clone()),
+                union_array(userdata, inner.clone()),
+                union_array(lightuserdata, inner.clone()),
+                union_array(fun, inner.clone()),
+                union_array(table, inner.clone()),
+                union_array(dict, inner),
+            ))
+        })
+    }
+}
+
+#[test]
+fn ty_parse() {
+    let conds = [
+        "fun(a: string, b: string, c: function, d: fun(z: string)): table<string, string>",
+        "table<string, fun(a: string): string>",
+        "table<fun(), table<string, number>>",
+        "table<string, fun(a: string, b: table<string, boolean>)>",
+        "{ get: string, set: string }",
+        "{ get: fun(a: unknown): unknown, set: fun(a: unknown) }",
+        "table<string, string|table<string, string>>",
+        "table<string, string>[]",
+        "string",
+        "any[]",
+        "any|any|any",
+        "any|string|number",
+        "any|string|number|fun(a: string)|table<string, number>|userdata[]",
+        "fun(a: string, c: string, d: number): table<string, number[]>[]",
+        "fun(a: string, c: string[], d: number[][]): table<string, number>[]",
+        "table<string, string|string[]|boolean>[]",
+        "fun(a: string, b: string|number|boolean, c: string[], d: number[][]): string|string[]",
+    ];
+
+    for t in conds {
+        let a = Lexer::ty().parse(t).unwrap();
+        dbg!(a);
     }
 }
