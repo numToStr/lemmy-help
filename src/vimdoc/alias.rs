@@ -31,7 +31,8 @@ impl Display for AliasDoc<'_> {
         match &kind {
             AliasKind::Type(ty) => {
                 description!(f, "Type: ~")?;
-                writeln!(f, "{:>w$}", ty, w = 8 + ty.to_string().len())?;
+                let ty = ty.to_string();
+                writeln!(f, "{:>w$}", ty, w = 8 + ty.len())?;
             }
             AliasKind::Enum(variants) => {
                 description!(f, "Variants: ~")?;

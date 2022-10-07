@@ -163,10 +163,56 @@ pub enum Ty {
     Table(Option<(Box<Ty>, Box<Ty>)>),
     Fun(Vec<(String, Ty)>, Option<Box<Ty>>),
     Dict(Vec<(String, Ty)>),
+    Ref(String),
 }
 
 impl Display for Ty {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str("ty-ty")
+        match self {
+            Self::Nil => f.write_str("nil"),
+            Self::Any => f.write_str("any"),
+            Self::Unknown => f.write_str("unknown"),
+            Self::Boolean => f.write_str("boolean"),
+            Self::String => f.write_str("string"),
+            Self::Number => f.write_str("number"),
+            Self::Integer => f.write_str("integer"),
+            Self::Function => f.write_str("function"),
+            Self::Thread => f.write_str("thread"),
+            Self::Userdata => f.write_str("userdata"),
+            Self::Lightuserdata => f.write_str("lightuserdata"),
+            Self::Union(rhs, lhs) => write!(f, "{rhs}|{lhs}"),
+            Self::Array(ty) => write!(f, "{ty}[]"),
+            Self::Table(spec) => match spec {
+                Some((k, v)) => write!(f, "table<{k}, {v}>"),
+                None => f.write_str("table"),
+            },
+            Self::Fun(args, ret) => {
+                write!(
+                    f,
+                    "fun({})",
+                    args.iter()
+                        .map(|(arg, ty)| format!("{arg}: {ty}"))
+                        .collect::<Vec<String>>()
+                        .join(",")
+                )?;
+                if let Some(ret) = ret {
+                    write!(f, ": {}", ret)?;
+                }
+                Ok(())
+            }
+            Self::Dict(kv) => {
+                f.write_str("{ ")?;
+                write!(
+                    f,
+                    "{}",
+                    kv.iter()
+                        .map(|(arg, ty)| format!("{arg}: {ty}"))
+                        .collect::<Vec<String>>()
+                        .join(",")
+                )?;
+                f.write_str(" }")
+            }
+            Self::Ref(id) => f.write_str(id),
+        }
     }
 }

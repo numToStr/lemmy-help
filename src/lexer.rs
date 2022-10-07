@@ -12,6 +12,8 @@ use chumsky::{
 
 type Spanned = (TagType, Range<usize>);
 
+const C: [char; 3] = ['.', '_', '-'];
+
 #[derive(Debug)]
 pub struct Lexer;
 
@@ -267,6 +269,11 @@ impl Lexer {
                 .delimited_by(just('{').then(whitespace()), whitespace().then(just('}')))
                 .map(Ty::Dict);
 
+            let ty_name = filter(|x: &char| x.is_alphanumeric() || C.contains(x))
+                .repeated()
+                .collect()
+                .map(Ty::Ref);
+
             choice((
                 union_array(any, inner.clone()),
                 union_array(unknown, inner.clone()),
@@ -281,7 +288,8 @@ impl Lexer {
                 union_array(lightuserdata, inner.clone()),
                 union_array(fun, inner.clone()),
                 union_array(table, inner.clone()),
-                union_array(dict, inner),
+                union_array(dict, inner.clone()),
+                union_array(ty_name, inner),
             ))
         })
     }
