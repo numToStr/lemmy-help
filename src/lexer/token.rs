@@ -173,12 +173,12 @@ pub enum Ty {
     Thread,
     Userdata,
     Lightuserdata,
-    Union(Box<Ty>, Box<Ty>),
+    Ref(String),
     Array(Box<Ty>),
     Table(Option<(Box<Ty>, Box<Ty>)>),
     Fun(Vec<Kv>, Option<Box<Ty>>),
     Dict(Vec<Kv>),
-    Ref(String),
+    Union(Box<Ty>, Box<Ty>),
 }
 
 impl Display for Ty {
@@ -202,9 +202,9 @@ impl Display for Ty {
             Self::Thread => f.write_str("thread"),
             Self::Userdata => f.write_str("userdata"),
             Self::Lightuserdata => f.write_str("lightuserdata"),
-            Self::Union(rhs, lhs) => write!(f, "{rhs}|{lhs}"),
+            Self::Ref(id) => f.write_str(id),
             Self::Array(ty) => write!(f, "{ty}[]"),
-            Self::Table(spec) => match spec {
+            Self::Table(kv) => match kv {
                 Some((k, v)) => write!(f, "table<{k},{v}>"),
                 None => f.write_str("table"),
             },
@@ -222,7 +222,7 @@ impl Display for Ty {
                 f.write_str(&list_like(kv))?;
                 f.write_str("}")
             }
-            Self::Ref(id) => f.write_str(id),
+            Self::Union(rhs, lhs) => write!(f, "{rhs}|{lhs}"),
         }
     }
 }

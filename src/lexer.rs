@@ -247,8 +247,11 @@ impl Lexer {
                     Some(_) => Kv::Opt as fn(_, _) -> _,
                     None => Kv::Req as fn(_, _) -> _,
                 }))
-                .then_ignore(colon)
-                .then(inner.clone())
+                // NOTE: if param type is missing then LLS treat the type as `any`
+                .then(colon.ignore_then(inner.clone()).or_not().map(|x| match x {
+                    Some(x) => x,
+                    None => Ty::Any,
+                }))
                 .map(|((n, attr), t)| attr(n, t))
                 .separated_by(comma)
                 .allow_trailing();
