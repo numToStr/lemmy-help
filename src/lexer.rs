@@ -50,12 +50,7 @@ impl Lexer {
 
         let variant = just('|')
             .then_ignore(space)
-            .ignore_then(
-                just('\'')
-                    .ignore_then(filter(|c| c != &'\'').repeated())
-                    .then_ignore(just('\''))
-                    .collect(),
-            )
+            .ignore_then(Self::literal())
             .then(
                 space
                     .ignore_then(just('#').ignore_then(space).ignore_then(comment))
@@ -286,6 +281,9 @@ impl Lexer {
                 .clone()
                 .delimited_by(just('(').padded(), just(')').padded());
 
+            // Union of string literals: '"g@"'|'"g@$"'
+            let string_literal = Self::literal().map(Ty::Ref);
+
             choice((
                 union_array(any, inner.clone()),
                 union_array(unknown, inner.clone()),
@@ -302,6 +300,7 @@ impl Lexer {
                 union_array(table, inner.clone()),
                 union_array(dict, inner.clone()),
                 union_array(parens, inner.clone()),
+                union_array(string_literal, inner.clone()),
                 union_array(ty_name, inner),
             ))
         })
@@ -311,6 +310,14 @@ impl Lexer {
     fn ty_name() -> impl Parser<char, String, Error = Simple<char>> + Clone {
         filter(|x: &char| x.is_alphanumeric() || C.contains(x))
             .repeated()
+            .collect()
+    }
+
+    #[inline]
+    fn literal() -> impl Parser<char, String, Error = Simple<char>> + Clone {
+        just('\'')
+            .ignore_then(filter(|c| c != &'\'').repeated())
+            .then_ignore(just('\''))
             .collect()
     }
 }

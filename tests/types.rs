@@ -38,6 +38,17 @@ fn types() {
     );
 
     assert_eq!(
+        p!(r#"'"g@"'|string[]|'"g@$"'|number"#),
+        Ty::Union(
+            b!(Ty::Ref(r#""g@""#.into())),
+            b!(Ty::Union(
+                b!(Ty::Array(b!(Ty::String))),
+                b!(Ty::Union(b!(Ty::Ref(r#""g@$""#.into())), b!(Ty::Number)))
+            ))
+        )
+    );
+
+    assert_eq!(
         p!("table<string, string|string[]|boolean>[]"),
         Ty::Array(b!(Ty::Table(Some((
             b!(Ty::String),
