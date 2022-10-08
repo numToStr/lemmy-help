@@ -144,6 +144,21 @@ pub enum Scope {
     Protected,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum Kv {
+    Req(String, Ty),
+    Opt(String, Ty),
+}
+
+impl Display for Kv {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Req(n, t) => write!(f, "{n}:{t}"),
+            Self::Opt(n, t) => write!(f, "{n}?:{t}"),
+        }
+    }
+}
+
 // Source: https://github.com/sumneko/lua-language-server/wiki/Annotations#documenting-types
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Ty {
@@ -161,16 +176,16 @@ pub enum Ty {
     Union(Box<Ty>, Box<Ty>),
     Array(Box<Ty>),
     Table(Option<(Box<Ty>, Box<Ty>)>),
-    Fun(Vec<((String, bool), Ty)>, Option<Box<Ty>>),
-    Dict(Vec<((String, bool), Ty)>),
+    Fun(Vec<Kv>, Option<Box<Ty>>),
+    Dict(Vec<Kv>),
     Ref(String),
 }
 
 impl Display for Ty {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        fn list_like(args: &[((String, bool), Ty)]) -> String {
+        fn list_like(args: &[Kv]) -> String {
             args.iter()
-                .map(|((arg, opt), ty)| format!("{arg}{}:{ty}", if *opt { "?" } else { "" }))
+                .map(|t| t.to_string())
                 .collect::<Vec<String>>()
                 .join(",")
         }

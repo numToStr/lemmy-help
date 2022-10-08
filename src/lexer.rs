@@ -63,7 +63,7 @@ impl Lexer {
             )
             .map(|(t, d)| TagType::Variant(t, d));
 
-        let ty_name = Self::ty_name();
+        let name = Self::ty_name();
 
         let tag = just('@').ignore_then(choice((
             private.to(TagType::Skip),
@@ -73,7 +73,7 @@ impl Lexer {
                 .map(TagType::Toc),
             just("mod")
                 .then_ignore(space)
-                .ignore_then(filter(|c: &char| !c.is_whitespace()).repeated().collect())
+                .ignore_then(name.clone())
                 .then(desc)
                 .map(|(name, desc)| TagType::Module(name, desc)),
             just("divider")
@@ -109,7 +109,7 @@ impl Lexer {
                 .map(|(ty, (name, desc))| TagType::Return { ty, name, desc }),
             just("class")
                 .ignore_then(space)
-                .ignore_then(ty_name.clone())
+                .ignore_then(name.clone())
                 .map(TagType::Class),
             just("field")
                 .ignore_then(space.ignore_then(scope).or_not())
@@ -126,7 +126,7 @@ impl Lexer {
                 }),
             just("alias")
                 .ignore_then(space)
-                .ignore_then(ty_name)
+                .ignore_then(name)
                 .then(space.ignore_then(Self::ty()).or_not())
                 .map(|(name, ty)| TagType::Alias(name, ty)),
             just("type")
@@ -212,7 +212,7 @@ impl Lexer {
         .parse(src)
     }
 
-    pub(crate) fn ty() -> impl Parser<char, Ty, Error = Simple<char>> {
+    pub fn ty() -> impl Parser<char, Ty, Error = Simple<char>> {
         recursive(|inner| {
             let comma = just(',').padded();
             let colon = just(':').padded();
@@ -231,29 +231,34 @@ impl Lexer {
 
             #[inline]
             fn union_array(
-                p: impl Parser<char, Ty, Error = Simple<char>> + Clone,
+                p: impl Parser<char, Ty, Error = Simple<char>>,
                 inner: impl Parser<char, Ty, Error = Simple<char>>,
             ) -> impl Parser<char, Ty, Error = Simple<char>> {
-                choice((
+                p.then(just("[]").repeated())
+                    .foldl(|arr, _| Ty::Array(Box::new(arr)))
                     // NOTE: Not the way I wanted i.e., Ty::Union(Vec<Ty>) it to be, but it's better than nothing
-                    p.clone()
-                        .then(just('|').padded().ignore_then(inner))
-                        .map(|(x, y)| Ty::Union(Box::new(x), Box::new(y))),
-                    p.then(just("[]").repeated())
-                        .foldl(|arr, _| Ty::Array(Box::new(arr))),
-                ))
+                    .then(just('|').padded().ignore_then(inner).repeated())
+                    .foldl(|x, y| Ty::Union(Box::new(x), Box::new(y)))
             }
 
             let list_like = ident()
                 .padded()
-                .then(just('?').or_not().map(|x| x.is_some()))
+                .then(just('?').or_not().map(|c| match c {
+                    Some(_) => Kv::Opt as fn(_, _) -> _,
+                    None => Kv::Req as fn(_, _) -> _,
+                }))
                 .then_ignore(colon)
                 .then(inner.clone())
+                .map(|((n, attr), t)| attr(n, t))
                 .separated_by(comma)
                 .allow_trailing();
 
             let fun = just("fun")
-                .ignore_then(list_like.clone().delimited_by(just('('), just(')')))
+                .ignore_then(
+                    list_like
+                        .clone()
+                        .delimited_by(just('(').then(whitespace()), whitespace().then(just(')'))),
+                )
                 .then(colon.ignore_then(inner.clone().map(Box::new)).or_not())
                 .map(|(param, ret)| Ty::Fun(param, ret));
 
@@ -304,38 +309,5 @@ impl Lexer {
         filter(|x: &char| x.is_alphanumeric() || C.contains(x))
             .repeated()
             .collect()
-    }
-}
-
-#[test]
-fn ty_parse() {
-    let conds = [
-        "fun(a: string, b: string, c: function, d: fun(z: string)): table<string, string>",
-        "table<string, fun(a: string): string>",
-        "table<fun(), table<string, number>>",
-        "table<string, fun(a: string, b: table<string, boolean>)>",
-        "{ get: string, set: string }",
-        "{ get: fun(a: unknown): unknown, set: fun(a: unknown) }",
-        "table<string, string|table<string, string>>",
-        "table<string, string>[]",
-        "string",
-        "any[]",
-        "any|any|any",
-        "any|string|number",
-        "any|string|number|fun(a: string)|table<string, number>|userdata[]",
-        "fun(a: string, c: string, d: number): table<string, number[]>[]",
-        "fun(a: string, c: string[], d: number[][]): table<string, number>[]",
-        "string[]|string", // THIS IS BROKEN
-        "table<string, string|string[]|boolean>[]", // THIS IS BROKEN
-        "fun(a: string, b: string|number|boolean, c: string[], d: number[][]): string|string[]",
-        "table<string, { get: string, set: string }>[]",
-        "(string|number|table<string, string[]>)[]",
-        "table<string, string|string[]|boolean>[]",
-        "fun(a: string, b: (string|table<string, number>)[]|boolean, c: string[], d: number[][]): string|string[]",
-    ];
-
-    for t in conds {
-        let a = Lexer::ty().parse(t).unwrap();
-        dbg!(a);
     }
 }
