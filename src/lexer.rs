@@ -89,7 +89,7 @@ impl Lexer {
             let lightuserdata = just("lightuserdata").to(Ty::Lightuserdata);
 
             #[inline]
-            fn union_array(
+            fn array_union(
                 p: impl Parser<char, Ty, Error = Simple<char>>,
                 inner: impl Parser<char, Ty, Error = Simple<char>>,
             ) -> impl Parser<char, Ty, Error = Simple<char>> {
@@ -103,11 +103,13 @@ impl Lexer {
             let list_like = ident()
                 .padded()
                 .then(optional)
-                // NOTE: if param type is missing then LLS treat the type as `any`
-                .then(colon.ignore_then(inner.clone()).or_not().map(|x| match x {
-                    Some(x) => x,
-                    None => Ty::Any,
-                }))
+                .then(
+                    colon
+                        .ignore_then(inner.clone())
+                        .or_not()
+                        // NOTE: if param type is missing then LLS treats it as `any`
+                        .map(|x| x.unwrap_or(Ty::Any)),
+                )
                 .map(|((n, attr), t)| attr(n, t))
                 .separated_by(comma)
                 .allow_trailing();
@@ -150,23 +152,23 @@ impl Lexer {
             let string_literal = union_literal.map(Ty::Ref);
 
             choice((
-                union_array(any, inner.clone()),
-                union_array(unknown, inner.clone()),
-                union_array(nil, inner.clone()),
-                union_array(boolean, inner.clone()),
-                union_array(string, inner.clone()),
-                union_array(num, inner.clone()),
-                union_array(int, inner.clone()),
-                union_array(function, inner.clone()),
-                union_array(thread, inner.clone()),
-                union_array(userdata, inner.clone()),
-                union_array(lightuserdata, inner.clone()),
-                union_array(fun, inner.clone()),
-                union_array(table, inner.clone()),
-                union_array(dict, inner.clone()),
-                union_array(parens, inner.clone()),
-                union_array(string_literal, inner.clone()),
-                union_array(ty_name, inner),
+                array_union(any, inner.clone()),
+                array_union(unknown, inner.clone()),
+                array_union(nil, inner.clone()),
+                array_union(boolean, inner.clone()),
+                array_union(string, inner.clone()),
+                array_union(num, inner.clone()),
+                array_union(int, inner.clone()),
+                array_union(function, inner.clone()),
+                array_union(thread, inner.clone()),
+                array_union(userdata, inner.clone()),
+                array_union(lightuserdata, inner.clone()),
+                array_union(fun, inner.clone()),
+                array_union(table, inner.clone()),
+                array_union(dict, inner.clone()),
+                array_union(parens, inner.clone()),
+                array_union(string_literal, inner.clone()),
+                array_union(ty_name, inner),
             ))
         });
 
