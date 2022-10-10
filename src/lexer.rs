@@ -19,7 +19,7 @@ pub struct Lexer;
 
 impl Lexer {
     /// Parse emmylua/lua files into rust token
-    pub fn parse(src: &str) -> Result<Vec<Spanned>, Vec<Simple<char>>> {
+    pub fn init() -> impl Parser<char, Vec<Spanned>, Error = Simple<char>> {
         let triple = just("---");
         let space = just(' ').repeated().at_least(1);
         let till_eol = take_until(newline());
@@ -48,9 +48,14 @@ impl Lexer {
             )))
             .ignored();
 
+        let union_literal = just('\'')
+            .ignore_then(filter(|c| c != &'\'').repeated())
+            .then_ignore(just('\''))
+            .collect();
+
         let variant = just('|')
             .then_ignore(space)
-            .ignore_then(Self::literal())
+            .ignore_then(union_literal)
             .then(
                 space
                     .ignore_then(just('#').ignore_then(space).ignore_then(comment))
@@ -58,7 +63,112 @@ impl Lexer {
             )
             .map(|(t, d)| TagType::Variant(t, d));
 
-        let name = Self::ty_name();
+        let optional = just('?').or_not().map(|c| match c {
+            Some(_) => TypeVal::Opt as fn(_, _) -> _,
+            None => TypeVal::Req as fn(_, _) -> _,
+        });
+
+        let name = filter(|x: &char| x.is_alphanumeric() || C.contains(x))
+            .repeated()
+            .collect();
+
+        let ty = recursive(|inner| {
+            let comma = just(',').padded();
+            let colon = just(':').padded();
+
+            let any = just("any").to(Ty::Any);
+            let unknown = just("unknown").to(Ty::Unknown);
+            let nil = just("nil").to(Ty::Nil);
+            let boolean = just("boolean").to(Ty::Boolean);
+            let string = just("string").to(Ty::String);
+            let num = just("number").to(Ty::Number);
+            let int = just("integer").to(Ty::Integer);
+            let function = just("function").to(Ty::Function);
+            let thread = just("thread").to(Ty::Thread);
+            let userdata = just("userdata").to(Ty::Userdata);
+            let lightuserdata = just("lightuserdata").to(Ty::Lightuserdata);
+
+            #[inline]
+            fn union_array(
+                p: impl Parser<char, Ty, Error = Simple<char>>,
+                inner: impl Parser<char, Ty, Error = Simple<char>>,
+            ) -> impl Parser<char, Ty, Error = Simple<char>> {
+                p.then(just("[]").repeated())
+                    .foldl(|arr, _| Ty::Array(Box::new(arr)))
+                    // NOTE: Not the way I wanted i.e., Ty::Union(Vec<Ty>) it to be, but it's better than nothing
+                    .then(just('|').padded().ignore_then(inner).repeated())
+                    .foldl(|x, y| Ty::Union(Box::new(x), Box::new(y)))
+            }
+
+            let list_like = ident()
+                .padded()
+                .then(optional)
+                // NOTE: if param type is missing then LLS treat the type as `any`
+                .then(colon.ignore_then(inner.clone()).or_not().map(|x| match x {
+                    Some(x) => x,
+                    None => Ty::Any,
+                }))
+                .map(|((n, attr), t)| attr(n, t))
+                .separated_by(comma)
+                .allow_trailing();
+
+            let fun = just("fun")
+                .ignore_then(
+                    list_like
+                        .clone()
+                        .delimited_by(just('(').then(whitespace()), whitespace().then(just(')'))),
+                )
+                .then(
+                    colon
+                        .ignore_then(inner.clone().separated_by(comma))
+                        .or_not(),
+                )
+                .map(|(param, ret)| Ty::Fun(param, ret));
+
+            let table = just("table")
+                .ignore_then(
+                    just('<')
+                        .ignore_then(inner.clone().map(Box::new))
+                        .then_ignore(comma)
+                        .then(inner.clone().map(Box::new))
+                        .then_ignore(just('>'))
+                        .or_not(),
+                )
+                .map(Ty::Table);
+
+            let dict = list_like
+                .delimited_by(just('{').then(whitespace()), whitespace().then(just('}')))
+                .map(Ty::Dict);
+
+            let ty_name = name.map(Ty::Ref);
+
+            let parens = inner
+                .clone()
+                .delimited_by(just('(').padded(), just(')').padded());
+
+            // Union of string literals: '"g@"'|'"g@$"'
+            let string_literal = union_literal.map(Ty::Ref);
+
+            choice((
+                union_array(any, inner.clone()),
+                union_array(unknown, inner.clone()),
+                union_array(nil, inner.clone()),
+                union_array(boolean, inner.clone()),
+                union_array(string, inner.clone()),
+                union_array(num, inner.clone()),
+                union_array(int, inner.clone()),
+                union_array(function, inner.clone()),
+                union_array(thread, inner.clone()),
+                union_array(userdata, inner.clone()),
+                union_array(lightuserdata, inner.clone()),
+                union_array(fun, inner.clone()),
+                union_array(table, inner.clone()),
+                union_array(dict, inner.clone()),
+                union_array(parens, inner.clone()),
+                union_array(string_literal, inner.clone()),
+                union_array(ty_name, inner),
+            ))
+        });
 
         let tag = just('@').ignore_then(choice((
             private.to(TagType::Skip),
@@ -68,7 +178,7 @@ impl Lexer {
                 .map(TagType::Toc),
             just("mod")
                 .then_ignore(space)
-                .ignore_then(name.clone())
+                .ignore_then(name)
                 .then(desc)
                 .map(|(name, desc)| TagType::Module(name, desc)),
             just("divider")
@@ -81,19 +191,14 @@ impl Lexer {
             ))),
             just("param")
                 .ignore_then(space)
-                .ignore_then(ident().then(just('?').or_not().map(|x| x.is_some())))
+                .ignore_then(ident().then(optional))
                 .then_ignore(space)
-                .then(Self::ty())
+                .then(ty.clone())
                 .then(desc)
-                .map(|(((name, optional), ty), desc)| TagType::Param {
-                    name,
-                    optional,
-                    ty,
-                    desc,
-                }),
+                .map(|(((name, opt), ty), desc)| TagType::Param(opt(name, ty), desc)),
             just("return")
                 .ignore_then(space)
-                .ignore_then(Self::ty())
+                .ignore_then(ty.clone())
                 .then(choice((
                     newline().to((None, None)),
                     space.ignore_then(choice((
@@ -104,14 +209,14 @@ impl Lexer {
                 .map(|(ty, (name, desc))| TagType::Return { ty, name, desc }),
             just("class")
                 .ignore_then(space)
-                .ignore_then(name.clone())
+                .ignore_then(name)
                 .map(TagType::Class),
             just("field")
                 .ignore_then(space.ignore_then(scope).or_not())
                 .then_ignore(space)
                 .then(ident())
                 .then_ignore(space)
-                .then(Self::ty())
+                .then(ty.clone())
                 .then(desc)
                 .map(|(((scope, name), ty), desc)| TagType::Field {
                     scope: scope.unwrap_or(Scope::Public),
@@ -122,11 +227,11 @@ impl Lexer {
             just("alias")
                 .ignore_then(space)
                 .ignore_then(name)
-                .then(space.ignore_then(Self::ty()).or_not())
+                .then(space.ignore_then(ty.clone()).or_not())
                 .map(|(name, ty)| TagType::Alias(name, ty)),
             just("type")
                 .ignore_then(space)
-                .ignore_then(Self::ty())
+                .ignore_then(ty)
                 .then(desc)
                 .map(|(ty, desc)| TagType::Type(ty, desc)),
             just("tag")
@@ -204,124 +309,5 @@ impl Lexer {
         .padded()
         .map_with_span(|t, r| (t, r))
         .repeated()
-        .parse(src)
-    }
-
-    pub fn ty() -> impl Parser<char, Ty, Error = Simple<char>> {
-        recursive(|inner| {
-            let comma = just(',').padded();
-            let colon = just(':').padded();
-
-            let any = just("any").to(Ty::Any);
-            let unknown = just("unknown").to(Ty::Unknown);
-            let nil = just("nil").to(Ty::Nil);
-            let boolean = just("boolean").to(Ty::Boolean);
-            let string = just("string").to(Ty::String);
-            let num = just("number").to(Ty::Number);
-            let int = just("integer").to(Ty::Integer);
-            let function = just("function").to(Ty::Function);
-            let thread = just("thread").to(Ty::Thread);
-            let userdata = just("userdata").to(Ty::Userdata);
-            let lightuserdata = just("lightuserdata").to(Ty::Lightuserdata);
-
-            #[inline]
-            fn union_array(
-                p: impl Parser<char, Ty, Error = Simple<char>>,
-                inner: impl Parser<char, Ty, Error = Simple<char>>,
-            ) -> impl Parser<char, Ty, Error = Simple<char>> {
-                p.then(just("[]").repeated())
-                    .foldl(|arr, _| Ty::Array(Box::new(arr)))
-                    // NOTE: Not the way I wanted i.e., Ty::Union(Vec<Ty>) it to be, but it's better than nothing
-                    .then(just('|').padded().ignore_then(inner).repeated())
-                    .foldl(|x, y| Ty::Union(Box::new(x), Box::new(y)))
-            }
-
-            let list_like = ident()
-                .padded()
-                .then(just('?').or_not().map(|c| match c {
-                    Some(_) => Kv::Opt as fn(_, _) -> _,
-                    None => Kv::Req as fn(_, _) -> _,
-                }))
-                // NOTE: if param type is missing then LLS treat the type as `any`
-                .then(colon.ignore_then(inner.clone()).or_not().map(|x| match x {
-                    Some(x) => x,
-                    None => Ty::Any,
-                }))
-                .map(|((n, attr), t)| attr(n, t))
-                .separated_by(comma)
-                .allow_trailing();
-
-            let fun = just("fun")
-                .ignore_then(
-                    list_like
-                        .clone()
-                        .delimited_by(just('(').then(whitespace()), whitespace().then(just(')'))),
-                )
-                .then(
-                    colon
-                        .ignore_then(inner.clone().separated_by(comma))
-                        .or_not(),
-                )
-                .map(|(param, ret)| Ty::Fun(param, ret));
-
-            let table = just("table")
-                .ignore_then(
-                    just('<')
-                        .ignore_then(inner.clone().map(Box::new))
-                        .then_ignore(comma)
-                        .then(inner.clone().map(Box::new))
-                        .then_ignore(just('>'))
-                        .or_not(),
-                )
-                .map(Ty::Table);
-
-            let dict = list_like
-                .delimited_by(just('{').then(whitespace()), whitespace().then(just('}')))
-                .map(Ty::Dict);
-
-            let ty_name = Self::ty_name().map(Ty::Ref);
-
-            let parens = inner
-                .clone()
-                .delimited_by(just('(').padded(), just(')').padded());
-
-            // Union of string literals: '"g@"'|'"g@$"'
-            let string_literal = Self::literal().map(Ty::Ref);
-
-            choice((
-                union_array(any, inner.clone()),
-                union_array(unknown, inner.clone()),
-                union_array(nil, inner.clone()),
-                union_array(boolean, inner.clone()),
-                union_array(string, inner.clone()),
-                union_array(num, inner.clone()),
-                union_array(int, inner.clone()),
-                union_array(function, inner.clone()),
-                union_array(thread, inner.clone()),
-                union_array(userdata, inner.clone()),
-                union_array(lightuserdata, inner.clone()),
-                union_array(fun, inner.clone()),
-                union_array(table, inner.clone()),
-                union_array(dict, inner.clone()),
-                union_array(parens, inner.clone()),
-                union_array(string_literal, inner.clone()),
-                union_array(ty_name, inner),
-            ))
-        })
-    }
-
-    #[inline]
-    fn ty_name() -> impl Parser<char, String, Error = Simple<char>> + Clone {
-        filter(|x: &char| x.is_alphanumeric() || C.contains(x))
-            .repeated()
-            .collect()
-    }
-
-    #[inline]
-    fn literal() -> impl Parser<char, String, Error = Simple<char>> + Clone {
-        just('\'')
-            .ignore_then(filter(|c| c != &'\'').repeated())
-            .then_ignore(just('\''))
-            .collect()
     }
 }

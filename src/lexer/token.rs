@@ -49,12 +49,7 @@ pub enum TagType {
     /// ```lua
     /// ---@param <name[?]> <type[|type...]> [description]
     /// ```
-    Param {
-        name: String,
-        optional: bool,
-        ty: Ty,
-        desc: Option<String>,
-    },
+    Param(TypeVal, Option<String>),
     /// ```lua
     /// ---@return <type> [<name> [comment] | [name] #<comment>]
     /// ```
@@ -145,12 +140,12 @@ pub enum Scope {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Kv {
+pub enum TypeVal {
     Req(String, Ty),
     Opt(String, Ty),
 }
 
-impl Display for Kv {
+impl Display for TypeVal {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Req(n, t) => write!(f, "{n}:{t}"),
@@ -176,14 +171,14 @@ pub enum Ty {
     Ref(String),
     Array(Box<Ty>),
     Table(Option<(Box<Ty>, Box<Ty>)>),
-    Fun(Vec<Kv>, Option<Vec<Ty>>),
-    Dict(Vec<Kv>),
+    Fun(Vec<TypeVal>, Option<Vec<Ty>>),
+    Dict(Vec<TypeVal>),
     Union(Box<Ty>, Box<Ty>),
 }
 
 impl Display for Ty {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        fn list_like(args: &[Kv]) -> String {
+        fn list_like(args: &[TypeVal]) -> String {
             args.iter()
                 .map(|t| t.to_string())
                 .collect::<Vec<String>>()

@@ -1,6 +1,9 @@
 use std::fmt::Display;
 
-use crate::parser::Func;
+use crate::{
+    lexer::{Ty, TypeVal},
+    parser::{Func, Param},
+};
 
 use super::{description, header, see::SeeDoc, usage::UsageDoc, Table};
 
@@ -20,18 +23,23 @@ impl Display for FuncDoc<'_> {
             usage,
         } = self.0;
 
-        let is_opt = |opt| if opt { "?" } else { "" };
+        fn is_opt(typeval: &'_ TypeVal) -> (String, &Ty) {
+            match typeval {
+                TypeVal::Opt(k, v) => (format!("{{{k}?}}"), v),
+                TypeVal::Req(k, v) => (format!("{{{k}}}"), v),
+            }
+        }
 
         let name_with_param = if !params.is_empty() {
             let args = params
                 .iter()
-                .map(|param| format!("{{{}{}}}", param.name, is_opt(param.optional)))
+                .map(|Param(typeval, _)| is_opt(typeval).0)
                 .collect::<Vec<String>>()
                 .join(", ");
 
-            format!("{}({})", name, args)
+            format!("{name}({args})")
         } else {
-            format!("{}()", name)
+            format!("{name}()")
         };
 
         header!(
@@ -60,12 +68,9 @@ impl Display for FuncDoc<'_> {
 
             let mut table = Table::new();
 
-            for param in params {
-                table.add_row([
-                    format!("{{{}{}}}", param.name, is_opt(param.optional)),
-                    format!("({})", param.ty),
-                    param.desc.join("\n"),
-                ]);
+            for Param(typeval, desc) in params {
+                let (name, ty) = is_opt(typeval);
+                table.add_row([name, format!("({})", ty), desc.join("\n")]);
             }
 
             writeln!(f, "{table}")?;

@@ -1,5 +1,5 @@
 use chumsky::Parser;
-use lemmy_help::lexer::{Kv, Lexer, Ty};
+use lemmy_help::lexer::{Lexer, Ty, TypeVal};
 
 macro_rules! b {
     ($t:expr) => {
@@ -9,11 +9,20 @@ macro_rules! b {
 
 #[test]
 fn types() {
-    let type_parse = Lexer::ty();
+    let type_parse = Lexer::init();
 
-    macro_rules! p {
-        ($s:expr) => {
-            type_parse.parse($s).unwrap()
+    macro_rules! check {
+        ($s:expr, $ty:expr) => {
+            assert_eq!(
+                type_parse
+                    .parse(concat!("---@type ", $s))
+                    .unwrap()
+                    .into_iter()
+                    .next()
+                    .unwrap()
+                    .0,
+                lemmy_help::lexer::TagType::Type($ty, None)
+            );
         };
     }
 
@@ -32,13 +41,13 @@ fn types() {
     //         "fun(a: string, c: string, d: number): table<string, number[]>[]",
     //         "fun(a: string, c: string[], d: number[][]): table<string, number>[]",
 
-    assert_eq!(
-        p!("string[]|string"),
+    check!(
+        "string[]|string",
         Ty::Union(b!(Ty::Array(b!(Ty::String))), b!(Ty::String))
     );
 
-    assert_eq!(
-        p!(r#"'"g@"'|string[]|'"g@$"'|number"#),
+    check!(
+        r#"'"g@"'|string[]|'"g@$"'|number"#,
         Ty::Union(
             b!(Ty::Ref(r#""g@""#.into())),
             b!(Ty::Union(
@@ -48,8 +57,8 @@ fn types() {
         )
     );
 
-    assert_eq!(
-        p!("table<string, string|string[]|boolean>[]"),
+    check!(
+        "table<string, string|string[]|boolean>[]",
         Ty::Array(b!(Ty::Table(Some((
             b!(Ty::String),
             b!(Ty::Union(
@@ -59,22 +68,22 @@ fn types() {
         )))))
     );
 
-    assert_eq!(
-        p!("fun(
-                a: string, b: string|number|boolean, c: number[][], d?: SomeClass
-            ): number, string|string[]"),
+    check!(
+        "fun(
+            a: string, b: string|number|boolean, c: number[][], d?: SomeClass
+        ): number, string|string[]",
         Ty::Fun(
             vec![
-                Kv::Req("a".into(), Ty::String),
-                Kv::Req(
+                TypeVal::Req("a".into(), Ty::String),
+                TypeVal::Req(
                     "b".into(),
                     Ty::Union(
                         b!(Ty::String),
                         b!(Ty::Union(b!(Ty::Number), b!(Ty::Boolean)))
                     )
                 ),
-                Kv::Req("c".into(), Ty::Array(b!(Ty::Array(b!(Ty::Number))))),
-                Kv::Opt("d".into(), Ty::Ref("SomeClass".into())),
+                TypeVal::Req("c".into(), Ty::Array(b!(Ty::Array(b!(Ty::Number))))),
+                TypeVal::Opt("d".into(), Ty::Ref("SomeClass".into())),
             ],
             Some(vec![
                 Ty::Number,
@@ -88,26 +97,24 @@ fn types() {
     //         "table<string, string|string[]|boolean>[]",
     //         "fun(a: string, b: (string|table<string, number>)[]|boolean, c: string[], d: number[][]): string|string[]",
 
-    let src = "fun(
-        a: string,
-        b?: string,
-        c: function,
-        d: fun(z: string),
-        e: string|string[]|table<string, string>|fun(y: string[]|{ get: function }|string): string
-    ): table<string, string>";
-
-    assert_eq!(
-        p!(src),
+    check!(
+        "fun(
+            a: string,
+            b?: string,
+            c: function,
+            d: fun(z: string),
+            e: string|string[]|table<string, string>|fun(y: string[]|{ get: function }|string): string
+        ): table<string, string>",
         Ty::Fun(
             vec![
-                Kv::Req("a".into(), Ty::String),
-                Kv::Opt("b".into(), Ty::String),
-                Kv::Req("c".into(), Ty::Function),
-                Kv::Req(
+                TypeVal::Req("a".into(), Ty::String),
+                TypeVal::Opt("b".into(), Ty::String),
+                TypeVal::Req("c".into(), Ty::Function),
+                TypeVal::Req(
                     "d".into(),
-                    Ty::Fun(vec![Kv::Req("z".into(), Ty::String)], None)
+                    Ty::Fun(vec![TypeVal::Req("z".into(), Ty::String)], None)
                 ),
-                Kv::Req(
+                TypeVal::Req(
                     "e".into(),
                     Ty::Union(
                         b!(Ty::String),
@@ -116,12 +123,12 @@ fn types() {
                             b!(Ty::Union(
                                 b!(Ty::Table(Some((b!(Ty::String), b!(Ty::String))))),
                                 b!(Ty::Fun(
-                                    vec![Kv::Req(
+                                    vec![TypeVal::Req(
                                         "y".into(),
                                         Ty::Union(
                                             b!(Ty::Array(b!(Ty::String))),
                                             b!(Ty::Union(
-                                                b!(Ty::Dict(vec![Kv::Req(
+                                                b!(Ty::Dict(vec![TypeVal::Req(
                                                     "get".into(),
                                                     Ty::Function
                                                 )])),
