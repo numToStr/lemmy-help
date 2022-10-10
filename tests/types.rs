@@ -59,7 +59,30 @@ fn types() {
         )))))
     );
 
-    //         "fun(a: string, b: string|number|boolean, c: string[], d: number[][]): string|string[]",
+    assert_eq!(
+        p!("fun(
+                a: string, b: string|number|boolean, c: number[][], d?: SomeClass
+            ): number, string|string[]"),
+        Ty::Fun(
+            vec![
+                Kv::Req("a".into(), Ty::String),
+                Kv::Req(
+                    "b".into(),
+                    Ty::Union(
+                        b!(Ty::String),
+                        b!(Ty::Union(b!(Ty::Number), b!(Ty::Boolean)))
+                    )
+                ),
+                Kv::Req("c".into(), Ty::Array(b!(Ty::Array(b!(Ty::Number))))),
+                Kv::Opt("d".into(), Ty::Ref("SomeClass".into())),
+            ],
+            Some(vec![
+                Ty::Number,
+                Ty::Union(b!(Ty::String), b!(Ty::Array(b!(Ty::String))))
+            ])
+        )
+    );
+
     //         "table<string, { get: string, set: string }>[]",
     //         "(string|number|table<string, string[]>)[]",
     //         "table<string, string|string[]|boolean>[]",
@@ -106,14 +129,14 @@ fn types() {
                                             ))
                                         )
                                     ),],
-                                    Some(b!(Ty::String))
+                                    Some(vec![Ty::String])
                                 ))
                             ))
                         ))
                     )
                 )
             ],
-            Some(b!(Ty::Table(Some((b!(Ty::String), b!(Ty::String))))))
+            Some(vec![Ty::Table(Some((b!(Ty::String), b!(Ty::String))))])
         )
     );
 }

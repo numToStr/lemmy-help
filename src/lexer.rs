@@ -257,7 +257,11 @@ impl Lexer {
                         .clone()
                         .delimited_by(just('(').then(whitespace()), whitespace().then(just(')'))),
                 )
-                .then(colon.ignore_then(inner.clone().map(Box::new)).or_not())
+                .then(
+                    colon
+                        .ignore_then(inner.clone().separated_by(comma))
+                        .or_not(),
+                )
                 .map(|(param, ret)| Ty::Fun(param, ret));
 
             let table = just("table")

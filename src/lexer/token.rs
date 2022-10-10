@@ -176,7 +176,7 @@ pub enum Ty {
     Ref(String),
     Array(Box<Ty>),
     Table(Option<(Box<Ty>, Box<Ty>)>),
-    Fun(Vec<Kv>, Option<Box<Ty>>),
+    Fun(Vec<Kv>, Option<Vec<Ty>>),
     Dict(Vec<Kv>),
     Union(Box<Ty>, Box<Ty>),
 }
@@ -213,7 +213,13 @@ impl Display for Ty {
                 f.write_str(&list_like(args))?;
                 f.write_str(")")?;
                 if let Some(ret) = ret {
-                    write!(f, ":{ret}")?;
+                    f.write_str(":")?;
+                    f.write_str(
+                        &ret.iter()
+                            .map(|r| r.to_string())
+                            .collect::<Vec<String>>()
+                            .join(","),
+                    )?;
                 }
                 Ok(())
             }
