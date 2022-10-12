@@ -37,23 +37,26 @@ impl Display for FuncDoc<'_> {
                 .collect::<Vec<String>>()
                 .join(", ");
 
-            format!("{name}({args})")
+            format!(
+                "{}{}{name}({args})",
+                prefix.left.as_deref().unwrap_or_default(),
+                kind.as_char()
+            )
         } else {
-            format!("{name}()")
+            format!(
+                "{}{}{name}()",
+                prefix.left.as_deref().unwrap_or_default(),
+                kind.as_char()
+            )
         };
 
         header!(
             f,
+            name_with_param,
             &format!(
-                "{}{}{name_with_param}",
-                prefix.left.as_deref().unwrap_or_default(),
-                kind.as_char()
-            ),
-            &format!(
-                "{}{}{}",
+                "{}{}{name}",
                 prefix.right.as_deref().unwrap_or_default(),
                 kind.as_char(),
-                name
             )
         )?;
 
@@ -70,7 +73,7 @@ impl Display for FuncDoc<'_> {
 
             for Param(typeval, desc) in params {
                 let (name, ty) = is_opt(typeval);
-                table.add_row([name, format!("({})", ty), desc.join("\n")]);
+                table.add_row([name, format!("({ty})"), desc.join("\n")]);
             }
 
             writeln!(f, "{table}")?;
