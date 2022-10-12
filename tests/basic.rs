@@ -194,9 +194,9 @@ fn functions() {
     ---
     ---NOTE: This will be part of the public API
     ---@param this number First number
-    ---@param that number
+    ---@param that? number
     function U.sum(this, that)
-        print(this + that)
+        print(this + that or 0)
     end
 
     ---Subtract second from the first integer
@@ -235,14 +235,14 @@ fn functions() {
     assert_eq!(
         VimDoc::from_emmy(&lemmy, ()).to_string(),
         "\
-U.sum({this}, {that})                                                    *U.sum*
+U.sum({this}, {that?})                                                   *U.sum*
     Add two integer and print it
 
     NOTE: This will be part of the public API
 
     Parameters: ~
-        {this}  (number)  First number
-        {that}  (number)
+        {this}   (number)  First number
+        {that?}  (number)
 
 
 U.sub({this}, {that})                                                    *U.sub*

@@ -65,7 +65,7 @@ impl Node {
     /// assert!(!nodes.is_empty());
     /// ```
     pub fn new(src: &str) -> Result<Vec<Node>, Vec<Simple<TagType>>> {
-        let tokens = Lexer::parse(src).unwrap();
+        let tokens = Lexer::init().parse(src).unwrap();
         let stream = Stream::from_iter(src.len()..src.len() + 1, tokens.into_iter());
 
         Node::parse().repeated().flatten().parse(stream)

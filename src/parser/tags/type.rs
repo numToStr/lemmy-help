@@ -1,7 +1,7 @@
 use chumsky::{select, Parser};
 
 use crate::{
-    lexer::{Kind, TagType},
+    lexer::{Kind, TagType, Ty},
     parser::{impl_parse, Prefix, See},
 };
 
@@ -13,7 +13,7 @@ pub struct Type {
     pub name: String,
     pub desc: (Vec<String>, Option<String>),
     pub kind: Kind,
-    pub ty: String,
+    pub ty: Ty,
     pub see: See,
     pub usage: Option<Usage>,
 }

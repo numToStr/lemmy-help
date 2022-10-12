@@ -1,38 +1,35 @@
 use chumsky::{select, Parser};
 
 use crate::{
-    lexer::{Kind, TagType},
+    lexer::{Kind, TagType, Ty, TypeVal},
     parser::{impl_parse, Prefix, See},
 };
 
 use super::Usage;
 
 #[derive(Debug, Clone)]
-pub struct Param {
-    pub name: String,
-    pub ty: String,
-    pub desc: Vec<String>,
-}
+pub struct Param(pub TypeVal, pub Vec<String>);
 
 impl_parse!(Param, {
-    select! { TagType::Param { name, ty, desc } => (name, ty, desc) }
-        .then(select! { TagType::Comment(x) => x }.repeated())
-        .map(|((name, ty, desc), extra)| {
-            let desc = match desc {
-                Some(d) => Vec::from([d])
-                    .into_iter()
-                    .chain(extra.into_iter())
-                    .collect(),
-                None => extra,
-            };
-
-            Self { name, ty, desc }
-        })
+    select! {
+        TagType::Param(typeval, desc) => (typeval, desc)
+    }
+    .then(select! { TagType::Comment(x) => x }.repeated())
+    .map(|((typeval, desc), extra)| {
+        let desc = match desc {
+            Some(d) => Vec::from([d])
+                .into_iter()
+                .chain(extra.into_iter())
+                .collect(),
+            None => extra,
+        };
+        Self(typeval, desc)
+    })
 });
 
 #[derive(Debug, Clone)]
 pub struct Return {
-    pub ty: String,
+    pub ty: Ty,
     pub name: Option<String>,
     pub desc: Vec<String>,
 }

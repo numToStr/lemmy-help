@@ -1,7 +1,7 @@
 use chumsky::{select, Parser};
 
 use crate::{
-    lexer::{Scope, TagType},
+    lexer::{Scope, TagType, Ty},
     parser::{impl_parse, Prefix, See},
 };
 
@@ -9,7 +9,7 @@ use crate::{
 pub struct Field {
     pub scope: Scope,
     pub name: String,
-    pub ty: String,
+    pub ty: Ty,
     pub desc: Vec<String>,
 }
 
