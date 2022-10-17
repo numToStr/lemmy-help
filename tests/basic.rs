@@ -225,17 +225,6 @@ fn functions() {
         return (U.mul(this, that) / U.sum(that, this)), (U.sum(this, that) * U.sub(that, this))
     end
 
-    local function wrap(arg1, arg2)
-      return function(...)
-        -- Do work
-      end
-    end
-
-    ---Wrapped function
-    ---@param foo string
-    ---@param bar integer
-    U.exported_fn = wrap('a', 'b')
-
     return U
     "#;
 
@@ -291,14 +280,6 @@ U.magical({this}, {that})                                            *U.magical*
         |U.mul|
         |U.sum|
         |U.sub|
-
-
-U.exported_fn({foo}, {bar})                                      *U.exported_fn*
-    Wrapped function
-
-    Parameters: ~
-        {foo}  (string)
-        {bar}  (integer)
 
 
 "

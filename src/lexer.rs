@@ -293,9 +293,15 @@ impl Lexer {
                     kind: Kind::Local,
                 }),
             ))),
-            func.ignore_then(dotted)
+            func.clone()
+                .ignore_then(dotted)
                 .map(|(prefix, kind, name)| TagType::Func { prefix, name, kind }),
-            expr.map(|(prefix, kind, name)| TagType::Expr { prefix, name, kind }),
+            choice((
+                expr.clone()
+                    .then_ignore(func)
+                    .map(|(prefix, kind, name)| TagType::Func { prefix, name, kind }),
+                expr.map(|(prefix, kind, name)| TagType::Expr { prefix, name, kind }),
+            )),
             keyword("return")
                 .ignore_then(ident().padded())
                 .then_ignore(end())

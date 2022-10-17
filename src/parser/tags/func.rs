@@ -73,10 +73,7 @@ impl_parse!(Func, {
     .then(Return::parse().repeated())
     .then(See::parse())
     .then(Usage::parse().or_not())
-    .then(select! {
-        TagType::Func { prefix, name, kind } => (prefix, name, kind),
-        TagType::Expr { prefix, name, kind } => (prefix, name, kind),
-    })
+    .then(select! { TagType::Func { prefix, name, kind } => (prefix, name, kind) })
     .map(
         |(((((desc, params), returns), see), usage), (prefix, name, kind))| Self {
             name,
