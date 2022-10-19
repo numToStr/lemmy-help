@@ -217,13 +217,13 @@ impl Lexer {
                 .ignore_then(space.ignore_then(scope).or_not())
                 .then_ignore(space)
                 .then(ident())
+                .then(optional)
                 .then_ignore(space)
                 .then(ty.clone())
                 .then(desc)
-                .map(|(((scope, name), ty), desc)| TagType::Field {
+                .map(|((((scope, name), opt), ty), desc)| TagType::Field {
                     scope: scope.unwrap_or(Scope::Public),
-                    name,
-                    ty,
+                    tyval: opt(name, ty),
                     desc,
                 }),
             just("alias")

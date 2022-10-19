@@ -63,12 +63,11 @@ pub enum TagType {
     /// ```
     Class(String),
     /// ```lua
-    /// ---@field [public|private|protected] <name> <type> [description]
+    /// ---@field [public|private|protected] <name[?]> <type> [description]
     /// ```
     Field {
         scope: Scope,
-        name: String,
-        ty: Ty,
+        tyval: TypeVal,
         desc: Option<String>,
     },
     /// ```lua

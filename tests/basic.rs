@@ -108,11 +108,11 @@ fn classes() {
 
     ---@class SuperSecret
     ---@field first number First ingredient
-    ---@field public second number Second ingredient
+    ---@field public second? number Second ingredient
     ---@field third number Third ingredient
-    ---@field todo number
+    ---@field todo? number
     ---@field protected __secret_1 number Secret ingredient first
-    ---@field private __secret_2 number
+    ---@field private __secret_2? number
 
     ---Plugin's configuration
     ---@class CommentConfig
@@ -151,10 +151,10 @@ Human                                                                    *Human*
 SuperSecret                                                        *SuperSecret*
 
     Fields: ~
-        {first}   (number)  First ingredient
-        {second}  (number)  Second ingredient
-        {third}   (number)  Third ingredient
-        {todo}    (number)
+        {first}    (number)  First ingredient
+        {second?}  (number)  Second ingredient
+        {third}    (number)  Third ingredient
+        {todo?}    (number)
 
 
 CommentConfig                                                    *CommentConfig*

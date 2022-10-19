@@ -1,6 +1,9 @@
 use std::fmt::Display;
 
-use crate::{lexer::Scope, parser::Class};
+use crate::{
+    lexer::{Scope, TypeVal},
+    parser::Class,
+};
 
 use super::{description, header, see::SeeDoc, Table};
 
@@ -18,7 +21,7 @@ impl Display for ClassDoc<'_> {
         } = self.0;
 
         if let Some(prefix) = &prefix.right {
-            header!(f, name, format!("{prefix}.{}", name))?;
+            header!(f, name, format!("{prefix}.{name}"))?;
         } else {
             header!(f, name)?;
         }
@@ -35,11 +38,11 @@ impl Display for ClassDoc<'_> {
 
             for field in fields {
                 if field.scope == Scope::Public {
-                    table.add_row([
-                        &format!("{{{}}}", field.name),
-                        &format!("({})", field.ty),
-                        &field.desc.join("\n"),
-                    ]);
+                    let (name, ty) = match &field.tyval {
+                        TypeVal::Opt(n, t) => (format!("{{{n}?}}"), format!("({t})")),
+                        TypeVal::Req(n, t) => (format!("{{{n}}}"), format!("({t})")),
+                    };
+                    table.add_row([name, ty, field.desc.join("\n")]);
                 }
             }
 
