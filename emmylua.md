@@ -297,7 +297,7 @@ A function contains multiple tags which form its structure. Like `---@param` for
 
 ```lua
 ---@comment
----@param <name> <type> [desc]
+---@param <name[?]> <type[|type...]> [description]
 ---@comment
 ---@return <type> [<name> [comment] | [name] #<comment>]
 ---@comment
@@ -462,7 +462,7 @@ Classes can be used to better structure your code and can be referenced as an ar
 ---@comment
 ---@class <name>
 ---@comment
----@field [public|protected|private] <name> <type> [desc]
+---@field [public|protected|private] <name[?]> <type> [desc]
 ---@see <ref>
 ```
 
