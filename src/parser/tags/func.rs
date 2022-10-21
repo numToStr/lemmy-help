@@ -1,21 +1,25 @@
 use chumsky::{select, Parser};
 
 use crate::{
-    lexer::{Kind, TagType, Ty, TypeVal},
+    lexer::{Kind, Name, TagType, Ty},
     parser::{impl_parse, Prefix, See},
 };
 
 use super::Usage;
 
 #[derive(Debug, Clone)]
-pub struct Param(pub TypeVal, pub Vec<String>);
+pub struct Param {
+    pub name: Name,
+    pub ty: Ty,
+    pub desc: Vec<String>,
+}
 
 impl_parse!(Param, {
     select! {
-        TagType::Param(typeval, desc) => (typeval, desc)
+        TagType::Param(name, ty, desc) => (name, ty, desc)
     }
     .then(select! { TagType::Comment(x) => x }.repeated())
-    .map(|((typeval, desc), extra)| {
+    .map(|((name, ty, desc), extra)| {
         let desc = match desc {
             Some(d) => Vec::from([d])
                 .into_iter()
@@ -23,7 +27,7 @@ impl_parse!(Param, {
                 .collect(),
             None => extra,
         };
-        Self(typeval, desc)
+        Self { name, ty, desc }
     })
 });
 
@@ -36,7 +40,7 @@ pub struct Return {
 
 impl_parse!(Return, {
     select! {
-        TagType::Return { ty, name, desc } => (ty, name, desc)
+        TagType::Return(ty, name, desc) => (ty, name, desc)
     }
     .then(select! { TagType::Comment(x) => x }.repeated())
     .map(|((ty, name, desc), extra)| {
@@ -92,10 +96,7 @@ impl_parse!(Func, {
 });
 
 impl Func {
-    pub fn rename_tag(&mut self, tag: String) {
-        self.prefix.right = Some(tag);
-    }
-
+    #[inline]
     pub fn is_public(&self, export: &str) -> bool {
         self.kind != Kind::Local && self.prefix.left.as_deref() == Some(export)
     }

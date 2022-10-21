@@ -1,5 +1,5 @@
 use chumsky::Parser;
-use lemmy_help::lexer::{Lexer, Ty, TypeVal};
+use lemmy_help::lexer::{Lexer, Name, Ty};
 
 macro_rules! b {
     ($t:expr) => {
@@ -58,8 +58,8 @@ fn types() {
         Ty::Array(b!(Ty::Table(Some((
             b!(Ty::String),
             b!(Ty::Dict(vec![
-                TypeVal::Req("get".into(), Ty::String),
-                TypeVal::Req("set".into(), Ty::String),
+                (Name::Req("get".into()), Ty::String),
+                (Name::Req("set".into()), Ty::String),
             ]))
         )))))
     );
@@ -69,7 +69,7 @@ fn types() {
         Ty::Table(Some((
             b!(Ty::String),
             b!(Ty::Fun(
-                vec![TypeVal::Req("a".into(), Ty::String)],
+                vec![(Name::Req("a".into()), Ty::String)],
                 Some(vec![Ty::String])
             ))
         )))
@@ -100,16 +100,19 @@ fn types() {
         ): number, string|string[]",
         Ty::Fun(
             vec![
-                TypeVal::Req("a".into(), Ty::String),
-                TypeVal::Req(
-                    "b".into(),
+                (Name::Req("a".into()), Ty::String),
+                (
+                    Name::Req("b".into()),
                     Ty::Union(
                         b!(Ty::String),
                         b!(Ty::Union(b!(Ty::Number), b!(Ty::Boolean)))
                     )
                 ),
-                TypeVal::Req("c".into(), Ty::Array(b!(Ty::Array(b!(Ty::Number))))),
-                TypeVal::Opt("d".into(), Ty::Ref("SomeClass".into())),
+                (
+                    Name::Req("c".into()),
+                    Ty::Array(b!(Ty::Array(b!(Ty::Number))))
+                ),
+                (Name::Opt("d".into()), Ty::Ref("SomeClass".into())),
             ],
             Some(vec![
                 Ty::Number,
@@ -130,15 +133,17 @@ fn types() {
         ): table<string, string>",
         Ty::Fun(
             vec![
-                TypeVal::Req("a".into(), Ty::String),
-                TypeVal::Opt("b".into(), Ty::String),
-                TypeVal::Req("c".into(), Ty::Function),
-                TypeVal::Req(
-                    "d".into(),
-                    Ty::Fun(vec![TypeVal::Req("z".into(), Ty::String)], None)
+                (Name::Req("a".into()), Ty::String),
+                (Name::Opt("b".into()), Ty::String),
+                (Name::Req("c".into()), Ty::Function),
+                (Name::Req(
+                    "d".into()),
+                    Ty::Fun(vec![
+                        (Name::Req("z".into()), Ty::String)
+                    ], None)
                 ),
-                TypeVal::Req(
-                    "e".into(),
+                (Name::Req(
+                    "e".into()),
                     Ty::Union(
                         b!(Ty::String),
                         b!(Ty::Union(
@@ -146,15 +151,14 @@ fn types() {
                             b!(Ty::Union(
                                 b!(Ty::Table(Some((b!(Ty::String), b!(Ty::String))))),
                                 b!(Ty::Fun(
-                                    vec![TypeVal::Req(
-                                        "y".into(),
+                                    vec![(Name::Req(
+                                        "y".into()),
                                         Ty::Union(
                                             b!(Ty::Array(b!(Ty::String))),
                                             b!(Ty::Union(
-                                                b!(Ty::Dict(vec![TypeVal::Req(
-                                                    "get".into(),
-                                                    Ty::Function
-                                                )])),
+                                                b!(Ty::Dict(vec![
+                                                    (Name::Req("get".into()), Ty::Function)
+                                                ])),
                                                 b!(Ty::String)
                                             ))
                                         )
@@ -178,18 +182,18 @@ fn types() {
             __proto__?: { _?: unknown }
         }",
         Ty::Dict(vec![
-            TypeVal::Req("inner".into(), Ty::String),
-            TypeVal::Req(
-                "get".into(),
-                Ty::Fun(vec![TypeVal::Req("a".into(), Ty::Unknown)], None,)
+            (Name::Req("inner".into()), Ty::String),
+            (
+                Name::Req("get".into()),
+                Ty::Fun(vec![(Name::Req("a".into()), Ty::Unknown)], None,)
             ),
-            TypeVal::Req(
-                "set".into(),
-                Ty::Fun(vec![TypeVal::Req("a".into(), Ty::Unknown)], None)
+            (
+                Name::Req("set".into()),
+                Ty::Fun(vec![(Name::Req("a".into()), Ty::Unknown)], None)
             ),
-            TypeVal::Opt(
-                "__proto__".into(),
-                Ty::Dict(vec![TypeVal::Opt("_".into(), Ty::Unknown)])
+            (
+                Name::Opt("__proto__".into()),
+                Ty::Dict(vec![(Name::Opt("_".into()), Ty::Unknown)])
             )
         ])
     );
@@ -216,7 +220,7 @@ fn types() {
                     b!(Ty::Union(
                         b!(Ty::Array(b!(Ty::Union(b!(Ty::String), b!(Ty::Number))))),
                         b!(Ty::Union(
-                            b!(Ty::Fun(vec![TypeVal::Req("a".into(), Ty::String)], None)),
+                            b!(Ty::Fun(vec![(Name::Req("a".into()), Ty::String)], None)),
                             b!(Ty::Union(
                                 b!(Ty::Table(Some((b!(Ty::String), b!(Ty::Number))))),
                                 b!(Ty::Array(b!(Ty::Userdata)))

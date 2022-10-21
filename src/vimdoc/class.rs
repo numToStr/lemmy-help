@@ -1,58 +1,59 @@
-use std::fmt::Display;
-
 use crate::{
-    lexer::{Scope, TypeVal},
+    lexer::{Name, Scope},
     parser::Class,
 };
 
-use super::{description, header, see::SeeDoc, Table};
+use super::{description, header, see::SeeDoc, Table, ToDoc};
 
 #[derive(Debug)]
-pub struct ClassDoc<'a>(pub &'a Class);
+pub struct ClassDoc;
 
-impl Display for ClassDoc<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let Class {
-            name,
-            desc,
-            fields,
-            see,
-            prefix,
-        } = self.0;
+impl ToDoc for ClassDoc {
+    type N = Class;
+    fn to_doc(n: &Self::N, s: &super::Settings) -> String {
+        let mut doc = String::new();
 
-        if let Some(prefix) = &prefix.right {
-            header!(f, name, format!("{prefix}.{name}"))?;
+        if let Some(prefix) = &n.prefix.right {
+            doc.push_str(&header!(n.name, format!("{prefix}.{}", n.name)));
         } else {
-            header!(f, name)?;
+            doc.push_str(&header!(n.name));
         }
 
-        if !desc.is_empty() {
-            description!(f, &desc.join("\n"))?;
+        if !n.desc.is_empty() {
+            doc.push_str(&description(&n.desc.join("\n")));
         }
-        writeln!(f)?;
+        doc.push('\n');
 
-        if !fields.is_empty() {
-            description!(f, "Fields: ~")?;
+        if !n.fields.is_empty() {
+            doc.push_str(&description("Fields: ~"));
 
             let mut table = Table::new();
 
-            for field in fields {
+            for field in &n.fields {
+                let n = match (s.expand_opt, &field.name) {
+                    (true, Name::Req(n) | Name::Opt(n)) => format!("{{{n}}}"),
+                    (false, n) => format!("{{{n}}}"),
+                };
+
+                let t = if s.expand_opt {
+                    format!("(nil|{})", field.ty)
+                } else {
+                    format!("({})", field.ty)
+                };
+
                 if field.scope == Scope::Public {
-                    let (name, ty) = match &field.tyval {
-                        TypeVal::Opt(n, t) => (format!("{{{n}?}}"), format!("({t})")),
-                        TypeVal::Req(n, t) => (format!("{{{n}}}"), format!("({t})")),
-                    };
-                    table.add_row([name, ty, field.desc.join("\n")]);
+                    table.add_row([n, t, field.desc.join("\n")]);
                 }
             }
 
-            writeln!(f, "{table}")?;
+            doc.push_str(&table.to_string());
+            doc.push('\n');
         }
 
-        if !see.refs.is_empty() {
-            writeln!(f, "{}", SeeDoc(see))?;
+        if !n.see.refs.is_empty() {
+            doc.push_str(&SeeDoc::to_doc(&n.see, s));
         }
 
-        Ok(())
+        doc
     }
 }

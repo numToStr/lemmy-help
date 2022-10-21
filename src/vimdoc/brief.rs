@@ -1,12 +1,15 @@
-use std::fmt::Display;
-
 use crate::parser::Brief;
 
-#[derive(Debug)]
-pub struct BriefDoc<'a>(pub &'a Brief);
+use super::ToDoc;
 
-impl Display for BriefDoc<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "{}", self.0.desc.join("\n"))
+#[derive(Debug)]
+pub struct BriefDoc;
+
+impl ToDoc for BriefDoc {
+    type N = Brief;
+    fn to_doc(n: &Self::N, _: &super::Settings) -> String {
+        let mut doc = n.desc.join("\n");
+        doc.push('\n');
+        doc
     }
 }

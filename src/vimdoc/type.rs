@@ -1,61 +1,53 @@
-use std::fmt::Display;
-
 use crate::parser::Type;
 
-use super::{description, header, see::SeeDoc, usage::UsageDoc, Table};
+use super::{description, header, see::SeeDoc, usage::UsageDoc, Table, ToDoc};
 
 #[derive(Debug)]
-pub struct TypeDoc<'a>(pub &'a Type);
+pub struct TypeDoc;
 
-impl Display for TypeDoc<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let Type {
-            desc: (extract, desc),
-            prefix,
-            name,
-            kind,
-            ty,
-            see,
-            usage,
-        } = self.0;
+impl ToDoc for TypeDoc {
+    type N = Type;
+    fn to_doc(n: &Self::N, s: &super::Settings) -> String {
+        let mut doc = String::new();
 
-        header!(
-            f,
+        doc.push_str(&header!(
             &format!(
                 "{}{}{}",
-                prefix.left.as_deref().unwrap_or_default(),
-                kind.as_char(),
-                name
+                n.prefix.left.as_deref().unwrap_or_default(),
+                n.kind.as_char(),
+                n.name
             ),
             &format!(
                 "{}{}{}",
-                prefix.right.as_deref().unwrap_or_default(),
-                kind.as_char(),
-                name
+                n.prefix.right.as_deref().unwrap_or_default(),
+                n.kind.as_char(),
+                n.name
             )
-        )?;
+        ));
+
+        let (extract, desc) = &n.desc;
 
         if !extract.is_empty() {
-            description!(f, &extract.join("\n"))?;
+            doc.push_str(&description(&extract.join("\n")));
         }
 
-        writeln!(f)?;
+        doc.push('\n');
 
-        description!(f, "Type: ~")?;
+        doc.push_str(&description("Type: ~"));
 
         let mut table = Table::new();
-        table.add_row([&format!("({})", ty), desc.as_deref().unwrap_or_default()]);
+        table.add_row([&format!("({})", n.ty), desc.as_deref().unwrap_or_default()]);
+        doc.push_str(&table.to_string());
+        doc.push('\n');
 
-        writeln!(f, "{table}")?;
-
-        if !see.refs.is_empty() {
-            writeln!(f, "{}", SeeDoc(see))?;
+        if !n.see.refs.is_empty() {
+            doc.push_str(&SeeDoc::to_doc(&n.see, s));
         }
 
-        if let Some(usage) = &usage {
-            writeln!(f, "{}", UsageDoc(usage))?;
+        if let Some(usage) = &n.usage {
+            doc.push_str(&UsageDoc::to_doc(usage, s));
         }
 
-        Ok(())
+        doc
     }
 }

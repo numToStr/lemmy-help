@@ -1,4 +1,4 @@
-use lemmy_help::{vimdoc::VimDoc, FromEmmy, LemmyHelp, Rename};
+use lemmy_help::{vimdoc::VimDoc, FromEmmy, LemmyHelp, Settings};
 
 use lexopt::{
     Arg::{Long, Short, Value},
@@ -13,7 +13,7 @@ pub const AUTHOR: &str = env!("CARGO_PKG_AUTHORS");
 
 pub struct Cli {
     modeline: bool,
-    rename: Rename,
+    settings: Settings,
     files: Vec<PathBuf>,
 }
 
@@ -21,7 +21,7 @@ impl Default for Cli {
     fn default() -> Self {
         Self {
             modeline: true,
-            rename: Rename::default(),
+            settings: Settings::default(),
             files: vec![],
         }
     }
@@ -43,10 +43,11 @@ impl Cli {
                     std::process::exit(0);
                 }
                 Short('M') | Long("no-modeline") => c.modeline = false,
-                Short('f') | Long("prefix-func") => c.rename.func = true,
-                Short('a') | Long("prefix-alias") => c.rename.alias = true,
-                Short('c') | Long("prefix-class") => c.rename.class = true,
-                Short('t') | Long("prefix-type") => c.rename.r#type = true,
+                Short('f') | Long("prefix-func") => c.settings.prefix_func = true,
+                Short('a') | Long("prefix-alias") => c.settings.prefix_alias = true,
+                Short('c') | Long("prefix-class") => c.settings.prefix_class = true,
+                Short('t') | Long("prefix-type") => c.settings.prefix_type = true,
+                Long("expand-opt") => c.settings.expand_opt = true,
                 Value(val) => {
                     let file = PathBuf::from(&val);
 
@@ -67,14 +68,14 @@ impl Cli {
     }
 
     pub fn run(self) {
-        let mut lemmy = LemmyHelp::new(self.rename);
+        let mut lemmy = LemmyHelp::new();
 
         for f in self.files {
             let source = read_to_string(f).unwrap();
-            lemmy.for_help(&source).unwrap();
+            lemmy.for_help(&source, &self.settings).unwrap();
         }
 
-        print!("{}", VimDoc::from_emmy(&lemmy, ()));
+        print!("{}", VimDoc::from_emmy(&lemmy, &self.settings));
 
         if self.modeline {
             println!("vim:tw=78:ts=8:noet:ft=help:norl:");
@@ -96,13 +97,14 @@ ARGS:
     <FILES>...              Path to the files
 
 FLAGS:
+    -h, --help              Print help information
+    -v, --version           Print version information
     -M, --no-modeline       Don't print modeline at the end
     -f, --prefix-func       Prefix function name with ---@mod name
     -a, --prefix-alias      Prefix ---@alias tag with return/---@mod name
     -c, --prefix-class      Prefix ---@class tag with return/---@mod name
     -t, --prefix-type       Prefix ---@type tag with ---@mod name
-    -h, --help              Print help information
-    -v, --version           Print version information
+        --expand-opt        Expand ? (optional) to nil
 
 USAGE:
     {NAME} /path/to/first.lua /path/to/second.lua > doc.txt

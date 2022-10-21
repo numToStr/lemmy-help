@@ -1,17 +1,19 @@
-use std::fmt::Display;
-
 use crate::parser::Usage;
 
-use super::description;
+use super::{description, ToDoc};
 
 #[derive(Debug)]
-pub struct UsageDoc<'a>(pub &'a Usage);
+pub struct UsageDoc;
 
-impl Display for UsageDoc<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        description!(f, "Usage: ~")?;
-        writeln!(f, "{:>9}", ">")?;
-        writeln!(f, "{}", textwrap::indent(&self.0.code, "            "))?;
-        writeln!(f, "{:>9}", "<")
+impl ToDoc for UsageDoc {
+    type N = Usage;
+    fn to_doc(n: &Self::N, _: &super::Settings) -> String {
+        let mut doc = String::new();
+        doc.push_str(&description("Usage: ~"));
+        doc.push_str("        >\n");
+        doc.push_str(&textwrap::indent(&n.code, "            "));
+        doc.push('\n');
+        doc.push_str("        <\n\n");
+        doc
     }
 }

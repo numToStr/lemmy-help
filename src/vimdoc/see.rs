@@ -1,18 +1,19 @@
-use std::fmt::Display;
-
 use crate::parser::See;
 
-use super::description;
+use super::{description, ToDoc};
 
 #[derive(Debug)]
-pub struct SeeDoc<'a>(pub &'a See);
+pub struct SeeDoc;
 
-impl Display for SeeDoc<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        description!(f, "See: ~")?;
-        for s in &self.0.refs {
-            writeln!(f, "        |{s}|")?;
+impl ToDoc for SeeDoc {
+    type N = See;
+    fn to_doc(n: &Self::N, _: &super::Settings) -> String {
+        let mut doc = String::new();
+        doc.push_str(&description("See: ~"));
+        for s in &n.refs {
+            doc.push_str(&format!("        |{s}|\n"));
         }
-        Ok(())
+        doc.push('\n');
+        doc
     }
 }

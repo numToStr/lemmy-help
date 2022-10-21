@@ -1,4 +1,4 @@
-use lemmy_help::{vimdoc::VimDoc, FromEmmy, LemmyHelp, Rename};
+use lemmy_help::{vimdoc::VimDoc, FromEmmy, LemmyHelp, Settings};
 
 const CODE: &str = r#"
 local U = {}
@@ -26,17 +26,19 @@ return U
 
 #[test]
 fn rename_with_return() {
-    let mut lemmy = LemmyHelp::new(Rename {
-        func: true,
-        alias: true,
-        class: true,
-        r#type: true,
-    });
+    let mut lemmy = LemmyHelp::new();
+    let s = Settings {
+        prefix_func: true,
+        prefix_alias: true,
+        prefix_class: true,
+        prefix_type: true,
+        ..Default::default()
+    };
 
-    lemmy.for_help(CODE).unwrap();
+    lemmy.for_help(CODE, &s).unwrap();
 
     assert_eq!(
-        VimDoc::from_emmy(&lemmy, ()).to_string(),
+        VimDoc::from_emmy(&lemmy, &s).to_string(),
         "\
 ID                                                                        *U.ID*
 
@@ -79,17 +81,19 @@ U:create()                                                            *U:create*
 fn rename_with_mod() {
     let src = format!("---@mod awesome This is working {CODE}");
 
-    let mut lemmy = LemmyHelp::new(Rename {
-        func: true,
-        alias: true,
-        class: true,
-        r#type: true,
-    });
+    let mut lemmy = LemmyHelp::new();
+    let s = Settings {
+        prefix_func: true,
+        prefix_alias: true,
+        prefix_class: true,
+        prefix_type: true,
+        ..Default::default()
+    };
 
-    lemmy.for_help(&src).unwrap();
+    lemmy.for_help(&src, &s).unwrap();
 
     assert_eq!(
-        VimDoc::from_emmy(&lemmy, ()).to_string(),
+        VimDoc::from_emmy(&lemmy, &s).to_string(),
         "\
 ================================================================================
 This is working                                                        *awesome*
@@ -125,6 +129,52 @@ U:create()                                                      *awesome:create*
         >
             require('Pi'):create()
         <
+
+
+"
+    );
+}
+
+#[test]
+fn expand_opt() {
+    let src = "
+local M = {}
+
+---@class HelloWorld
+---@field message? string First message to the world
+---@field private opts? table
+
+---Prints given value
+---@param message? string
+function M.echo(message)
+    return print(message)
+end
+
+return M
+";
+
+    let mut lemmy = LemmyHelp::new();
+    let s = Settings {
+        expand_opt: true,
+        ..Default::default()
+    };
+
+    lemmy.for_help(src, &s).unwrap();
+
+    assert_eq!(
+        VimDoc::from_emmy(&lemmy, &s).to_string(),
+        "\
+HelloWorld                                                          *HelloWorld*
+
+    Fields: ~
+        {message}  (nil|string)  First message to the world
+
+
+M.echo({message?})                                                      *M.echo*
+    Prints given value
+
+    Parameters: ~
+        {message}  (nil|string)
 
 
 "

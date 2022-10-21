@@ -1,90 +1,84 @@
-use std::fmt::Display;
+use crate::{lexer::Name, parser::Func};
 
-use crate::{
-    lexer::{Ty, TypeVal},
-    parser::{Func, Param},
-};
-
-use super::{description, header, see::SeeDoc, usage::UsageDoc, Table};
+use super::{description, header, see::SeeDoc, usage::UsageDoc, Table, ToDoc};
 
 #[derive(Debug)]
-pub struct FuncDoc<'a>(pub &'a Func);
+pub struct FuncDoc;
 
-impl Display for FuncDoc<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let Func {
-            name,
-            kind,
-            prefix,
-            desc,
-            params,
-            returns,
-            see,
-            usage,
-        } = self.0;
+impl ToDoc for FuncDoc {
+    type N = Func;
+    fn to_doc(n: &Self::N, s: &super::Settings) -> String {
+        let mut doc = String::new();
 
-        fn is_opt(typeval: &'_ TypeVal) -> (String, &Ty) {
-            match typeval {
-                TypeVal::Opt(k, v) => (format!("{{{k}?}}"), v),
-                TypeVal::Req(k, v) => (format!("{{{k}}}"), v),
-            }
-        }
-
-        let name_with_param = if !params.is_empty() {
-            let args = params
+        let name_with_param = if !n.params.is_empty() {
+            let args = n
+                .params
                 .iter()
-                .map(|Param(typeval, _)| is_opt(typeval).0)
+                .map(|p| format!("{{{}}}", p.name))
                 .collect::<Vec<String>>()
                 .join(", ");
 
             format!(
-                "{}{}{name}({args})",
-                prefix.left.as_deref().unwrap_or_default(),
-                kind.as_char()
+                "{}{}{}({args})",
+                n.prefix.left.as_deref().unwrap_or_default(),
+                n.kind.as_char(),
+                n.name
             )
         } else {
             format!(
-                "{}{}{name}()",
-                prefix.left.as_deref().unwrap_or_default(),
-                kind.as_char()
+                "{}{}{}()",
+                n.prefix.left.as_deref().unwrap_or_default(),
+                n.kind.as_char(),
+                n.name
             )
         };
 
-        header!(
-            f,
+        doc.push_str(&header!(
             name_with_param,
             &format!(
-                "{}{}{name}",
-                prefix.right.as_deref().unwrap_or_default(),
-                kind.as_char(),
+                "{}{}{}",
+                n.prefix.right.as_deref().unwrap_or_default(),
+                n.kind.as_char(),
+                n.name,
             )
-        )?;
+        ));
 
-        if !desc.is_empty() {
-            description!(f, &desc.join("\n"))?;
+        if !n.desc.is_empty() {
+            doc.push_str(&description(&n.desc.join("\n")))
         }
 
-        writeln!(f)?;
+        doc.push('\n');
 
-        if !params.is_empty() {
-            description!(f, "Parameters: ~")?;
+        if !n.params.is_empty() {
+            doc.push_str(&description("Parameters: ~"));
 
             let mut table = Table::new();
 
-            for Param(typeval, desc) in params {
-                let (name, ty) = is_opt(typeval);
-                table.add_row([name, format!("({ty})"), desc.join("\n")]);
+            for param in &n.params {
+                let n = match (s.expand_opt, &param.name) {
+                    (true, Name::Req(n) | Name::Opt(n)) => format!("{{{n}}}"),
+                    (false, n) => format!("{{{n}}}"),
+                };
+
+                let t = if s.expand_opt {
+                    format!("(nil|{})", param.ty)
+                } else {
+                    format!("({})", param.ty)
+                };
+
+                table.add_row([n, t, param.desc.join("\n")]);
             }
 
-            writeln!(f, "{table}")?;
+            doc.push_str(&table.to_string());
+            doc.push('\n');
         }
 
-        if !returns.is_empty() {
-            description!(f, "Returns: ~")?;
+        if !n.returns.is_empty() {
+            doc.push_str(&description("Returns: ~"));
 
             let mut table = Table::new();
 
-            for entry in returns {
+            for entry in &n.returns {
                 table.add_row([
                     format!("{{{}}}", entry.ty),
                     if entry.desc.is_empty() {
@@ -95,17 +89,18 @@ impl Display for FuncDoc<'_> {
                 ]);
             }
 
-            writeln!(f, "{table}")?;
+            doc.push_str(&table.to_string());
+            doc.push('\n');
         }
 
-        if !see.refs.is_empty() {
-            writeln!(f, "{}", SeeDoc(see))?;
+        if !n.see.refs.is_empty() {
+            doc.push_str(&SeeDoc::to_doc(&n.see, s));
         }
 
-        if let Some(usage) = &usage {
-            writeln!(f, "{}", UsageDoc(usage))?;
+        if let Some(usage) = &n.usage {
+            doc.push_str(&UsageDoc::to_doc(usage, s));
         }
 
-        Ok(())
+        doc
     }
 }

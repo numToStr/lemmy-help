@@ -7,6 +7,7 @@ pub mod parser;
 use std::fmt::Display;
 
 use chumsky::prelude::Simple;
+
 use parser::Node;
 
 use crate::lexer::TagType;
@@ -17,28 +18,29 @@ pub trait Nodes {
 
 pub trait FromEmmy: Display {
     type Settings;
-    fn from_emmy(t: &impl Nodes, s: Self::Settings) -> Self;
+    fn from_emmy(t: &impl Nodes, s: &Self::Settings) -> Self;
 }
 
 pub trait AsDoc<T: FromEmmy> {
-    fn as_doc(&self, s: T::Settings) -> T;
+    fn as_doc(&self, s: &T::Settings) -> T;
 }
 
-#[derive(Debug, Default)]
-pub struct Rename {
+#[derive(Debug, Default, Clone, Copy)]
+pub struct Settings {
     /// Prefix `function` name with `---@mod` name
-    pub func: bool,
+    pub prefix_func: bool,
     /// Prefix `---@alias` tag with `---@mod/return` name
-    pub alias: bool,
+    pub prefix_alias: bool,
     /// Prefix `---@class` tag with `---@mod/return` name
-    pub class: bool,
+    pub prefix_class: bool,
     /// Prefix `---@type` tag with `---@mod` name
-    pub r#type: bool,
+    pub prefix_type: bool,
+    /// Expand `?` to `nil|<type>`
+    pub expand_opt: bool,
 }
 
 #[derive(Debug, Default)]
 pub struct LemmyHelp {
-    rename: Rename,
     nodes: Vec<Node>,
 }
 
@@ -49,7 +51,7 @@ impl Nodes for LemmyHelp {
 }
 
 impl<T: FromEmmy> AsDoc<T> for LemmyHelp {
-    fn as_doc(&self, s: T::Settings) -> T {
+    fn as_doc(&self, s: &T::Settings) -> T {
         T::from_emmy(self, s)
     }
 }
@@ -58,15 +60,12 @@ impl LemmyHelp {
     /// Creates a new parser instance
     ///
     /// ```
-    /// use lemmy_help::{LemmyHelp, Rename};
+    /// use lemmy_help::LemmyHelp;
     ///
-    /// LemmyHelp::new(Rename::default());
+    /// LemmyHelp::new();
     /// ```
-    pub fn new(rename: Rename) -> Self {
-        Self {
-            rename,
-            nodes: vec![],
-        }
+    pub fn new() -> Self {
+        Self { nodes: vec![] }
     }
 
     /// Parse given lua source code to generate AST representation
@@ -98,7 +97,11 @@ impl LemmyHelp {
     }
 
     /// Similar to [`LemmyHelp::parse`], but specifically used for generating vimdoc
-    pub fn for_help(&mut self, src: &str) -> Result<&Self, Vec<Simple<TagType>>> {
+    pub fn for_help(
+        &mut self,
+        src: &str,
+        settings: &Settings,
+    ) -> Result<&Self, Vec<Simple<TagType>>> {
         let mut nodes = Node::new(src)?;
 
         if let Some(Node::Export(export)) = nodes.pop() {
@@ -112,29 +115,29 @@ impl LemmyHelp {
                     Node::Export(..) => {}
                     Node::Func(mut func) => {
                         if func.is_public(&export) {
-                            if self.rename.func {
-                                func.rename_tag(module.to_owned());
+                            if settings.prefix_func {
+                                func.prefix.right = Some(module.to_owned());
                             }
                             self.nodes.push(Node::Func(func));
                         }
                     }
                     Node::Type(mut typ) => {
                         if typ.is_public(&export) {
-                            if self.rename.r#type {
-                                typ.rename_tag(module.to_owned());
+                            if settings.prefix_type {
+                                typ.prefix.right = Some(module.to_owned());
                             }
                             self.nodes.push(Node::Type(typ));
                         }
                     }
                     Node::Alias(mut alias) => {
-                        if self.rename.alias {
-                            alias.rename_tag(module.to_owned());
+                        if settings.prefix_alias {
+                            alias.prefix.right = Some(module.to_owned());
                         }
                         self.nodes.push(Node::Alias(alias))
                     }
                     Node::Class(mut class) => {
-                        if self.rename.class {
-                            class.rename_tag(module.to_owned());
+                        if settings.prefix_class {
+                            class.prefix.right = Some(module.to_owned());
                         }
                         self.nodes.push(Node::Class(class))
                     }
