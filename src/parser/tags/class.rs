@@ -1,14 +1,15 @@
 use chumsky::{select, Parser};
 
 use crate::{
-    lexer::{Scope, TagType, TypeVal},
+    lexer::{Name, Scope, TagType, Ty},
     parser::{impl_parse, Prefix, See},
 };
 
 #[derive(Debug, Clone)]
 pub struct Field {
     pub scope: Scope,
-    pub tyval: TypeVal,
+    pub name: Name,
+    pub ty: Ty,
     pub desc: Vec<String>,
 }
 
@@ -18,15 +19,20 @@ impl_parse!(Field, {
     }
     .repeated()
     .then(select! {
-        TagType::Field { scope, tyval, desc } => (scope, tyval, desc)
+        TagType::Field(scope, name, ty, desc) => (scope, name, ty, desc)
     })
-    .map(|(header, (scope, tyval, desc))| {
+    .map(|(header, (scope, name, ty, desc))| {
         let desc = match desc {
             Some(d) => vec![d],
             None => header,
         };
 
-        Self { scope, tyval, desc }
+        Self {
+            scope,
+            name,
+            ty,
+            desc,
+        }
     })
 });
 
@@ -53,9 +59,3 @@ impl_parse!(Class, {
             prefix: Prefix::default(),
         })
 });
-
-impl Class {
-    pub fn rename_tag(&mut self, tag: String) {
-        self.prefix.right = Some(tag);
-    }
-}

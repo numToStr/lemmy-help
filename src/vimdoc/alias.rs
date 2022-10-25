@@ -1,51 +1,45 @@
-use std::fmt::Display;
-
 use crate::parser::{Alias, AliasKind};
 
-use super::{description, header, Table};
+use super::{description, header, Table, ToDoc};
 
 #[derive(Debug)]
-pub struct AliasDoc<'a>(pub &'a Alias);
+pub struct AliasDoc;
 
-impl Display for AliasDoc<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let Alias {
-            prefix,
-            name,
-            desc,
-            kind,
-        } = &self.0;
+impl ToDoc for AliasDoc {
+    type N = Alias;
+    fn to_doc(n: &Self::N, _: &super::Settings) -> String {
+        let mut doc = String::new();
 
-        if let Some(prefix) = &prefix.right {
-            header!(f, name, format!("{prefix}.{}", name))?;
+        if let Some(prefix) = &n.prefix.right {
+            doc.push_str(&header!(n.name, format!("{prefix}.{}", n.name)));
         } else {
-            header!(f, name)?;
+            doc.push_str(&header!(n.name));
         }
 
-        if !desc.is_empty() {
-            description!(f, &desc.join("\n"))?;
+        if !n.desc.is_empty() {
+            doc.push_str(&description(&n.desc.join("\n")));
         }
 
-        writeln!(f)?;
+        doc.push('\n');
 
-        match &kind {
+        match &n.kind {
             AliasKind::Type(ty) => {
-                description!(f, "Type: ~")?;
+                doc.push_str(&description("Type: ~"));
                 let ty = ty.to_string();
-                writeln!(f, "{:>w$}", ty, w = 8 + ty.len())?;
+                doc.push_str(&format!("{:>w$}", ty, w = 8 + ty.len()));
+                doc.push('\n');
             }
             AliasKind::Enum(variants) => {
-                description!(f, "Variants: ~")?;
-
+                doc.push_str(&description("Variants: ~"));
                 let mut table = Table::new();
                 for (ty, desc) in variants {
                     table.add_row([&format!("({})", ty), desc.as_deref().unwrap_or_default()]);
                 }
-
-                f.write_str(&table.to_string())?;
+                doc.push_str(&table.to_string());
             }
         }
 
-        writeln!(f)
+        doc.push('\n');
+        doc
     }
 }

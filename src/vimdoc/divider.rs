@@ -1,12 +1,18 @@
-use std::fmt::Display;
-
 use crate::parser::Divider;
 
-#[derive(Debug)]
-pub struct DividerDoc<'a>(pub &'a Divider);
+use super::ToDoc;
 
-impl Display for DividerDoc<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "{}", (self.0).0.to_string().repeat(80))
+#[derive(Debug)]
+pub struct DividerDoc;
+
+impl ToDoc for DividerDoc {
+    type N = Divider;
+    fn to_doc(n: &Self::N, _: &super::Settings) -> String {
+        let mut s = String::with_capacity(81);
+        for _ in 0..80 {
+            s.push(n.0);
+        }
+        s.push('\n');
+        s
     }
 }

@@ -64,8 +64,8 @@ impl Lexer {
             .map(|(t, d)| TagType::Variant(t, d));
 
         let optional = just('?').or_not().map(|c| match c {
-            Some(_) => TypeVal::Opt as fn(_, _) -> _,
-            None => TypeVal::Req as fn(_, _) -> _,
+            Some(_) => Name::Opt as fn(_) -> _,
+            None => Name::Req as fn(_) -> _,
         });
 
         let name = filter(|x: &char| x.is_alphanumeric() || C.contains(x))
@@ -110,7 +110,7 @@ impl Lexer {
                         // NOTE: if param type is missing then LLS treats it as `any`
                         .map(|x| x.unwrap_or(Ty::Any)),
                 )
-                .map(|((n, attr), t)| attr(n, t))
+                .map(|((n, attr), t)| (attr(n), t))
                 .separated_by(comma)
                 .allow_trailing();
 
@@ -197,7 +197,7 @@ impl Lexer {
                 .then_ignore(space)
                 .then(ty.clone())
                 .then(desc)
-                .map(|(((name, opt), ty), desc)| TagType::Param(opt(name, ty), desc)),
+                .map(|(((name, opt), ty), desc)| TagType::Param(opt(name), ty, desc)),
             just("return")
                 .ignore_then(space)
                 .ignore_then(ty.clone())
@@ -208,7 +208,7 @@ impl Lexer {
                         ident().then(desc).map(|(name, desc)| (Some(name), desc)),
                     ))),
                 )))
-                .map(|(ty, (name, desc))| TagType::Return { ty, name, desc }),
+                .map(|(ty, (name, desc))| TagType::Return(ty, name, desc)),
             just("class")
                 .ignore_then(space)
                 .ignore_then(name)
@@ -221,10 +221,8 @@ impl Lexer {
                 .then_ignore(space)
                 .then(ty.clone())
                 .then(desc)
-                .map(|((((scope, name), opt), ty), desc)| TagType::Field {
-                    scope: scope.unwrap_or(Scope::Public),
-                    tyval: opt(name, ty),
-                    desc,
+                .map(|((((scope, name), opt), ty), desc)| {
+                    TagType::Field(scope.unwrap_or(Scope::Public), opt(name), ty, desc)
                 }),
             just("alias")
                 .ignore_then(space)

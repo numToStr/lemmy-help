@@ -49,15 +49,11 @@ pub enum TagType {
     /// ```lua
     /// ---@param <name[?]> <type[|type...]> [description]
     /// ```
-    Param(TypeVal, Option<String>),
+    Param(Name, Ty, Option<String>),
     /// ```lua
     /// ---@return <type> [<name> [comment] | [name] #<comment>]
     /// ```
-    Return {
-        ty: Ty,
-        name: Option<String>,
-        desc: Option<String>,
-    },
+    Return(Ty, Option<String>, Option<String>),
     /// ```lua
     /// ---@class <name>
     /// ```
@@ -65,11 +61,7 @@ pub enum TagType {
     /// ```lua
     /// ---@field [public|private|protected] <name[?]> <type> [description]
     /// ```
-    Field {
-        scope: Scope,
-        tyval: TypeVal,
-        desc: Option<String>,
-    },
+    Field(Scope, Name, Ty, Option<String>),
     /// ```lua
     /// -- Simple Alias
     /// ---@alias <name> <type>
@@ -139,16 +131,19 @@ pub enum Scope {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum TypeVal {
-    Req(String, Ty),
-    Opt(String, Ty),
+pub enum Name {
+    Req(String),
+    Opt(String),
 }
 
-impl Display for TypeVal {
+impl Display for Name {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Req(n, t) => write!(f, "{n}:{t}"),
-            Self::Opt(n, t) => write!(f, "{n}?:{t}"),
+            Self::Req(n) => f.write_str(n),
+            Self::Opt(n) => {
+                f.write_str(n)?;
+                f.write_str("?")
+            }
         }
     }
 }
@@ -170,16 +165,16 @@ pub enum Ty {
     Ref(String),
     Array(Box<Ty>),
     Table(Option<(Box<Ty>, Box<Ty>)>),
-    Fun(Vec<TypeVal>, Option<Vec<Ty>>),
-    Dict(Vec<TypeVal>),
+    Fun(Vec<(Name, Ty)>, Option<Vec<Ty>>),
+    Dict(Vec<(Name, Ty)>),
     Union(Box<Ty>, Box<Ty>),
 }
 
 impl Display for Ty {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        fn list_like(args: &[TypeVal]) -> String {
+        fn list_like(args: &[(Name, Ty)]) -> String {
             args.iter()
-                .map(|t| t.to_string())
+                .map(|(n, t)| format!("{n}:{t}"))
                 .collect::<Vec<String>>()
                 .join(",")
         }

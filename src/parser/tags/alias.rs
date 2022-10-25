@@ -43,9 +43,3 @@ impl_parse!(Alias, {
         prefix: Prefix::default(),
     })
 });
-
-impl Alias {
-    pub fn rename_tag(&mut self, tag: String) {
-        self.prefix.right = Some(tag);
-    }
-}

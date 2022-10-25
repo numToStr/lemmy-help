@@ -1,7 +1,8 @@
 [alias]
-rr = 'run --offline --features=cli'
-bb = 'build --offline --features=cli --release'
+rr = "run --offline --features=cli"
+bb = "build --offline --features=cli --release"
 ii = "install --offline --features=cli --path ."
+tt = "test --all-features"
 
 [target.x86_64-pc-windows-msvc]
 rustflags = ["-C", "target-feature=+crt-static"]

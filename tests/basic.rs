@@ -1,4 +1,15 @@
-use lemmy_help::{vimdoc::VimDoc, FromEmmy, LemmyHelp};
+use lemmy_help::{vimdoc::VimDoc, FromEmmy, LemmyHelp, Settings};
+
+macro_rules! lemmy {
+    ($($src: expr),*) => {{
+        let mut lemmy = LemmyHelp::default();
+        let s = Settings::default();
+        $(
+            lemmy.for_help($src, &s).unwrap();
+        )*
+        VimDoc::from_emmy(&lemmy, &s).to_string()
+    }};
+}
 
 #[test]
 fn brief() {
@@ -32,12 +43,8 @@ fn brief() {
     return U
     "#;
 
-    let mut lemmy = LemmyHelp::default();
-
-    lemmy.for_help(src).unwrap();
-
     assert_eq!(
-        VimDoc::from_emmy(&lemmy, ()).to_string(),
+        lemmy!(src),
         r#"Any summary you wanted to write you can write here.
 There is no formatting here,
 the way you write in here, will be shown
@@ -78,12 +85,8 @@ fn divider_and_tag() {
     return U
     ";
 
-    let mut lemmy = LemmyHelp::default();
-
-    lemmy.for_help(src).unwrap();
-
     assert_eq!(
-        VimDoc::from_emmy(&lemmy, ()).to_string(),
+        lemmy!(src),
         "\
 ================================================================================
 
@@ -132,12 +135,8 @@ fn classes() {
     return U
     ";
 
-    let mut lemmy = LemmyHelp::default();
-
-    lemmy.for_help(src).unwrap();
-
     assert_eq!(
-        VimDoc::from_emmy(&lemmy, ()).to_string(),
+        lemmy!(src),
         "\
 Human                                                                    *Human*
     The Homosapien
@@ -228,12 +227,8 @@ fn functions() {
     return U
     "#;
 
-    let mut lemmy = LemmyHelp::default();
-
-    lemmy.for_help(src).unwrap();
-
     assert_eq!(
-        VimDoc::from_emmy(&lemmy, ()).to_string(),
+        lemmy!(src),
         "\
 U.sum({this}, {that?})                                                   *U.sum*
     Add two integer and print it
@@ -323,12 +318,8 @@ fn multiline_param() {
     return U
     "#;
 
-    let mut lemmy = LemmyHelp::default();
-
-    lemmy.for_help(src).unwrap();
-
     assert_eq!(
-        VimDoc::from_emmy(&lemmy, ()).to_string(),
+        lemmy!(src),
         "\
 U.multi_line({opts}, {reserverd})                                 *U.multi_line*
     Trigger a rebuild of one or more projects.
@@ -418,13 +409,8 @@ fn module() {
     return U
     "#;
 
-    let mut lemmy = LemmyHelp::default();
-
-    lemmy.for_help(src).unwrap();
-    lemmy.for_help(src2).unwrap();
-
     assert_eq!(
-        VimDoc::from_emmy(&lemmy, ()).to_string(),
+        lemmy!(src, src2),
         "\
 ================================================================================
 Introduction                                                         *mod.intro*
@@ -492,12 +478,8 @@ fn table_of_contents() {
     return U
     ";
 
-    let mut lemmy = LemmyHelp::default();
-
-    lemmy.for_help(src).unwrap();
-
     assert_eq!(
-        VimDoc::from_emmy(&lemmy, ()).to_string(),
+        lemmy!(src),
         "\
 ================================================================================
 Table of Contents                                           *my-plugin.contents*
@@ -558,12 +540,8 @@ fn alias_and_type() {
     return U
     "#;
 
-    let mut lemmy = LemmyHelp::default();
-
-    lemmy.for_help(src).unwrap();
-
     assert_eq!(
-        VimDoc::from_emmy(&lemmy, ()).to_string(),
+        lemmy!(src),
         r#"NoDesc                                                                  *NoDesc*
 
     Type: ~
@@ -648,12 +626,8 @@ fn private() {
     return U
     ";
 
-    let mut lemmy = LemmyHelp::default();
-
-    lemmy.for_help(src).unwrap();
-
     assert_eq!(
-        VimDoc::from_emmy(&lemmy, ()).to_string(),
+        lemmy!(src),
         "\
 U.ok()                                                                    *U.ok*
     Only this will be documented
@@ -687,12 +661,8 @@ fn export() {
     })
     ";
 
-    let mut lemmy = LemmyHelp::default();
-
-    lemmy.for_help(src).unwrap();
-
     assert_eq!(
-        VimDoc::from_emmy(&lemmy, ()).to_string(),
+        lemmy!(src),
         "\
 ================================================================================
 Configuration                                                    *module.config*

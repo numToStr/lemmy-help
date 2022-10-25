@@ -1,21 +1,23 @@
-use std::fmt::Display;
-
 use crate::parser::{Divider, Module};
 
-use super::divider::DividerDoc;
+use super::{divider::DividerDoc, ToDoc};
 
 #[derive(Debug)]
-pub struct ModuleDoc<'a>(pub &'a Module);
+pub struct ModuleDoc;
 
-impl Display for ModuleDoc<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let desc = self.0.desc.as_deref().unwrap_or_default();
-
-        DividerDoc(&Divider('=')).fmt(f)?;
-        writeln!(
-            f,
-            "{desc}{}",
-            format_args!("{:>w$}", format!("*{}*", self.0.name), w = 80 - desc.len())
-        )
+impl ToDoc for ModuleDoc {
+    type N = Module;
+    fn to_doc(n: &Self::N, s: &super::Settings) -> String {
+        let mut doc = String::new();
+        let desc = n.desc.as_deref().unwrap_or_default();
+        doc.push_str(&DividerDoc::to_doc(&Divider('='), s));
+        doc.push_str(desc);
+        doc.push_str(&format!(
+            "{:>w$}",
+            format!("*{}*", n.name),
+            w = 80 - desc.len()
+        ));
+        doc.push('\n');
+        doc
     }
 }
