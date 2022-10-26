@@ -143,10 +143,12 @@ local M = {}
 ---@class HelloWorld
 ---@field message? string First message to the world
 ---@field private opts? table
+---@field secret table Sauce
 
 ---Prints given value
----@param message? string
-function M.echo(message)
+---@param message string
+---@param opts? table
+function M.echo(message, opts)
     return print(message)
 end
 
@@ -168,13 +170,15 @@ HelloWorld                                                          *HelloWorld*
 
     Fields: ~
         {message}  (nil|string)  First message to the world
+        {secret}   (table)       Sauce
 
 
-M.echo({message?})                                                      *M.echo*
+M.echo({message}, {opts?})                                              *M.echo*
     Prints given value
 
     Parameters: ~
-        {message}  (nil|string)
+        {message}  (string)
+        {opts}     (nil|table)
 
 
 "

@@ -23,7 +23,12 @@ impl_parse!(Field, {
     })
     .map(|(header, (scope, name, ty, desc))| {
         let desc = match desc {
-            Some(d) => vec![d],
+            Some(d) => {
+                let mut new_desc = Vec::with_capacity(header.len() + 1);
+                new_desc.push(d);
+                new_desc.extend(header);
+                new_desc
+            }
             None => header,
         };
 

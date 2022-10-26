@@ -110,7 +110,6 @@ pub enum TagType {
 pub enum Kind {
     Dot,
     Colon,
-    Local,
 }
 
 impl Kind {
@@ -118,7 +117,6 @@ impl Kind {
         match self {
             Self::Dot => '.',
             Self::Colon => ':',
-            Self::Local => '#',
         }
     }
 }
@@ -192,9 +190,18 @@ impl Display for Ty {
             Self::Userdata => f.write_str("userdata"),
             Self::Lightuserdata => f.write_str("lightuserdata"),
             Self::Ref(id) => f.write_str(id),
-            Self::Array(ty) => write!(f, "{ty}[]"),
+            Self::Array(ty) => {
+                f.write_str(&ty.to_string())?;
+                f.write_str("[]")
+            }
             Self::Table(kv) => match kv {
-                Some((k, v)) => write!(f, "table<{k},{v}>"),
+                Some((k, v)) => {
+                    f.write_str("table<")?;
+                    f.write_str(&k.to_string())?;
+                    f.write_str(",")?;
+                    f.write_str(&v.to_string())?;
+                    f.write_str(">")
+                }
                 None => f.write_str("table"),
             },
             Self::Fun(args, ret) => {
@@ -217,7 +224,11 @@ impl Display for Ty {
                 f.write_str(&list_like(kv))?;
                 f.write_str("}")
             }
-            Self::Union(rhs, lhs) => write!(f, "{rhs}|{lhs}"),
+            Self::Union(rhs, lhs) => {
+                f.write_str(&rhs.to_string())?;
+                f.write_str("|")?;
+                f.write_str(&lhs.to_string())
+            }
         }
     }
 }

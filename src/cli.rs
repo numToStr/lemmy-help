@@ -104,11 +104,11 @@ FLAGS:
     -a, --prefix-alias      Prefix ---@alias tag with return/---@mod name
     -c, --prefix-class      Prefix ---@class tag with return/---@mod name
     -t, --prefix-type       Prefix ---@type tag with ---@mod name
-        --expand-opt        Expand ? (optional) to nil
+        --expand-opt        Expand '?' (optional) to 'nil' type
 
 USAGE:
-    {NAME} /path/to/first.lua /path/to/second.lua > doc.txt
-    {NAME} -c -a /path/to/{{first,second,third}}.lua > doc.txt
+    {NAME} /path/to/first.lua /path/to/second.lua > doc/PLUGIN_NAME.txt
+    {NAME} -c -a /path/to/{{first,second,third}}.lua > doc/PLUGIN_NAME.txt
 
 NOTES:
     - The order of parsing + rendering is relative to the given files

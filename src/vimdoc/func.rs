@@ -55,18 +55,12 @@ impl ToDoc for FuncDoc {
             let mut table = Table::new();
 
             for param in &n.params {
-                let n = match (s.expand_opt, &param.name) {
-                    (true, Name::Req(n) | Name::Opt(n)) => format!("{{{n}}}"),
-                    (false, n) => format!("{{{n}}}"),
+                let (name, ty) = match (s.expand_opt, &param.name) {
+                    (true, Name::Opt(n)) => (format!("{{{n}}}"), format!("(nil|{})", param.ty)),
+                    (_, n) => (format!("{{{n}}}"), format!("({})", param.ty)),
                 };
 
-                let t = if s.expand_opt {
-                    format!("(nil|{})", param.ty)
-                } else {
-                    format!("({})", param.ty)
-                };
-
-                table.add_row([n, t, param.desc.join("\n")]);
+                table.add_row([name, ty, param.desc.join("\n")]);
             }
 
             doc.push_str(&table.to_string());
