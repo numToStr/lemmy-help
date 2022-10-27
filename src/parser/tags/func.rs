@@ -21,10 +21,12 @@ impl_parse!(Param, {
     .then(select! { TagType::Comment(x) => x }.repeated())
     .map(|((name, ty, desc), extra)| {
         let desc = match desc {
-            Some(d) => Vec::from([d])
-                .into_iter()
-                .chain(extra.into_iter())
-                .collect(),
+            Some(d) => {
+                let mut new_desc = Vec::with_capacity(extra.len() + 1);
+                new_desc.push(d);
+                new_desc.extend(extra);
+                new_desc
+            }
             None => extra,
         };
         Self { name, ty, desc }
@@ -45,10 +47,12 @@ impl_parse!(Return, {
     .then(select! { TagType::Comment(x) => x }.repeated())
     .map(|((ty, name, desc), extra)| {
         let desc = match desc {
-            Some(d) => Vec::from([d])
-                .into_iter()
-                .chain(extra.into_iter())
-                .collect(),
+            Some(d) => {
+                let mut new_desc = Vec::with_capacity(extra.len() + 1);
+                new_desc.push(d);
+                new_desc.extend(extra);
+                new_desc
+            }
             None => extra,
         };
 
@@ -94,10 +98,3 @@ impl_parse!(Func, {
         },
     )
 });
-
-impl Func {
-    #[inline]
-    pub fn is_public(&self, export: &str) -> bool {
-        self.kind != Kind::Local && self.prefix.left.as_deref() == Some(export)
-    }
-}

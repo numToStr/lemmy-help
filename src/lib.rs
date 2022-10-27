@@ -114,7 +114,7 @@ impl LemmyHelp {
                 match ele {
                     Node::Export(..) => {}
                     Node::Func(mut func) => {
-                        if func.is_public(&export) {
+                        if func.prefix.left.as_deref() == Some(&export) {
                             if settings.prefix_func {
                                 func.prefix.right = Some(module.to_owned());
                             }
@@ -122,7 +122,7 @@ impl LemmyHelp {
                         }
                     }
                     Node::Type(mut typ) => {
-                        if typ.is_public(&export) {
+                        if typ.prefix.left.as_deref() == Some(&export) {
                             if settings.prefix_type {
                                 typ.prefix.right = Some(module.to_owned());
                             }

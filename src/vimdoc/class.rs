@@ -30,19 +30,13 @@ impl ToDoc for ClassDoc {
             let mut table = Table::new();
 
             for field in &n.fields {
-                let n = match (s.expand_opt, &field.name) {
-                    (true, Name::Req(n) | Name::Opt(n)) => format!("{{{n}}}"),
-                    (false, n) => format!("{{{n}}}"),
-                };
-
-                let t = if s.expand_opt {
-                    format!("(nil|{})", field.ty)
-                } else {
-                    format!("({})", field.ty)
+                let (name, ty) = match (s.expand_opt, &field.name) {
+                    (true, Name::Opt(n)) => (format!("{{{n}}}"), format!("(nil|{})", field.ty)),
+                    (_, n) => (format!("{{{n}}}"), format!("({})", field.ty)),
                 };
 
                 if field.scope == Scope::Public {
-                    table.add_row([n, t, field.desc.join("\n")]);
+                    table.add_row([name, ty, field.desc.join("\n")]);
                 }
             }
 

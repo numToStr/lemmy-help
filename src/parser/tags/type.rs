@@ -42,10 +42,3 @@ impl_parse!(Type, {
         },
     )
 });
-
-impl Type {
-    #[inline]
-    pub fn is_public(&self, export: &str) -> bool {
-        self.kind != Kind::Local && self.prefix.left.as_deref() == Some(export)
-    }
-}

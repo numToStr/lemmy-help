@@ -45,6 +45,10 @@ impl_parse!(Node, Option<Self>, {
 });
 
 impl Node {
+    fn init() -> impl Parser<TagType, Vec<Node>, Error = Simple<TagType>> {
+        Node::parse().repeated().flatten()
+    }
+
     /// Creates stream of AST nodes from emmylua
     ///
     /// ```
@@ -68,6 +72,6 @@ impl Node {
         let tokens = Lexer::init().parse(src).unwrap();
         let stream = Stream::from_iter(src.len()..src.len() + 1, tokens.into_iter());
 
-        Node::parse().repeated().flatten().parse(stream)
+        Node::init().parse(stream)
     }
 }

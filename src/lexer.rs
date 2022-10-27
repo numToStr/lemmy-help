@@ -258,17 +258,14 @@ impl Lexer {
                 .map(TagType::Export),
         )));
 
-        let local = keyword("local").padded();
         let func = keyword("function").padded();
+        let ret = keyword("return");
         let assign = just('=').padded();
 
-        let dotted = choice((
-            ident()
-                .then(choice((just('.').to(Kind::Dot), just(':').to(Kind::Colon))))
-                .then(ident())
-                .map(|((prefix, scope), name)| (Some(prefix), scope, name)),
-            ident().map(|name| (None, Kind::Local, name)),
-        ));
+        let dotted = ident()
+            .then(choice((just('.').to(Kind::Dot), just(':').to(Kind::Colon))))
+            .then(ident())
+            .map(|((prefix, scope), name)| (Some(prefix), scope, name));
 
         let expr = dotted.clone().then_ignore(assign);
 
@@ -279,29 +276,15 @@ impl Lexer {
                 newline().to(TagType::Comment(String::new())),
                 comment.map(TagType::Comment),
             ))),
-            local.ignore_then(choice((
-                func.clone().ignore_then(ident()).map(|name| TagType::Func {
-                    name,
-                    prefix: None,
-                    kind: Kind::Local,
-                }),
-                ident().then_ignore(assign).map(|name| TagType::Expr {
-                    name,
-                    prefix: None,
-                    kind: Kind::Local,
-                }),
-            ))),
             func.clone()
                 .ignore_then(dotted)
                 .map(|(prefix, kind, name)| TagType::Func { prefix, name, kind }),
-            choice((
-                expr.clone()
-                    .then_ignore(func)
-                    .map(|(prefix, kind, name)| TagType::Func { prefix, name, kind }),
-                expr.map(|(prefix, kind, name)| TagType::Expr { prefix, name, kind }),
-            )),
-            keyword("return")
-                .ignore_then(ident().padded())
+            expr.then(func.or_not())
+                .map(|((prefix, kind, name), is_func)| match is_func {
+                    Some(_) => TagType::Func { prefix, name, kind },
+                    None => TagType::Expr { prefix, name, kind },
+                }),
+            ret.ignore_then(ident().padded())
                 .then_ignore(end())
                 .map(TagType::Export),
             till_eol.to(TagType::Skip),
