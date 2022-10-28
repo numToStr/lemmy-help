@@ -270,12 +270,7 @@ impl Lexer {
         let expr = dotted.clone().then_ignore(assign);
 
         choice((
-            triple.ignore_then(choice((
-                tag,
-                variant,
-                newline().to(TagType::Comment(String::new())),
-                comment.map(TagType::Comment),
-            ))),
+            triple.ignore_then(choice((tag, variant, comment.map(TagType::Comment)))),
             func.clone()
                 .ignore_then(dotted)
                 .map(|(prefix, kind, name)| TagType::Func { prefix, name, kind }),
