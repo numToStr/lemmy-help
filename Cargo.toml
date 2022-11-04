@@ -27,8 +27,8 @@ required-features = ["cli"]
 
 [dependencies]
 chumsky = { version = "0.8.0", default-features = false }
-textwrap = { version = "0.15.1", default-features = false, optional = true }
-comfy-table = { version = "6.1.0", default-features = false, optional = true }
+textwrap = { version = "0.16.0", default-features = false, optional = true }
+comfy-table = { version = "6.1.2", default-features = false, optional = true }
 lexopt = { version = "0.2.1", default-features = false, optional = true }
 
 [features]
