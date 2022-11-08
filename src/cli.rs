@@ -1,10 +1,10 @@
-use lemmy_help::{vimdoc::VimDoc, FromEmmy, LemmyHelp, Settings};
+use lemmy_help::{vimdoc::VimDoc, FromEmmy, Layout, LemmyHelp, Settings};
 
 use lexopt::{
     Arg::{Long, Short, Value},
     Parser,
 };
-use std::{ffi::OsString, fs::read_to_string, path::PathBuf};
+use std::{ffi::OsString, fs::read_to_string, path::PathBuf, str::FromStr};
 
 pub const NAME: &str = env!("CARGO_PKG_NAME");
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -42,6 +42,15 @@ impl Cli {
                     Self::help();
                     std::process::exit(0);
                 }
+                Short('l') | Long("layout") => {
+                    let layout = parser.value()?;
+                    let Some(l) = layout.to_str() else {
+                        return Err(lexopt::Error::MissingValue {
+                            option: Some("layout".into()),
+                        });
+                    };
+                    c.settings.layout = Layout::from_str(l)?;
+                }
                 Short('M') | Long("no-modeline") => c.modeline = false,
                 Short('f') | Long("prefix-func") => c.settings.prefix_func = true,
                 Short('a') | Long("prefix-alias") => c.settings.prefix_alias = true,
@@ -50,14 +59,12 @@ impl Cli {
                 Long("expand-opt") => c.settings.expand_opt = true,
                 Value(val) => {
                     let file = PathBuf::from(&val);
-
                     if !file.is_file() {
                         return Err(lexopt::Error::UnexpectedArgument(OsString::from(format!(
                             "{} is not a file!",
                             file.display()
                         ))));
                     }
-
                     c.files.push(file)
                 }
                 _ => return Err(arg.unexpected()),
@@ -85,8 +92,7 @@ impl Cli {
     #[inline]
     pub fn help() {
         print!(
-            "\
-{NAME} {VERSION}
+            r#"{NAME} {VERSION}
 {AUTHOR}
 {DESC}
 
@@ -94,17 +100,24 @@ USAGE:
     {NAME} [FLAGS] <FILES>...
 
 ARGS:
-    <FILES>...              Path to the files
+    <FILES>...                  Path to the files
 
 FLAGS:
-    -h, --help              Print help information
-    -v, --version           Print version information
-    -M, --no-modeline       Don't print modeline at the end
-    -f, --prefix-func       Prefix function name with ---@mod name
-    -a, --prefix-alias      Prefix ---@alias tag with return/---@mod name
-    -c, --prefix-class      Prefix ---@class tag with return/---@mod name
-    -t, --prefix-type       Prefix ---@type tag with ---@mod name
-        --expand-opt        Expand '?' (optional) to 'nil' type
+    -h, --help                  Print help information
+    -v, --version               Print version information
+    -M, --no-modeline           Don't print modeline at the end
+    -f, --prefix-func           Prefix function name with ---@mod name
+    -a, --prefix-alias          Prefix ---@alias tag with return/---@mod name
+    -c, --prefix-class          Prefix ---@class tag with return/---@mod name
+    -t, --prefix-type           Prefix ---@type tag with ---@mod name
+        --expand-opt            Expand '?' (optional) to 'nil' type
+
+OPTIONS:
+    -l, --layout <layout>       Vimdoc text layout [default: 'default']
+                                  - "default" : Default layout
+                                  - "compact" : Removes [desc] indentation and
+                                    aligns it with <type>. This only affects
+                                    `---@field` and `---@param` tags
 
 USAGE:
     {NAME} /path/to/first.lua /path/to/second.lua > doc/PLUGIN_NAME.txt
@@ -112,7 +125,7 @@ USAGE:
 
 NOTES:
     - The order of parsing + rendering is relative to the given files
-"
+"#
         );
     }
 }

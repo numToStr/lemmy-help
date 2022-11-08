@@ -1,4 +1,4 @@
-use crate::{lexer::Name, parser::Func};
+use crate::{lexer::Name, parser::Func, Layout};
 
 use super::{description, header, see::SeeDoc, usage::UsageDoc, Table, ToDoc};
 
@@ -60,7 +60,11 @@ impl ToDoc for FuncDoc {
                     (_, n) => (format!("{{{n}}}"), format!("({})", param.ty)),
                 };
 
-                table.add_row([name, ty, param.desc.join("\n")]);
+                if s.layout == Layout::Compact {
+                    table.add_row([name, format!("{ty} {}", param.desc.join("\n"))]);
+                } else {
+                    table.add_row([name, ty, param.desc.join("\n")]);
+                }
             }
 
             doc.push_str(&table.to_string());

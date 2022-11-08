@@ -107,7 +107,8 @@ impl Table {
 
 impl std::fmt::Display for Table {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "{}", textwrap::indent(&self.0.trim_fmt(), "       "))
+        f.write_str(&textwrap::indent(&self.0.trim_fmt(), "       "))?;
+        f.write_str("\n")
     }
 }
 

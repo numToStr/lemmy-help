@@ -1,6 +1,7 @@
 use crate::{
     lexer::{Name, Scope},
     parser::Class,
+    Layout,
 };
 
 use super::{description, header, see::SeeDoc, Table, ToDoc};
@@ -36,7 +37,11 @@ impl ToDoc for ClassDoc {
                 };
 
                 if field.scope == Scope::Public {
-                    table.add_row([name, ty, field.desc.join("\n")]);
+                    if s.layout == Layout::Compact {
+                        table.add_row([name, format!("{ty} {}", field.desc.join("\n"))]);
+                    } else {
+                        table.add_row([name, ty, field.desc.join("\n")]);
+                    }
                 }
             }
 

@@ -4,7 +4,7 @@ pub mod vimdoc;
 pub mod lexer;
 pub mod parser;
 
-use std::fmt::Display;
+use std::{fmt::Display, str::FromStr};
 
 use chumsky::prelude::Simple;
 
@@ -25,7 +25,28 @@ pub trait AsDoc<T: FromEmmy> {
     fn as_doc(&self, s: &T::Settings) -> T;
 }
 
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Default, PartialEq, Eq)]
+pub enum Layout {
+    #[default]
+    Default,
+    Compact,
+}
+
+impl FromStr for Layout {
+    type Err = lexopt::Error;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "compact" => Ok(Self::Compact),
+            "default" => Ok(Self::Default),
+            val => Err(lexopt::Error::UnexpectedValue {
+                option: "layout".into(),
+                value: val.into(),
+            }),
+        }
+    }
+}
+
+#[derive(Debug, Default)]
 pub struct Settings {
     /// Prefix `function` name with `---@mod` name
     pub prefix_func: bool,
@@ -37,6 +58,8 @@ pub struct Settings {
     pub prefix_type: bool,
     /// Expand `?` to `nil|<type>`
     pub expand_opt: bool,
+    /// Vimdoc text layout
+    pub layout: Layout,
 }
 
 #[derive(Debug, Default)]
