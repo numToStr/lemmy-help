@@ -123,14 +123,9 @@ macro_rules! header {
     ($name:expr, $tag:expr) => {{
         let len = $name.len();
         if len > 40 || $tag.len() > 40 {
-            format!("{:>80}\n", format!("*{}*", $tag));
-            format!("{}\n", $name)
+            format!("{:>80}\n{}\n", format!("*{}*", $tag), $name)
         } else {
-            format!(
-                "{}{}\n",
-                $name,
-                format_args!("{:>w$}", format!("*{}*", $tag), w = 80 - len)
-            )
+            format!("{}{:>w$}\n", $name, format!("*{}*", $tag), w = 80 - len)
         }
     }};
     ($name:expr) => {
