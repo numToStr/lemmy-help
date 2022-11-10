@@ -29,19 +29,26 @@ pub trait AsDoc<T: FromEmmy> {
 pub enum Layout {
     #[default]
     Default,
-    Compact,
+    Compact(u8),
 }
 
 impl FromStr for Layout {
     type Err = lexopt::Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "compact" => Ok(Self::Compact),
             "default" => Ok(Self::Default),
-            val => Err(lexopt::Error::UnexpectedValue {
-                option: "layout".into(),
-                value: val.into(),
-            }),
+            x => {
+                let mut val = x.splitn(2, ':');
+                match (val.next(), val.next()) {
+                    (Some("compact"), n) => Ok(Self::Compact(
+                        n.map_or(0, |x| x.parse().unwrap_or_default()),
+                    )),
+                    _ => Err(lexopt::Error::UnexpectedValue {
+                        option: "layout".into(),
+                        value: x.into(),
+                    }),
+                }
+            }
         }
     }
 }

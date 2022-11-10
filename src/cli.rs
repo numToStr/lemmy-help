@@ -100,7 +100,7 @@ USAGE:
     {NAME} [FLAGS] <FILES>...
 
 ARGS:
-    <FILES>...                  Path to the files
+    <FILES>...                  Path to lua files
 
 FLAGS:
     -h, --help                  Print help information
@@ -114,14 +114,16 @@ FLAGS:
 
 OPTIONS:
     -l, --layout <layout>       Vimdoc text layout [default: 'default']
-                                  - "default" : Default layout
-                                  - "compact" : Removes [desc] indentation and
-                                    aligns it with <type>. This only affects
-                                    `---@field` and `---@param` tags
+                                - "default" : Default layout
+                                - "compact[:n=0]" : Removes [desc] indentation
+                                  and aligns it with <type>. Uses `n` for the
+                                  indentation for the following new lines. This
+                                  only affects `---@field` and `---@param` tags
 
 USAGE:
     {NAME} /path/to/first.lua /path/to/second.lua > doc/PLUGIN_NAME.txt
     {NAME} -c -a /path/to/{{first,second,third}}.lua > doc/PLUGIN_NAME.txt
+    {NAME} --layout compact:2 /path/to/plugin.lua > doc/PLUGIN_NAME.txt
 
 NOTES:
     - The order of parsing + rendering is relative to the given files
