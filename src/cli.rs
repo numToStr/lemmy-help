@@ -97,7 +97,7 @@ impl Cli {
 {DESC}
 
 USAGE:
-    {NAME} [FLAGS] <FILES>...
+    {NAME} [FLAGS] [OPTIONS] <FILES>...
 
 ARGS:
     <FILES>...                  Path to lua files
@@ -115,10 +115,10 @@ FLAGS:
 OPTIONS:
     -l, --layout <layout>       Vimdoc text layout [default: 'default']
                                 - "default" : Default layout
-                                - "compact[:n=0]" : Removes [desc] indentation
-                                  and aligns it with <type>. Uses `n` for the
-                                  indentation for the following new lines. This
-                                  only affects `---@field` and `---@param` tags
+                                - "compact[:n=0]" : Aligns [desc] with <type>
+                                  and uses {{n}}, if provided, to indent the
+                                  following new lines. This option only
+                                  affects ---@field and ---@param tags
 
 USAGE:
     {NAME} /path/to/first.lua /path/to/second.lua > doc/PLUGIN_NAME.txt
