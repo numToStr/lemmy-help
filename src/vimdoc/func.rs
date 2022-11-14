@@ -60,16 +60,25 @@ impl ToDoc for FuncDoc {
                     (_, n) => (format!("{{{n}}}"), format!("({})", param.ty)),
                 };
 
-                if let Layout::Compact(x) = s.layout {
-                    table.add_row([
-                        name,
-                        format!(
-                            "{ty} {}",
-                            param.desc.join(&format!("\n{}", " ".repeat(x as usize)))
-                        ),
-                    ]);
-                } else {
-                    table.add_row([name, ty, param.desc.join("\n")]);
+                match s.layout {
+                    Layout::Default => {
+                        table.add_row([name, ty, param.desc.join("\n")]);
+                    }
+                    Layout::Compact(n) => {
+                        table.add_row([
+                            name,
+                            format!(
+                                "{ty} {}",
+                                param.desc.join(&format!("\n{}", " ".repeat(n as usize)))
+                            ),
+                        ]);
+                    }
+                    Layout::Mini(n) => {
+                        table.add_row([format!(
+                            "{name} {ty} {}",
+                            param.desc.join(&format!("\n{}", " ".repeat(n as usize)))
+                        )]);
+                    }
                 }
             }
 
@@ -83,14 +92,26 @@ impl ToDoc for FuncDoc {
             let mut table = Table::new();
 
             for entry in &n.returns {
-                table.add_row([
-                    format!("{{{}}}", entry.ty),
-                    if entry.desc.is_empty() {
-                        entry.name.clone().unwrap_or_default()
-                    } else {
-                        entry.desc.join("\n")
-                    },
-                ]);
+                if let Layout::Mini(n) = s.layout {
+                    table.add_row([format!(
+                        "{{{}}} {}",
+                        entry.ty,
+                        if entry.desc.is_empty() {
+                            entry.name.clone().unwrap_or_default()
+                        } else {
+                            entry.desc.join(&format!("\n{}", " ".repeat(n as usize)))
+                        }
+                    )]);
+                } else {
+                    table.add_row([
+                        format!("{{{}}}", entry.ty),
+                        if entry.desc.is_empty() {
+                            entry.name.clone().unwrap_or_default()
+                        } else {
+                            entry.desc.join("\n")
+                        },
+                    ]);
+                }
             }
 
             doc.push_str(&table.to_string());

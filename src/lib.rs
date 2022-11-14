@@ -30,6 +30,7 @@ pub enum Layout {
     #[default]
     Default,
     Compact(u8),
+    Mini(u8),
 }
 
 impl FromStr for Layout {
@@ -43,6 +44,9 @@ impl FromStr for Layout {
                     (Some("compact"), n) => Ok(Self::Compact(
                         n.map_or(0, |x| x.parse().unwrap_or_default()),
                     )),
+                    (Some("mini"), n) => {
+                        Ok(Self::Mini(n.map_or(0, |x| x.parse().unwrap_or_default())))
+                    }
                     _ => Err(lexopt::Error::UnexpectedValue {
                         option: "layout".into(),
                         value: x.into(),

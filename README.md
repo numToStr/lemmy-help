@@ -71,6 +71,10 @@ OPTIONS:
                                   and uses {n}, if provided, to indent the
                                   following new lines. This option only
                                   affects ---@field and ---@param tags
+                                - "mini[:n=0]" : Aligns [desc] from the start
+                                  and uses {n}, if provided, to indent the
+                                  following new lines. This option affects
+                                  ---@field, ---@param and ---@return tags
 
 USAGE:
     lemmy-help /path/to/first.lua /path/to/second.lua > doc/PLUGIN_NAME.txt
