@@ -193,11 +193,14 @@ impl Lexer {
             ))),
             just("param")
                 .ignore_then(space)
-                .ignore_then(ident().then(optional))
+                .ignore_then(choice((
+                    just("...").map(|n| Name::Req(n.to_string())),
+                    ident().then(optional).map(|(n, o)| o(n)),
+                )))
                 .then_ignore(space)
                 .then(ty.clone())
                 .then(desc)
-                .map(|(((name, opt), ty), desc)| TagType::Param(opt(name), ty, desc)),
+                .map(|((name, ty), desc)| TagType::Param(name, ty, desc)),
             just("return")
                 .ignore_then(space)
                 .ignore_then(ty.clone())
