@@ -224,6 +224,14 @@ fn functions() {
         return (U.mul(this, that) / U.sum(that, this)), (U.sum(this, that) * U.sub(that, this))
     end
 
+    ---Function with variable arguments
+    ---@param ... string[]
+    function U.with_var_arg(...) end
+
+    ---@param x integer
+    ---@param ... unknown
+    function U.with_var_arg_end(x, ...) end
+
     return U
     "#;
 
@@ -275,6 +283,20 @@ U.magical({this}, {that})                                            *U.magical*
         |U.mul|
         |U.sum|
         |U.sub|
+
+
+U.with_var_arg({...})                                           *U.with_var_arg*
+    Function with variable arguments
+
+    Parameters: ~
+        {...}  (string[])
+
+
+U.with_var_arg_end({x}, {...})                              *U.with_var_arg_end*
+
+    Parameters: ~
+        {x}    (integer)
+        {...}  (unknown)
 
 
 "
