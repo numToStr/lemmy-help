@@ -37,17 +37,26 @@ impl ToDoc for ClassDoc {
                 };
 
                 if field.scope == Scope::Public {
-                    if let Layout::Compact(x) = s.layout {
-                        table.add_row([
-                            name,
-                            format!(
-                                "{ty} {}",
-                                field.desc.join(&format!("\n{}", " ".repeat(x as usize)))
-                            ),
-                        ]);
-                    } else {
-                        table.add_row([name, ty, field.desc.join("\n")]);
-                    }
+                    match s.layout {
+                        Layout::Default => {
+                            table.add_row([name, ty, field.desc.join("\n")]);
+                        }
+                        Layout::Compact(n) => {
+                            table.add_row([
+                                name,
+                                format!(
+                                    "{ty} {}",
+                                    field.desc.join(&format!("\n{}", " ".repeat(n as usize)))
+                                ),
+                            ]);
+                        }
+                        Layout::Mini(n) => {
+                            table.add_row([format!(
+                                "{name} {ty} {}",
+                                field.desc.join(&format!("\n{}", " ".repeat(n as usize)))
+                            )]);
+                        }
+                    };
                 }
             }
 
