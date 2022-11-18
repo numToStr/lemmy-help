@@ -65,7 +65,7 @@ U:create()                                                            *U:create*
     Creates a PI
 
     Returns: ~
-        {number}
+        (number)
 
     Usage: ~
         >
@@ -123,7 +123,7 @@ U:create()                                                      *awesome:create*
     Creates a PI
 
     Returns: ~
-        {number}
+        (number)
 
     Usage: ~
         >

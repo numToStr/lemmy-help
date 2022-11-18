@@ -94,7 +94,7 @@ impl ToDoc for FuncDoc {
             for entry in &n.returns {
                 if let Layout::Mini(n) = s.layout {
                     table.add_row([format!(
-                        "{{{}}} {}",
+                        "({}) {}",
                         entry.ty,
                         if entry.desc.is_empty() {
                             entry.name.clone().unwrap_or_default()
@@ -104,7 +104,7 @@ impl ToDoc for FuncDoc {
                     )]);
                 } else {
                     table.add_row([
-                        format!("{{{}}}", entry.ty),
+                        format!("({})", entry.ty),
                         if entry.desc.is_empty() {
                             entry.name.clone().unwrap_or_default()
                         } else {

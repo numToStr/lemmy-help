@@ -256,7 +256,7 @@ U.sub({this}, {that})                                                    *U.sub*
         {that}  (number)  Second number
 
     Returns: ~
-        {number}  Some secret number that
+        (number)  Some secret number that
                   we don't know about
 
     Usage: ~
@@ -273,8 +273,8 @@ U.magical({this}, {that})                                            *U.magical*
         {that}  (number)  Non-magical number #2
 
     Returns: ~
-        {number}  The magical number #1
-        {number}  The magical number #2
+        (number)  The magical number #1
+        (number)  The magical number #2
                   and the fun part is the description can span
 
                   over mulitple lines and preserves empty lines
@@ -357,7 +357,7 @@ U.multi_line({opts}, {reserverd})                                 *U.multi_line*
         {reserverd}  (table|nil)  reserved for the future use
 
     Returns: ~
-        {boolean}
+        (boolean)
 
 
 U.missing_desc({n}, {m})                                        *U.missing_desc*
@@ -371,7 +371,7 @@ U.missing_desc({n}, {m})                                        *U.missing_desc*
 
 
     Returns: ~
-        {number}
+        (number)
 
 
 "
@@ -466,7 +466,7 @@ U:create()                                                            *U:create*
     Creates a Human
 
     Returns: ~
-        {Human}
+        (Human)
 
     Usage: ~
         >
@@ -593,7 +593,7 @@ U.get_all()                                                          *U.get_all*
     Returns all the content of the buffer
 
     Returns: ~
-        {Lines}
+        (Lines)
 
 
 U.LINES                                                                *U.LINES*
@@ -693,7 +693,7 @@ Config:get()                                                        *Config:get*
     Get the config
 
     Returns: ~
-        {number}
+        (number)
 
 
 "
