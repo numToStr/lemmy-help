@@ -9,8 +9,8 @@ homepage = "https://github.com/numToStr/lemmy-help"
 repository = "https://github.com/numToStr/lemmy-help"
 license = "MIT"
 readme = "README.md"
-keywords = ["parser", "lua", "emmylua"]
-categories = ["parser", "command-line-utilities"]
+keywords = ["parser", "lua", "emmylua", "vimdoc"]
+categories = ["parsing", "command-line-utilities"]
 exclude = [
     ".aur/**",
     ".cargo/**",
