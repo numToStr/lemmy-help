@@ -140,6 +140,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.MSRV }}
+
       - name: Publish
         run: ${{ env.CARGO }} publish --verbose --all-features --token ${{ secrets.CARGO_TOKEN }}
 
