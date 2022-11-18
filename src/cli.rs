@@ -49,7 +49,11 @@ impl Cli {
                             option: Some("layout".into()),
                         });
                     };
-                    c.settings.layout = Layout::from_str(l)?;
+                    c.settings.layout =
+                        Layout::from_str(l).map_err(|_| lexopt::Error::UnexpectedValue {
+                            option: "layout".into(),
+                            value: l.into(),
+                        })?;
                 }
                 Short('M') | Long("no-modeline") => c.modeline = false,
                 Short('f') | Long("prefix-func") => c.settings.prefix_func = true,

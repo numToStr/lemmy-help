@@ -34,7 +34,7 @@ pub enum Layout {
 }
 
 impl FromStr for Layout {
-    type Err = lexopt::Error;
+    type Err = ();
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "default" => Ok(Self::Default),
@@ -47,10 +47,7 @@ impl FromStr for Layout {
                     (Some("mini"), n) => {
                         Ok(Self::Mini(n.map_or(0, |x| x.parse().unwrap_or_default())))
                     }
-                    _ => Err(lexopt::Error::UnexpectedValue {
-                        option: "layout".into(),
-                        value: x.into(),
-                    }),
+                    _ => Err(()),
                 }
             }
         }
