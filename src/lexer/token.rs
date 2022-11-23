@@ -101,13 +101,13 @@ pub enum TagType {
     /// ```
     See(String),
     /// ```lua
-    /// ---@usage `<code>`
+    /// ---@usage [lang] `<code>`
     /// ```
-    Usage(String),
+    Usage(Option<String>, String),
     /// ```lua
-    /// ---@usage [[
+    /// ---@usage [lang] [[
     /// ```
-    UsageStart,
+    UsageStart(Option<String>),
     /// ```lua
     /// ---@usage ]]
     /// ```

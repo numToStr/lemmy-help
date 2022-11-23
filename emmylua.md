@@ -186,9 +186,9 @@ U:create()                                                            *U:create*
         {Human}
 
     Usage: ~
-        >
-            require('Human'):create()
-        <
+>lua
+        require('Human'):create()
+<
 ```
 
 ### Table of Contents
@@ -291,7 +291,7 @@ This tag can be used to add a divider/separator between section or anything you 
 
 ### Functions
 
-A function contains multiple tags which form its structure. Like `---@param` for parameter, `---@return` for the return value, `---@see` for other related things and `---@usage` for example
+A function contains multiple tags which form its structure. Like `---@param` for parameter, `---@return` for the return value, `---@see` for other related things and [`---@usage`](#usage) for example
 
 - Syntax
 
@@ -305,19 +305,7 @@ A function contains multiple tags which form its structure. Like `---@param` for
 ---@usage `<code>`
 ```
 
-> NOTE:
->
-> 1. All tag can be used multiple times except `---@usage`
->
-> 2. `---@usage` tag also has a multiline syntax
->
-> ```lua
-> ---@usage [[
-> ---TEXT
-> ---TEXT
-> ---TEXT
-> ---@usage ]]
-> ```
+> NOTE: All tag can be used multiple times except `---@usage`
 
 - Input
 
@@ -395,9 +383,9 @@ U.sum({this}, {that})                                                    *U.sum*
         {that}  (number)  Second number
 
     Usage: ~
-        >
-            require("module.U").sum(10, 5)
-        <
+>lua
+        require("module.U").sum(10, 5)
+<
 
 U.sub({this}, {that})                                                    *U.sub*
     Subtract second from the first integer
@@ -410,11 +398,11 @@ U.sub({this}, {that})                                                    *U.sub*
         {number}
 
     Usage: ~
-        >
-            local M = require("module.U")
+>lua
+        local M = require("module.U")
 
-            print(M.sub(10 - 5))
-        <
+        print(M.sub(10 - 5))
+<
 
 
 U.magical({this}, {that})                                            *U.magical*
@@ -528,9 +516,9 @@ H:create()                                                            *H:create*
         {Human}
 
     Usage: ~
-        >
-            require('Human'):create()
-        <
+>lua
+        require('Human'):create()
+<
 ```
 
 ### Type
@@ -590,6 +578,79 @@ U.chai                                                                  *U.chai*
 
     Type: ~
         (Chai)
+```
+
+### Usage
+
+This tag is used to show code usage of functions and [`---@type`](#type). Code inside `---@usage` will be rendered as codeblock. Optionally, a `lang` can be provided to get syntax highlighting (defaults to `lua`).
+
+- Syntax
+
+1. Single-line
+
+```lua
+---@usage [lang] `<code>`
+```
+
+2. Multi-line
+
+```lua
+---@usage [lang] [[
+---<code>...
+---@usage ]]
+```
+
+- Input
+
+```lua
+local U = {}
+
+---Prints a message
+---@param msg string Message
+---@usage lua [[
+---require("module.U").sum(10, 5)
+---@usage ]]
+function U.echo(msg)
+    print(msg)
+end
+
+---Add two integer and print it
+---@param this number First number
+---@param that number Second number
+---@usage `require("module.U").sum(10, 5)`
+function U.sum(this, that)
+    print(this + that)
+end
+
+return U
+```
+
+- Output
+
+```
+U.echo({msg})                                                           *U.echo*
+    Prints a message
+
+    Parameters: ~
+        {msg}  (string)  Message
+
+    Usage: ~
+>lua
+        require("module.U").sum(10, 5)
+<
+
+
+U.sum({this}, {that})                                                    *U.sum*
+    Add two integer and print it
+
+    Parameters: ~
+        {this}  (number)  First number
+        {that}  (number)  Second number
+
+    Usage: ~
+>lua
+        require("module.U").sum(10, 5)
+<
 ```
 
 ### Alias

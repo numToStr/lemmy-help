@@ -68,9 +68,9 @@ U:create()                                                            *U:create*
         (number)
 
     Usage: ~
-        >
-            require('Pi'):create()
-        <
+>lua
+        require('Pi'):create()
+<
 
 
 "
@@ -126,9 +126,9 @@ U:create()                                                      *awesome:create*
         (number)
 
     Usage: ~
-        >
-            require('Pi'):create()
-        <
+>lua
+        require('Pi'):create()
+<
 
 
 "
