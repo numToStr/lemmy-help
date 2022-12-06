@@ -1,7 +1,7 @@
 use chumsky::{select, Parser};
 
 use crate::{
-    lexer::{Kind, Name, TagType, Ty},
+    lexer::{Name, Op, TagType, Ty},
     parser::{impl_parse, Prefix, See},
 };
 
@@ -62,8 +62,7 @@ impl_parse!(Return, {
 
 #[derive(Debug, Clone)]
 pub struct Func {
-    pub name: String,
-    pub kind: Kind,
+    pub op: Op,
     pub prefix: Prefix,
     pub desc: Vec<String>,
     pub params: Vec<Param>,
@@ -81,14 +80,13 @@ impl_parse!(Func, {
     .then(Return::parse().repeated())
     .then(See::parse())
     .then(Usage::parse().or_not())
-    .then(select! { TagType::Func { prefix, name, kind } => (prefix, name, kind) })
+    .then(select! { TagType::Func(prefix, op) => (prefix, op) })
     .map(
-        |(((((desc, params), returns), see), usage), (prefix, name, kind))| Self {
-            name,
-            kind,
+        |(((((desc, params), returns), see), usage), (prefix, op))| Self {
+            op,
             prefix: Prefix {
-                left: prefix.clone(),
-                right: prefix,
+                left: Some(prefix.clone()),
+                right: Some(prefix),
             },
             desc,
             params,

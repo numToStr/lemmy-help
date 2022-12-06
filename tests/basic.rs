@@ -179,7 +179,7 @@ CommentConfig                                                    *CommentConfig*
 #[test]
 fn functions() {
     let src = r#"
-    local U = {}
+    local U = { foo = {} }
 
     ---NOTE: Local functions are not part of the documentation
     ---Multiply two integer and print it
@@ -231,6 +231,19 @@ fn functions() {
     ---@param x integer
     ---@param ... unknown
     function U.with_var_arg_end(x, ...) end
+
+    ---Class method deep access
+    ---@return table
+    function U.foo:bar()
+        self.__index = self
+        return setmetatable({}, self)
+    end
+
+    ---Method deep access
+    ---@return table
+    function U.foo.baz()
+        return U.foo:bar()
+    end
 
     return U
     "#;
@@ -297,6 +310,20 @@ U.with_var_arg_end({x}, {...})                              *U.with_var_arg_end*
     Parameters: ~
         {x}    (integer)
         {...}  (unknown)
+
+
+U.foo:bar()                                                          *U.foo:bar*
+    Class method deep access
+
+    Returns: ~
+        (table)
+
+
+U.foo.baz()                                                          *U.foo.baz*
+    Method deep access
+
+    Returns: ~
+        (table)
 
 
 "

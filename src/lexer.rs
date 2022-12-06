@@ -265,22 +265,45 @@ impl Lexer {
         let ret = keyword("return");
         let assign = just('=').padded();
 
-        let dotted = ident()
-            .then(choice((just('.').to(Kind::Dot), just(':').to(Kind::Colon))))
-            .then(ident())
-            .map(|((prefix, scope), name)| (Some(prefix), scope, name));
+        // obj = ID (prop)+ "="
+        // fn = ID (prop | colon_op)
+        // prop = (dot_op)+ ("(" | colon_op)
+        // dot_op = "." ID
+        // colon_op = ":" ID "("
+        let colon_op = just(':')
+            .ignore_then(ident())
+            .then_ignore(just('('))
+            .map(Op::Colon);
 
-        let expr = dotted.clone().then_ignore(assign);
+        let dot_op = just('.')
+            .ignore_then(ident().map(Op::Dot))
+            .repeated()
+            .at_least(1);
+
+        let prop = dot_op
+            .then(choice((just('(').to(None), colon_op.map(Some))))
+            .map(|(mut props, meth)| {
+                if let Some(x) = meth {
+                    props.push(x)
+                }
+                Op::Deep(props)
+            });
+
+        let dotted = ident()
+            .then(choice((prop, colon_op)))
+            .map(|(prefix, op)| (prefix, op));
+
+        let expr = ident().then(dot_op).then_ignore(assign);
 
         choice((
             triple.ignore_then(choice((tag, variant, comment.map(TagType::Comment)))),
             func.clone()
                 .ignore_then(dotted)
-                .map(|(prefix, kind, name)| TagType::Func { prefix, name, kind }),
+                .map(|(prefix, op)| TagType::Func(prefix, op)),
             expr.then(func.or_not())
-                .map(|((prefix, kind, name), is_func)| match is_func {
-                    Some(_) => TagType::Func { prefix, name, kind },
-                    None => TagType::Expr { prefix, name, kind },
+                .map(|((prefix, op), is_fn)| match is_fn {
+                    Some(_) => TagType::Func(prefix, Op::Deep(op)),
+                    None => TagType::Expr(prefix, Op::Deep(op)),
                 }),
             ret.ignore_then(ident().padded())
                 .then_ignore(end())

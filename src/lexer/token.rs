@@ -18,20 +18,12 @@ pub enum TagType {
     /// function one.two() end
     /// one.two = function() end
     /// ```
-    Func {
-        prefix: Option<String>,
-        name: String,
-        kind: Kind,
-    },
+    Func(String, Op),
     /// ```lua
     /// one = 1
     /// one.two = 12
     /// ```
-    Expr {
-        prefix: Option<String>,
-        name: String,
-        kind: Kind,
-    },
+    Expr(String, Op),
     /// ```lua
     /// ---@export <module>
     /// or
@@ -107,16 +99,29 @@ pub enum TagType {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Kind {
-    Dot,
-    Colon,
+pub enum Op {
+    Deep(Vec<Op>),
+    Dot(String),
+    Colon(String),
 }
 
-impl Kind {
-    pub fn as_char(&self) -> char {
+impl Display for Op {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Dot => '.',
-            Self::Colon => ':',
+            Self::Deep(mixed) => {
+                for mix in mixed {
+                    mix.fmt(f)?;
+                }
+                Ok(())
+            }
+            Self::Dot(dot) => {
+                f.write_str(".")?;
+                f.write_str(dot)
+            }
+            Self::Colon(colon) => {
+                f.write_str(":")?;
+                f.write_str(colon)
+            }
         }
     }
 }
