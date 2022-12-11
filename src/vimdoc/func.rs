@@ -19,28 +19,17 @@ impl ToDoc for FuncDoc {
                 .join(", ");
 
             format!(
-                "{}{}{}({args})",
+                "{}{}({args})",
                 n.prefix.left.as_deref().unwrap_or_default(),
-                n.kind.as_char(),
-                n.name
+                n.op
             )
         } else {
-            format!(
-                "{}{}{}()",
-                n.prefix.left.as_deref().unwrap_or_default(),
-                n.kind.as_char(),
-                n.name
-            )
+            format!("{}{}()", n.prefix.left.as_deref().unwrap_or_default(), n.op)
         };
 
         doc.push_str(&header!(
             name_with_param,
-            &format!(
-                "{}{}{}",
-                n.prefix.right.as_deref().unwrap_or_default(),
-                n.kind.as_char(),
-                n.name,
-            )
+            &format!("{}{}", n.prefix.right.as_deref().unwrap_or_default(), n.op)
         ));
 
         if !n.desc.is_empty() {

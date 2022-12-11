@@ -1,7 +1,7 @@
 use chumsky::{select, Parser};
 
 use crate::{
-    lexer::{Kind, TagType, Ty},
+    lexer::{Op, TagType, Ty},
     parser::{impl_parse, Prefix, See},
 };
 
@@ -9,10 +9,9 @@ use super::Usage;
 
 #[derive(Debug, Clone)]
 pub struct Type {
-    pub prefix: Prefix,
-    pub name: String,
     pub desc: (Vec<String>, Option<String>),
-    pub kind: Kind,
+    pub op: Op,
+    pub prefix: Prefix,
     pub ty: Ty,
     pub see: See,
     pub usage: Option<Usage>,
@@ -26,16 +25,15 @@ impl_parse!(Type, {
     .then(select! { TagType::Type(ty, desc) => (ty, desc) })
     .then(See::parse())
     .then(Usage::parse().or_not())
-    .then(select! { TagType::Expr { prefix, name, kind } => (prefix, name, kind) })
+    .then(select! { TagType::Expr(prefix, op) => (prefix, op) })
     .map(
-        |((((extract, (ty, desc)), see), usage), (prefix, name, kind))| Self {
+        |((((extract, (ty, desc)), see), usage), (prefix, op))| Self {
             desc: (extract, desc),
             prefix: Prefix {
-                left: prefix.clone(),
-                right: prefix,
+                left: Some(prefix.to_owned()),
+                right: Some(prefix),
             },
-            name,
-            kind,
+            op,
             ty,
             see,
             usage,

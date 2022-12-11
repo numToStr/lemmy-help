@@ -11,18 +11,8 @@ impl ToDoc for TypeDoc {
         let mut doc = String::new();
 
         doc.push_str(&header!(
-            &format!(
-                "{}{}{}",
-                n.prefix.left.as_deref().unwrap_or_default(),
-                n.kind.as_char(),
-                n.name
-            ),
-            &format!(
-                "{}{}{}",
-                n.prefix.right.as_deref().unwrap_or_default(),
-                n.kind.as_char(),
-                n.name
-            )
+            &format!("{}{}", n.prefix.left.as_deref().unwrap_or_default(), n.op),
+            &format!("{}{}", n.prefix.right.as_deref().unwrap_or_default(), n.op)
         ));
 
         let (extract, desc) = &n.desc;
