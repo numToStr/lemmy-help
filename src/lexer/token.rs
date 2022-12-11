@@ -47,9 +47,9 @@ pub enum TagType {
     /// ```
     Return(Ty, Option<String>, Option<String>),
     /// ```lua
-    /// ---@class <name>
+    /// ---@class <name>[: <parent>]
     /// ```
-    Class(String),
+    Class(String, Option<String>),
     /// ```lua
     /// ---@field [public|private|protected] <name[?]> <type> [description]
     /// ```

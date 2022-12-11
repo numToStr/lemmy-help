@@ -119,18 +119,11 @@ pub(crate) fn description(desc: &str) -> String {
     d
 }
 
-macro_rules! header {
-    ($name:expr, $tag:expr) => {{
-        let len = $name.len();
-        if len > 40 || $tag.len() > 40 {
-            format!("{:>80}\n{}\n", format!("*{}*", $tag), $name)
-        } else {
-            format!("{}{:>w$}\n", $name, format!("*{}*", $tag), w = 80 - len)
-        }
-    }};
-    ($name:expr) => {
-        super::header!($name, $name)
-    };
+#[inline]
+pub(crate) fn header(name: &str, tag: &str) -> String {
+    let len = name.len();
+    if len > 40 || tag.len() > 40 {
+        return format!("{:>80}\n{}\n", format!("*{}*", tag), name);
+    }
+    format!("{}{:>w$}\n", name, format!("*{}*", tag), w = 80 - len)
 }
-
-pub(super) use header;

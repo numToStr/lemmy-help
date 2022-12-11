@@ -102,6 +102,9 @@ end
 ---@field protected heart boolean Heart is protected
 ---@field private IQ number We need to hide this
 
+---@class XMen : Human
+---@field power number Power quantifier
+
 ---Creates a Human
 ---@return Human
 ---@usage `require('Human'):create()`

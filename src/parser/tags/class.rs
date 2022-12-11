@@ -44,6 +44,7 @@ impl_parse!(Field, {
 #[derive(Debug, Clone)]
 pub struct Class {
     pub name: String,
+    pub parent: Option<String>,
     pub desc: Vec<String>,
     pub fields: Vec<Field>,
     pub see: See,
@@ -53,11 +54,12 @@ pub struct Class {
 impl_parse!(Class, {
     select! { TagType::Comment(c) => c }
         .repeated()
-        .then(select! { TagType::Class(name) => name })
+        .then(select! { TagType::Class(name, parent) => (name, parent) })
         .then(Field::parse().repeated())
         .then(See::parse())
-        .map(|(((desc, name), fields), see)| Self {
+        .map(|(((desc, (name, parent)), fields), see)| Self {
             name,
+            parent,
             desc,
             fields,
             see,
