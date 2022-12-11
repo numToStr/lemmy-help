@@ -460,7 +460,7 @@ Classes can be used to better structure your code and can be referenced as an ar
 
 ```lua
 ---@comment
----@class <name>
+---@class <name>[: <parent>]
 ---@comment
 ---@field [public|protected|private] <name[?]> <type> [desc]
 ---@see <ref>
@@ -483,6 +483,9 @@ local H = {}
 ---@field trait table
 ---@field protected heart boolean Heart is protected
 ---@field private IQ number We need to hide this
+
+---@class XMen : Human
+---@field power number Power quantifier
 
 ---Creates a Human
 ---@return Human
@@ -510,6 +513,12 @@ Human                                                                    *Human*
         {brain}  (boolean)  Does humans have brain?
         {trait}  (table)    Traits that one human can have
                             It could be one, two or hundered
+
+
+XMen : Homosapien                                                         *XMen*
+
+    Fields: ~
+        {power}  (number)  Power quantifier
 
 
 H:create()                                                            *H:create*

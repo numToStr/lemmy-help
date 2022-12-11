@@ -14,10 +14,17 @@ impl ToDoc for ClassDoc {
     fn to_doc(n: &Self::N, s: &super::Settings) -> String {
         let mut doc = String::new();
 
+        let name = format!(
+            "{}{}",
+            n.name,
+            n.parent
+                .as_ref()
+                .map_or(String::new(), |parent| format!(" : {parent}"))
+        );
         if let Some(prefix) = &n.prefix.right {
-            doc.push_str(&header!(n.name, format!("{prefix}.{}", n.name)));
+            doc.push_str(&header(&name, &format!("{prefix}.{}", n.name)));
         } else {
-            doc.push_str(&header!(n.name));
+            doc.push_str(&header(&name, &n.name));
         }
 
         if !n.desc.is_empty() {

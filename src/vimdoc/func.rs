@@ -27,9 +27,9 @@ impl ToDoc for FuncDoc {
             format!("{}{}()", n.prefix.left.as_deref().unwrap_or_default(), n.op)
         };
 
-        doc.push_str(&header!(
-            name_with_param,
-            &format!("{}{}", n.prefix.right.as_deref().unwrap_or_default(), n.op)
+        doc.push_str(&header(
+            &name_with_param,
+            &format!("{}{}", n.prefix.right.as_deref().unwrap_or_default(), n.op),
         ));
 
         if !n.desc.is_empty() {

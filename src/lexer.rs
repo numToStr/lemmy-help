@@ -215,7 +215,8 @@ impl Lexer {
             just("class")
                 .ignore_then(space)
                 .ignore_then(name)
-                .map(TagType::Class),
+                .then(just(':').padded().ignore_then(ident()).or_not())
+                .map(|(name, parent)| TagType::Class(name, parent)),
             just("field")
                 .ignore_then(space.ignore_then(scope).or_not())
                 .then_ignore(space)

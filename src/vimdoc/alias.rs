@@ -11,9 +11,9 @@ impl ToDoc for AliasDoc {
         let mut doc = String::new();
 
         if let Some(prefix) = &n.prefix.right {
-            doc.push_str(&header!(n.name, format!("{prefix}.{}", n.name)));
+            doc.push_str(&header(&n.name, &format!("{prefix}.{}", n.name)));
         } else {
-            doc.push_str(&header!(n.name));
+            doc.push_str(&header(&n.name, &n.name));
         }
 
         if !n.desc.is_empty() {

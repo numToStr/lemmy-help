@@ -132,6 +132,9 @@ fn classes() {
     ---@field pre_hook fun(ctx:CommentCtx):string Function to be called before comment/uncomment
     ---@field post_hook fun(ctx:CommentCtx) Function to be called after comment/uncomment
 
+    ---@class XMen : Homosapien
+    ---@field power number Power quantifier
+
     return U
     ";
 
@@ -170,6 +173,12 @@ CommentConfig                                                    *CommentConfig*
 
         {pre_hook}   (fun(ctx:CommentCtx):string)  Function to be called before comment/uncomment
         {post_hook}  (fun(ctx:CommentCtx))         Function to be called after comment/uncomment
+
+
+XMen : Homosapien                                                         *XMen*
+
+    Fields: ~
+        {power}  (number)  Power quantifier
 
 
 "

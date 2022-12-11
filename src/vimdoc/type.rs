@@ -10,9 +10,9 @@ impl ToDoc for TypeDoc {
     fn to_doc(n: &Self::N, s: &super::Settings) -> String {
         let mut doc = String::new();
 
-        doc.push_str(&header!(
+        doc.push_str(&header(
             &format!("{}{}", n.prefix.left.as_deref().unwrap_or_default(), n.op),
-            &format!("{}{}", n.prefix.right.as_deref().unwrap_or_default(), n.op)
+            &format!("{}{}", n.prefix.right.as_deref().unwrap_or_default(), n.op),
         ));
 
         let (extract, desc) = &n.desc;
