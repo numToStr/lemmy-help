@@ -1,14 +1,14 @@
 use chumsky::{prelude::choice, select, Parser};
 
 use crate::{
-    lexer::{TagType, Ty},
+    lexer::{Member, TagType, Ty},
     parser::{impl_parse, Prefix},
 };
 
 #[derive(Debug, Clone)]
 pub enum AliasKind {
     Type(Ty),
-    Enum(Vec<(String, Option<String>)>),
+    Enum(Vec<(Member, Option<String>)>),
 }
 
 #[derive(Debug, Clone)]

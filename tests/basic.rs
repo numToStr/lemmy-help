@@ -576,7 +576,7 @@ fn alias_and_type() {
     ---| '"line"' # Vertical motion
     ---| '"char"' # Horizontal motion
     ---| 'v'
-    ---| 'V' # Visual Line Mode
+    ---| `some.ident` # Some identifier
 
     ---Returns all the content of the buffer
     ---@return Lines
@@ -619,10 +619,10 @@ VMode                                                                    *VMode*
     Read `:h map-operator`
 
     Variants: ~
-        ("line")  Vertical motion
-        ("char")  Horizontal motion
-        (v)
-        (V)       Visual Line Mode
+        ("line")      Vertical motion
+        ("char")      Horizontal motion
+        ("v")
+        (some.ident)  Some identifier
 
 
 U.get_all()                                                          *U.get_all*
