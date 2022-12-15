@@ -48,10 +48,18 @@ impl Lexer {
             )))
             .ignored();
 
-        let union_literal = just('\'')
-            .ignore_then(filter(|c| c != &'\'').repeated())
-            .then_ignore(just('\''))
-            .collect();
+        let union_literal = choice((
+            just('\'')
+                .ignore_then(filter(|c| c != &'\'').repeated())
+                .then_ignore(just('\''))
+                .collect()
+                .map(Member::Literal),
+            just('`')
+                .ignore_then(filter(|c| c != &'`').repeated())
+                .then_ignore(just('`'))
+                .collect()
+                .map(Member::Ident),
+        ));
 
         let variant = just('|')
             .then_ignore(space)
@@ -149,7 +157,7 @@ impl Lexer {
                 .delimited_by(just('(').padded(), just(')').padded());
 
             // Union of string literals: '"g@"'|'"g@$"'
-            let string_literal = union_literal.map(Ty::Ref);
+            let string_literal = union_literal.map(Ty::Member);
 
             choice((
                 array_union(any, inner.clone()),

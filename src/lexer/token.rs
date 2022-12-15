@@ -1,6 +1,24 @@
 use std::fmt::Display;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum Member {
+    Literal(String),
+    Ident(String),
+}
+
+impl Display for Member {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Literal(lit) => f.write_str(&format!(
+                r#""{}""#,
+                lit.trim_start_matches('"').trim_end_matches('"')
+            )),
+            Self::Ident(ident) => f.write_str(ident),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TagType {
     /// ```lua
     /// ---@toc <name>
@@ -63,9 +81,13 @@ pub enum TagType {
     /// ```
     Alias(String, Option<Ty>),
     /// ```lua
-    /// ---| '<value>' [# description]
+    /// ---| '<literal>' [# description]
+    ///
+    /// -- or
+    ///
+    /// ---| `<ident>` [# description]
     /// ```
-    Variant(String, Option<String>),
+    Variant(Member, Option<String>),
     /// ```lua
     /// ---@type <type> [desc]
     /// ```
@@ -166,6 +188,7 @@ pub enum Ty {
     Userdata,
     Lightuserdata,
     Ref(String),
+    Member(Member),
     Array(Box<Ty>),
     Table(Option<(Box<Ty>, Box<Ty>)>),
     Fun(Vec<(Name, Ty)>, Option<Vec<Ty>>),
@@ -234,6 +257,7 @@ impl Display for Ty {
                 f.write_str("|")?;
                 f.write_str(&lhs.to_string())
             }
+            Self::Member(mem) => mem.fmt(f),
         }
     }
 }

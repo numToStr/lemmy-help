@@ -1,5 +1,5 @@
 use chumsky::Parser;
-use lemmy_help::lexer::{Lexer, Name, Ty};
+use lemmy_help::lexer::{Lexer, Member, Name, Ty};
 
 macro_rules! b {
     ($t:expr) => {
@@ -201,10 +201,13 @@ fn types() {
     check!(
         r#"'"g@"'|string[]|'"g@$"'|number"#,
         Ty::Union(
-            b!(Ty::Ref(r#""g@""#.into())),
+            b!(Ty::Member(Member::Literal(r#""g@""#.into()))),
             b!(Ty::Union(
                 b!(Ty::Array(b!(Ty::String))),
-                b!(Ty::Union(b!(Ty::Ref(r#""g@$""#.into())), b!(Ty::Number)))
+                b!(Ty::Union(
+                    b!(Ty::Member(Member::Literal(r#""g@$""#.into()))),
+                    b!(Ty::Number)
+                ))
             ))
         )
     );

@@ -645,7 +645,8 @@ You can define a (pseudo) enum using [`---@alias`](#alias).
 
 ```lua
 ---@alias <name> <type>
----| '<value>' [# description]
+---| '<literal>' [# description]
+---| `<identifier>` [# description]
 ```
 
 - Input
@@ -660,7 +661,7 @@ local U = {}
 ---| '"line"' # Vertical motion
 ---| '"char"' # Horizontal motion
 ---| 'v'
----| 'V' # Visual Line Mode
+---| `some.ident` # Some identifier
 
 ---Global vim mode
 ---@type VMode
@@ -678,10 +679,10 @@ VMode                                                                    *VMode*
     Read `:h map-operator`
 
     Variants: ~
-        ("line")  Vertical motion
-        ("char")  Horizontal motion
-        (v)
-        (V)       Visual Line Mode
+        ("line")      Vertical motion
+        ("char")      Horizontal motion
+        ("v")
+        (some.ident)  Some identifier
 
 
 U.VMODE                                                                *U.VMODE*
