@@ -676,9 +676,9 @@ fn private() {
         print('Ok! I am exported')
     end
 
-    ---@private
+    ---@protected
     function U.no_emmy()
-        print('Private func with no emmylua!')
+        print('Protected func with no emmylua!')
     end
 
     return U

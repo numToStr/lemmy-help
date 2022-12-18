@@ -153,6 +153,7 @@ pub enum Scope {
     Public,
     Private,
     Protected,
+    Package,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

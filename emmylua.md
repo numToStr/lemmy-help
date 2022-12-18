@@ -694,12 +694,18 @@ U.VMODE                                                                *U.VMODE*
 
 ### Private
 
-This tag can be used to discard any part of the code that is exported but it is not considered to be a part of the public API
+One of the following tags can be used to discard any part of the code that is not considered a part of the public API. All these tags behaves exactly same when it comes to vimdoc generation but have different use cases when used together with LLS.
+
+- Spec: [`---@private`](https://github.com/sumneko/lua-language-server/wiki/Annotations#private), [`---@protected`](https://github.com/sumneko/lua-language-server/wiki/Annotations#protected), [`---@package`](https://github.com/sumneko/lua-language-server/wiki/Annotations#package)
 
 - Syntax
 
 ```lua
 ---@private
+
+---@protected
+
+---@package
 ```
 
 - Input
@@ -719,9 +725,9 @@ function U.ok()
     print('Ok! I am exported')
 end
 
----@private
+---@protected
 function U.no_emmy()
-    print('Private func with no emmylua!')
+    print('Protected func with no emmylua!')
 end
 
 return U
