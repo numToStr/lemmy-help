@@ -27,14 +27,15 @@ impl Lexer {
         let comment = till_eol.map(|(x, _)| x.iter().collect());
         let desc = space.ignore_then(comment).or_not();
 
-        let scope = choice((
-            keyword("public").to(Scope::Public),
-            keyword("protected").to(Scope::Protected),
-            keyword("private").to(Scope::Private),
-        ));
+        let public = keyword("public").to(Scope::Public);
+        let private = keyword("private")
+            .to(Scope::Private)
+            .or(keyword("protected").to(Scope::Protected))
+            .or(keyword("package").to(Scope::Package));
 
-        let private = just("private")
-            .then_ignore(newline())
+        let hidden = private
+            .clone()
+            .ignore_then(newline())
             .then_ignore(choice((
                 // eat up all the emmylua, if any, then one valid token
                 triple
@@ -181,7 +182,7 @@ impl Lexer {
         });
 
         let tag = just('@').ignore_then(choice((
-            private.to(TagType::Skip),
+            hidden.or(public.clone().ignored()).to(TagType::Skip),
             just("toc")
                 .ignore_then(space)
                 .ignore_then(comment)
@@ -226,7 +227,7 @@ impl Lexer {
                 .then(just(':').padded().ignore_then(ident()).or_not())
                 .map(|(name, parent)| TagType::Class(name, parent)),
             just("field")
-                .ignore_then(space.ignore_then(scope).or_not())
+                .ignore_then(space.ignore_then(private.or(public)).or_not())
                 .then_ignore(space)
                 .then(ident())
                 .then(optional)
