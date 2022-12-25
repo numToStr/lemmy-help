@@ -6,6 +6,7 @@ use chumsky::{
 use crate::{
     lexer::{Lexer, TagType},
     parser::{Alias, Brief, Class, Divider, Func, Module, Tag, Type},
+    Accept, Visitor,
 };
 
 use super::impl_parse;
@@ -43,6 +44,22 @@ impl_parse!(Node, Option<Self>, {
     // Skip useless nodes
     .or(any().to(None))
 });
+
+impl<T: Visitor> Accept<T> for Node {
+    fn accept(&self, n: &T, s: &T::S) -> T::R {
+        match self {
+            Self::Brief(x) => x.accept(n, s),
+            Self::Tag(x) => x.accept(n, s),
+            Self::Alias(x) => x.accept(n, s),
+            Self::Func(x) => x.accept(n, s),
+            Self::Class(x) => x.accept(n, s),
+            Self::Type(x) => x.accept(n, s),
+            Self::Module(x) => x.accept(n, s),
+            Self::Divider(x) => x.accept(n, s),
+            _ => unimplemented!(),
+        }
+    }
+}
 
 impl Node {
     fn init() -> impl Parser<TagType, Vec<Node>, Error = Simple<TagType>> {

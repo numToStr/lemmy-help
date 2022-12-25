@@ -3,6 +3,7 @@ use chumsky::{select, Parser};
 use crate::{
     lexer::{Name, Scope, TagType, Ty},
     parser::{impl_parse, Prefix, See},
+    Accept, Visitor,
 };
 
 #[derive(Debug, Clone)]
@@ -66,3 +67,9 @@ impl_parse!(Class, {
             prefix: Prefix::default(),
         })
 });
+
+impl<T: Visitor> Accept<T> for Class {
+    fn accept(&self, n: &T, s: &T::S) -> T::R {
+        n.class(self, s)
+    }
+}

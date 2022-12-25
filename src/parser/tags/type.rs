@@ -3,6 +3,7 @@ use chumsky::{select, Parser};
 use crate::{
     lexer::{Op, TagType, Ty},
     parser::{impl_parse, Prefix, See},
+    Accept, Visitor,
 };
 
 use super::Usage;
@@ -40,3 +41,9 @@ impl_parse!(Type, {
         },
     )
 });
+
+impl<T: Visitor> Accept<T> for Type {
+    fn accept(&self, n: &T, s: &T::S) -> T::R {
+        n.r#type(self, s)
+    }
+}

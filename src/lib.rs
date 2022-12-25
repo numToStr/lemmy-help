@@ -8,9 +8,34 @@ use std::{fmt::Display, str::FromStr};
 
 use chumsky::prelude::Simple;
 
-use parser::Node;
+use parser::{
+    Alias, Brief, Class, Divider, Field, Func, Module, Node, Param, Return, See, Tag, Type, Usage,
+};
 
 use crate::lexer::TagType;
+
+pub trait Visitor {
+    type R;
+    type S;
+    fn module(&self, n: &Module, s: &Self::S) -> Self::R;
+    fn divider(&self, n: &Divider, s: &Self::S) -> Self::R;
+    fn brief(&self, n: &Brief, s: &Self::S) -> Self::R;
+    fn tag(&self, n: &Tag, s: &Self::S) -> Self::R;
+    fn func(&self, n: &Func, s: &Self::S) -> Self::R;
+    fn params(&self, n: &[Param], s: &Self::S) -> Self::R;
+    fn r#returns(&self, n: &[Return], s: &Self::S) -> Self::R;
+    fn class(&self, n: &Class, s: &Self::S) -> Self::R;
+    fn fields(&self, n: &[Field], s: &Self::S) -> Self::R;
+    fn alias(&self, n: &Alias, s: &Self::S) -> Self::R;
+    fn r#type(&self, n: &Type, s: &Self::S) -> Self::R;
+    fn toc(&self, n: &str, nodes: &[Node], s: &Self::S) -> Self::R;
+    fn see(&self, n: &See, s: &Self::S) -> Self::R;
+    fn usage(&self, n: &Usage, s: &Self::S) -> Self::R;
+}
+
+pub trait Accept<T: Visitor> {
+    fn accept(&self, n: &T, s: &T::S) -> T::R;
+}
 
 pub trait Nodes {
     fn nodes(&self) -> &Vec<Node>;
