@@ -282,9 +282,9 @@ U.sub({this}, {that})                                                    *U.sub*
                   we don't know about
 
     Usage: ~
-        >
-            require('module.U').sub(10, 5)
-        <
+>lua
+        require('module.U').sub(10, 5)
+<
 
 
 U.magical({this}, {that})                                            *U.magical*
@@ -505,12 +505,12 @@ U:create()                                                            *U:create*
         (Human)
 
     Usage: ~
-        >
-            local H = require('Human')
-            local human = H:create()
+>lua
+        local H = require('Human')
+        local human = H:create()
 
-            print(getmetatable(human))
-        <
+        print(getmetatable(human))
+<
 
 
 ================================================================================
@@ -650,12 +650,67 @@ U.VMODE                                                                *U.VMODE*
         (VMode)
 
     Usage: ~
-        >
-            print(require('plugin').VMODE)
-        <
+>lua
+        print(require('plugin').VMODE)
+<
 
 
 "#
+    )
+}
+
+#[test]
+fn usage() {
+    let src = "
+    local U = {}
+
+    ---Prints a message
+    ---@param msg string Message
+    ---@usage lua [[
+    ---require('module.U').sum(10, 5)
+    ---@usage ]]
+    function U.echo(msg)
+        print(msg)
+    end
+
+    ---Add a number to 10
+    ---@param this number A number
+    ---@usage `require('module.U').sum(5)`
+    function U.sum(this)
+        print(10 + this)
+    end
+
+    return U
+    ";
+
+    assert_eq!(
+        lemmy!(src),
+        "\
+U.echo({msg})                                                           *U.echo*
+    Prints a message
+
+    Parameters: ~
+        {msg}  (string)  Message
+
+    Usage: ~
+>lua
+        require('module.U').sum(10, 5)
+<
+
+
+U.sum({this})                                                            *U.sum*
+    Add a number to 10
+
+    Parameters: ~
+        {this}  (number)  A number
+
+    Usage: ~
+>lua
+        require('module.U').sum(5)
+<
+
+
+"
     )
 }
 

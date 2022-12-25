@@ -10,10 +10,11 @@ impl ToDoc for UsageDoc {
     fn to_doc(n: &Self::N, _: &super::Settings) -> String {
         let mut doc = String::new();
         doc.push_str(&description("Usage: ~"));
-        doc.push_str("        >\n");
-        doc.push_str(&textwrap::indent(&n.code, "            "));
+        doc.push('>');
+        doc.push_str(n.lang.as_deref().unwrap_or("lua"));
         doc.push('\n');
-        doc.push_str("        <\n\n");
+        doc.push_str(&textwrap::indent(&n.code, "        "));
+        doc.push_str("\n<\n\n");
         doc
     }
 }

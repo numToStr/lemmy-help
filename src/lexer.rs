@@ -181,6 +181,8 @@ impl Lexer {
             ))
         });
 
+        let code_lang = ident().then_ignore(space).or_not();
+
         let tag = just('@').ignore_then(choice((
             hidden.or(public.clone().ignored()).to(TagType::Skip),
             just("toc")
@@ -256,13 +258,16 @@ impl Lexer {
                 .ignore_then(comment)
                 .map(TagType::See),
             just("usage").ignore_then(space).ignore_then(choice((
-                just("[[").to(TagType::UsageStart),
+                code_lang
+                    .then(
+                        just('`')
+                            .ignore_then(filter(|c| *c != '`').repeated())
+                            .then_ignore(just('`'))
+                            .collect(),
+                    )
+                    .map(|(lang, code)| TagType::Usage(lang, code)),
+                code_lang.then_ignore(just("[[")).map(TagType::UsageStart),
                 just("]]").to(TagType::UsageEnd),
-                just('`')
-                    .ignore_then(filter(|c| *c != '`').repeated())
-                    .then_ignore(just('`'))
-                    .collect()
-                    .map(TagType::Usage),
             ))),
             just("export")
                 .ignore_then(space)
