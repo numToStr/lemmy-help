@@ -3,6 +3,7 @@ use chumsky::{prelude::choice, select, Parser};
 use crate::{
     lexer::{Member, TagType, Ty},
     parser::{impl_parse, Prefix},
+    Accept, Visitor,
 };
 
 #[derive(Debug, Clone)]
@@ -43,3 +44,9 @@ impl_parse!(Alias, {
         prefix: Prefix::default(),
     })
 });
+
+impl<T: Visitor> Accept<T> for Alias {
+    fn accept(&self, n: &T, s: &T::S) -> T::R {
+        n.alias(self, s)
+    }
+}

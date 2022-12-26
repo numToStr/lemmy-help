@@ -1,6 +1,6 @@
 use chumsky::{select, Parser};
 
-use crate::{lexer::TagType, parser::impl_parse};
+use crate::{lexer::TagType, parser::impl_parse, Accept, Visitor};
 
 #[derive(Debug, Clone)]
 pub struct See {
@@ -12,3 +12,9 @@ impl_parse!(See, {
         .repeated()
         .map(|refs| Self { refs })
 });
+
+impl<T: Visitor> Accept<T> for See {
+    fn accept(&self, n: &T, s: &T::S) -> T::R {
+        n.see(self, s)
+    }
+}
