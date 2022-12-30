@@ -6,6 +6,9 @@ use crate::{
     Accept, FromEmmy, Layout, Settings, Visitor,
 };
 
+/// Text Width
+const TW: usize = 80;
+
 #[derive(Debug)]
 pub struct VimDoc(String);
 
@@ -21,15 +24,15 @@ impl Visitor for VimDoc {
         doc.push_str(&format!(
             "{:>w$}",
             format!("*{}*", n.name),
-            w = 80 - desc.len()
+            w = TW - desc.len()
         ));
         doc.push('\n');
         doc
     }
 
     fn divider(&self, n: &crate::parser::Divider, _: &Self::S) -> Self::R {
-        let mut doc = String::with_capacity(81);
-        for _ in 0..80 {
+        let mut doc = String::with_capacity(TW - 1);
+        for _ in 0..TW - 2 {
             doc.push(n.0);
         }
         doc.push('\n');
@@ -43,7 +46,7 @@ impl Visitor for VimDoc {
     }
 
     fn tag(&self, n: &crate::parser::Tag, _: &Self::S) -> Self::R {
-        format!("{:>80}", format!("*{}*", n.0))
+        format!("{:>w$}", format!("*{}*", n.0), w = TW)
     }
 
     fn func(&self, n: &crate::parser::Func, s: &Self::S) -> Self::R {
@@ -68,16 +71,16 @@ impl Visitor for VimDoc {
             &format!("{}{}", n.prefix.right.as_deref().unwrap_or_default(), n.op),
         ));
         if !n.desc.is_empty() {
-            doc.push_str(&description(&n.desc.join("\n")))
+            doc.push_str(&description(&n.desc.join("\n"), s.indent_width))
         }
         doc.push('\n');
         if !n.params.is_empty() {
-            doc.push_str(&description("Parameters: ~"));
+            doc.push_str(&description("Parameters: ~", s.indent_width));
             doc.push_str(&self.params(&n.params, s));
             doc.push('\n');
         }
         if !n.returns.is_empty() {
-            doc.push_str(&description("Returns: ~"));
+            doc.push_str(&description("Returns: ~", s.indent_width));
             doc.push_str(&self.returns(&n.returns, s));
             doc.push('\n');
         }
@@ -91,7 +94,7 @@ impl Visitor for VimDoc {
     }
 
     fn params(&self, n: &[crate::parser::Param], s: &Self::S) -> Self::R {
-        let mut table = Table::new();
+        let mut table = Table::new(s.indent_width);
         for param in n {
             let (name, ty) = match (s.expand_opt, &param.name) {
                 (true, Name::Opt(n)) => (format!("{{{n}}}"), format!("(nil|{})", param.ty)),
@@ -122,7 +125,7 @@ impl Visitor for VimDoc {
     }
 
     fn r#returns(&self, n: &[crate::parser::Return], s: &Self::S) -> Self::R {
-        let mut table = Table::new();
+        let mut table = Table::new(s.indent_width);
         for entry in n {
             if let Layout::Mini(n) = s.layout {
                 table.add_row([format!(
@@ -163,11 +166,11 @@ impl Visitor for VimDoc {
             doc.push_str(&header(&name, &n.name));
         }
         if !n.desc.is_empty() {
-            doc.push_str(&description(&n.desc.join("\n")));
+            doc.push_str(&description(&n.desc.join("\n"), s.indent_width));
         }
         doc.push('\n');
         if !n.fields.is_empty() {
-            doc.push_str(&description("Fields: ~"));
+            doc.push_str(&description("Fields: ~", s.indent_width));
             doc.push_str(&self.fields(&n.fields, s));
             doc.push('\n');
         }
@@ -178,7 +181,7 @@ impl Visitor for VimDoc {
     }
 
     fn fields(&self, n: &[crate::parser::Field], s: &Self::S) -> Self::R {
-        let mut table = Table::new();
+        let mut table = Table::new(s.indent_width);
         for field in n {
             let (name, ty) = match (s.expand_opt, &field.name) {
                 (true, Name::Opt(n)) => (format!("{{{n}}}"), format!("(nil|{})", field.ty)),
@@ -210,7 +213,7 @@ impl Visitor for VimDoc {
         table.to_string()
     }
 
-    fn alias(&self, n: &crate::parser::Alias, _: &Self::S) -> Self::R {
+    fn alias(&self, n: &crate::parser::Alias, s: &Self::S) -> Self::R {
         let mut doc = String::new();
         if let Some(prefix) = &n.prefix.right {
             doc.push_str(&header(&n.name, &format!("{prefix}.{}", n.name)));
@@ -218,19 +221,19 @@ impl Visitor for VimDoc {
             doc.push_str(&header(&n.name, &n.name));
         }
         if !n.desc.is_empty() {
-            doc.push_str(&description(&n.desc.join("\n")));
+            doc.push_str(&description(&n.desc.join("\n"), s.indent_width));
         }
         doc.push('\n');
         match &n.kind {
             AliasKind::Type(ty) => {
-                doc.push_str(&description("Type: ~"));
-                let ty = ty.to_string();
-                doc.push_str(&format!("{:>w$}", ty, w = 8 + ty.len()));
+                doc.push_str(&description("Type: ~", s.indent_width));
+                doc.push_str(&(" ").repeat(s.indent_width * 2));
+                doc.push_str(&ty.to_string());
                 doc.push('\n');
             }
             AliasKind::Enum(variants) => {
-                doc.push_str(&description("Variants: ~"));
-                let mut table = Table::new();
+                doc.push_str(&description("Variants: ~", s.indent_width));
+                let mut table = Table::new(s.indent_width);
                 for (ty, desc) in variants {
                     table.add_row([&format!("({})", ty), desc.as_deref().unwrap_or_default()]);
                 }
@@ -249,11 +252,11 @@ impl Visitor for VimDoc {
         ));
         let (extract, desc) = &n.desc;
         if !extract.is_empty() {
-            doc.push_str(&description(&extract.join("\n")));
+            doc.push_str(&description(&extract.join("\n"), s.indent_width));
         }
         doc.push('\n');
-        doc.push_str(&description("Type: ~"));
-        let mut table = Table::new();
+        doc.push_str(&description("Type: ~", s.indent_width));
+        let mut table = Table::new(s.indent_width);
         table.add_row([&format!("({})", n.ty), desc.as_deref().unwrap_or_default()]);
         doc.push_str(&table.to_string());
         doc.push('\n');
@@ -266,23 +269,27 @@ impl Visitor for VimDoc {
         doc
     }
 
-    fn see(&self, n: &crate::parser::See, _: &Self::S) -> Self::R {
+    fn see(&self, n: &crate::parser::See, s: &Self::S) -> Self::R {
         let mut doc = String::new();
-        doc.push_str(&description("See: ~"));
-        for s in &n.refs {
-            doc.push_str(&format!("        |{s}|\n"));
+        doc.push_str(&description("See: ~", s.indent_width));
+        for reff in &n.refs {
+            doc.push_str(&(" ").repeat(s.indent_width * 2));
+            doc.push_str(&format!("|{reff}|\n"));
         }
         doc.push('\n');
         doc
     }
 
-    fn usage(&self, n: &crate::parser::Usage, _: &Self::S) -> Self::R {
+    fn usage(&self, n: &crate::parser::Usage, s: &Self::S) -> Self::R {
         let mut doc = String::new();
-        doc.push_str(&description("Usage: ~"));
+        doc.push_str(&description("Usage: ~", s.indent_width));
         doc.push('>');
         doc.push_str(n.lang.as_deref().unwrap_or("lua"));
         doc.push('\n');
-        doc.push_str(&textwrap::indent(&n.code, "        "));
+        doc.push_str(&textwrap::indent(
+            &n.code,
+            &(" ").repeat(s.indent_width * 2),
+        ));
         doc.push_str("\n<\n\n");
         doc
     }
@@ -337,15 +344,14 @@ impl Display for VimDoc {
 
 // #################
 
-struct Table(comfy_table::Table);
+struct Table(comfy_table::Table, usize);
 
 impl Table {
-    pub fn new() -> Self {
+    pub fn new(ident: usize) -> Self {
         let mut tbl = comfy_table::Table::new();
         tbl.load_preset(comfy_table::presets::NOTHING);
         // tbl.column_iter_mut().map(|c| c.set_padding((0, 0)));
-
-        Self(tbl)
+        Self(tbl, ident)
     }
 
     pub fn add_row<T: Into<comfy_table::Row>>(&mut self, row: T) -> &Self {
@@ -356,14 +362,17 @@ impl Table {
 
 impl std::fmt::Display for Table {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&textwrap::indent(&self.0.trim_fmt(), "       "))?;
+        f.write_str(&textwrap::indent(
+            &self.0.trim_fmt(),
+            &(" ").repeat((self.1 * 2) - 1),
+        ))?;
         f.write_str("\n")
     }
 }
 
 #[inline]
-fn description(desc: &str) -> String {
-    let mut d = textwrap::indent(desc, "    ");
+fn description(desc: &str, indent: usize) -> String {
+    let mut d = textwrap::indent(desc, &(" ").repeat(indent));
     d.push('\n');
     d
 }
@@ -372,7 +381,7 @@ fn description(desc: &str) -> String {
 fn header(name: &str, tag: &str) -> String {
     let len = name.len();
     if len > 40 || tag.len() > 40 {
-        return format!("{:>80}\n{}\n", format!("*{}*", tag), name);
+        return format!("{:>w$}\n{}\n", format!("*{}*", tag), name, w = TW);
     }
-    format!("{}{:>w$}\n", name, format!("*{}*", tag), w = 80 - len)
+    format!("{}{:>w$}\n", name, format!("*{}*", tag), w = TW - len)
 }

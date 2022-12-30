@@ -79,7 +79,7 @@ impl FromStr for Layout {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Settings {
     /// Prefix `function` name with `---@mod` name
     pub prefix_func: bool,
@@ -93,6 +93,22 @@ pub struct Settings {
     pub expand_opt: bool,
     /// Vimdoc text layout
     pub layout: Layout,
+    /// Controls the indent width
+    pub indent_width: usize,
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self {
+            prefix_func: false,
+            prefix_alias: false,
+            prefix_class: false,
+            prefix_type: false,
+            expand_opt: false,
+            layout: Layout::default(),
+            indent_width: 4,
+        }
+    }
 }
 
 #[derive(Debug, Default)]
