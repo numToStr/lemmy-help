@@ -65,6 +65,7 @@ FLAGS:
         --expand-opt            Expand '?' (optional) to 'nil' type
 
 OPTIONS:
+    -i, --indent <u8>           Controls the indent width [default: 4]
     -l, --layout <layout>       Vimdoc text layout [default: 'default']
                                 - "default" : Default layout
                                 - "compact[:n=0]" : Aligns [desc] with <type>

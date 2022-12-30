@@ -2,7 +2,7 @@ use lemmy_help::{vimdoc::VimDoc, FromEmmy, Layout, LemmyHelp, Settings};
 
 use lexopt::{
     Arg::{Long, Short, Value},
-    Parser,
+    Parser, ValueExt,
 };
 use std::{ffi::OsString, fs::read_to_string, path::PathBuf, str::FromStr};
 
@@ -54,6 +54,9 @@ impl Cli {
                             option: "layout".into(),
                             value: l.into(),
                         })?;
+                }
+                Short('i') | Long("indent") => {
+                    c.settings.indent_width = parser.value()?.parse()?;
                 }
                 Short('M') | Long("no-modeline") => c.modeline = false,
                 Short('f') | Long("prefix-func") => c.settings.prefix_func = true,
@@ -117,6 +120,7 @@ FLAGS:
         --expand-opt            Expand '?' (optional) to 'nil' type
 
 OPTIONS:
+    -i, --indent <u8>           Controls the indent width [default: 4]
     -l, --layout <layout>       Vimdoc text layout [default: 'default']
                                 - "default" : Default layout
                                 - "compact[:n=0]" : Aligns [desc] with <type>
