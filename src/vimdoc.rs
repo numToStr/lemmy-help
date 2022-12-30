@@ -302,9 +302,9 @@ impl Visitor for VimDoc {
             if let Node::Module(x) = nod {
                 let desc = x.desc.as_deref().unwrap_or_default();
                 doc.push_str(&format!(
-                    "{desc}{:·>w$}\n",
-                    format!("|{}|", x.name),
-                    w = 80 - desc.len()
+                    "{desc} {:·>w$}\n",
+                    format!(" |{}|", x.name),
+                    w = (TW - 1) - desc.len()
                 ));
             }
         }
