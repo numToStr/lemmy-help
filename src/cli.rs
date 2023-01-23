@@ -4,7 +4,7 @@ use lexopt::{
     Arg::{Long, Short, Value},
     Parser, ValueExt,
 };
-use std::{ffi::OsString, fs::read_to_string, path::PathBuf, str::FromStr};
+use std::{fs::read_to_string, path::PathBuf, str::FromStr};
 
 pub const NAME: &str = env!("CARGO_PKG_NAME");
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -43,16 +43,11 @@ impl Cli {
                     std::process::exit(0);
                 }
                 Short('l') | Long("layout") => {
-                    let layout = parser.value()?;
-                    let Some(l) = layout.to_str() else {
-                        return Err(lexopt::Error::MissingValue {
-                            option: Some("layout".into()),
-                        });
-                    };
+                    let layout = parser.value()?.string()?;
                     c.settings.layout =
-                        Layout::from_str(l).map_err(|_| lexopt::Error::UnexpectedValue {
+                        Layout::from_str(&layout).map_err(|_| lexopt::Error::UnexpectedValue {
                             option: "layout".into(),
-                            value: l.into(),
+                            value: layout.into(),
                         })?;
                 }
                 Short('i') | Long("indent") => {
@@ -67,10 +62,9 @@ impl Cli {
                 Value(val) => {
                     let file = PathBuf::from(&val);
                     if !file.is_file() {
-                        return Err(lexopt::Error::UnexpectedArgument(OsString::from(format!(
-                            "{} is not a file!",
-                            file.display()
-                        ))));
+                        return Err(lexopt::Error::UnexpectedArgument(
+                            format!("{} is not a file!", file.display()).into(),
+                        ));
                     }
                     c.files.push(file)
                 }
