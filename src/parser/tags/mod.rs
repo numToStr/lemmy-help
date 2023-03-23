@@ -19,8 +19,8 @@ pub use see::*;
 mod usage;
 pub use usage::*;
 
-#[derive(Debug, Default, Clone)]
-pub struct Prefix {
-    pub left: Option<String>,
-    pub right: Option<String>,
+#[derive(Debug, Clone, Default)]
+pub struct Prefix<'src> {
+    pub left: Option<&'src str>,
+    pub right: Option<&'src str>,
 }

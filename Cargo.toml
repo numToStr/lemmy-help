@@ -26,7 +26,7 @@ name = "lemmy-help"
 required-features = ["cli"]
 
 [dependencies]
-chumsky = { version = "0.9.0", default-features = false }
+chumsky = { version = "1.0.0-alpha.3", default-features = false }
 textwrap = { version = "0.16.0", default-features = false, optional = true }
 comfy-table = { version = "6.1.4", default-features = false, optional = true }
 lexopt = { version = "0.3.0", default-features = false, optional = true }

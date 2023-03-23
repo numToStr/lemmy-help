@@ -1,48 +1,47 @@
-use chumsky::{select, Parser};
+use chumsky::{select, IterParser, Parser};
 
 use crate::{
-    lexer::{Op, TagType, Ty},
-    parser::{impl_parse, Prefix, See},
+    lexer::{Op, Token, Ty},
+    parser::{LemmyParser, Node, Prefix, See},
     Accept, Visitor,
 };
 
-use super::Usage;
+use super::{see_parser, usage_parser, Usage};
 
 #[derive(Debug, Clone)]
-pub struct Type {
-    pub desc: (Vec<String>, Option<String>),
-    pub op: Op,
-    pub prefix: Prefix,
-    pub ty: Ty,
-    pub see: See,
-    pub usage: Option<Usage>,
+pub struct Type<'src> {
+    pub desc: (Vec<&'src str>, Option<&'src str>),
+    pub prefix: Prefix<'src>,
+    pub op: Vec<Op<'src>>,
+    pub ty: Ty<'src>,
+    pub see: See<'src>,
+    pub usage: Option<Usage<'src>>,
 }
 
-impl_parse!(Type, {
-    select! {
-        TagType::Comment(x) => x
-    }
-    .repeated()
-    .then(select! { TagType::Type(ty, desc) => (ty, desc) })
-    .then(See::parse())
-    .then(Usage::parse().or_not())
-    .then(select! { TagType::Expr(prefix, op) => (prefix, op) })
-    .map(
-        |((((extract, (ty, desc)), see), usage), (prefix, op))| Self {
-            desc: (extract, desc),
-            prefix: Prefix {
-                left: Some(prefix.to_owned()),
-                right: Some(prefix),
-            },
-            op,
-            ty,
-            see,
-            usage,
-        },
-    )
-});
+pub fn type_parser<'tokens, 'src: 'tokens>() -> impl LemmyParser<'tokens, 'src, Node<'src>> {
+    select! { Token::Comment(x) => x }
+        .repeated()
+        .collect()
+        .then(select! { Token::Type(ty,desc) => (ty,desc) })
+        .then(see_parser())
+        .then(usage_parser().or_not())
+        .then(select! { Token::Expr(prefix,op) => (prefix,op) })
+        .map(|((((extract, (ty, desc)), see), usage), (prefix, op))| {
+            Node::Type(Type {
+                desc: (extract, desc),
+                prefix: Prefix {
+                    left: Some(prefix),
+                    right: Some(prefix),
+                },
+                op,
+                ty,
+                see,
+                usage,
+            })
+        })
+}
 
-impl<T: Visitor> Accept<T> for Type {
+impl<'src, T: Visitor> Accept<T> for Type<'src> {
     fn accept(&self, n: &T, s: &T::S) -> T::R {
         n.r#type(self, s)
     }

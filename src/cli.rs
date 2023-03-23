@@ -1,4 +1,4 @@
-use lemmy_help::{vimdoc::VimDoc, FromEmmy, Layout, LemmyHelp, Settings};
+use lemmy_help::{parser, vimdoc::VimDoc, FromEmmy, Layout, Settings};
 
 use lexopt::{
     Arg::{Long, Short, Value},
@@ -76,14 +76,17 @@ impl Cli {
     }
 
     pub fn run(self) {
-        let mut lemmy = LemmyHelp::new();
+        let mut help_doc = String::new();
 
+        // FIXME: toc entries
         for f in self.files {
             let source = read_to_string(f).unwrap();
-            lemmy.for_help(&source, &self.settings).unwrap();
+            let ast = parser(&source, &self.settings);
+            let doc = VimDoc::from_emmy(&ast, &self.settings);
+            help_doc.push_str(&doc.to_string());
         }
 
-        print!("{}", VimDoc::from_emmy(&lemmy, &self.settings));
+        print!("{help_doc}");
 
         if self.modeline {
             println!("vim:tw=78:ts=8:noet:ft=help:norl:");

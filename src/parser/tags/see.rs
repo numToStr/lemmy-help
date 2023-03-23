@@ -1,19 +1,20 @@
-use chumsky::{select, Parser};
+use chumsky::{select, IterParser, Parser};
 
-use crate::{lexer::TagType, parser::impl_parse, Accept, Visitor};
+use crate::{lexer::Token, parser::LemmyParser, Accept, Visitor};
 
 #[derive(Debug, Clone)]
-pub struct See {
-    pub refs: Vec<String>,
+pub struct See<'src> {
+    pub refs: Vec<&'src str>,
 }
 
-impl_parse!(See, {
-    select! { TagType::See(x) => x }
+pub fn see_parser<'tokens, 'src: 'tokens>() -> impl LemmyParser<'tokens, 'src, See<'src>> {
+    select! { Token::See(x) => x }
         .repeated()
-        .map(|refs| Self { refs })
-});
+        .collect()
+        .map(|refs| See { refs })
+}
 
-impl<T: Visitor> Accept<T> for See {
+impl<'src, T: Visitor> Accept<T> for See<'src> {
     fn accept(&self, n: &T, s: &T::S) -> T::R {
         n.see(self, s)
     }

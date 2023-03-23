@@ -3,21 +3,22 @@ pub use node::*;
 mod tags;
 pub use tags::*;
 
-macro_rules! impl_parse {
-    ($id: ident, $ret: ty, $body: expr) => {
-        impl $id {
-            pub fn parse() -> impl chumsky::Parser<
-                $crate::lexer::TagType,
-                $ret,
-                Error = chumsky::prelude::Simple<$crate::lexer::TagType>,
-            > {
-                $body
-            }
-        }
-    };
-    ($id: ident, $body: expr) => {
-        crate::parser::impl_parse!($id, Self, $body);
-    };
+use crate::lexer::Token;
+use chumsky::{input::SpannedInput, prelude::Rich, span::SimpleSpan, Parser};
+
+pub type ParserInput<'tokens, 'src> =
+    SpannedInput<Token<'src>, SimpleSpan, &'tokens [(Token<'src>, SimpleSpan)]>;
+
+pub type ParserErr<'tokens, 'src> = chumsky::extra::Err<Rich<'tokens, Token<'src>, SimpleSpan>>;
+
+pub trait LemmyParser<'tokens, 'src: 'tokens, O>:
+    Parser<'tokens, ParserInput<'tokens, 'src>, O, ParserErr<'tokens, 'src>> + Clone
+{
 }
 
-pub(super) use impl_parse;
+impl<'tokens, 'src, O, P> LemmyParser<'tokens, 'src, O> for P
+where
+    'src: 'tokens,
+    P: Parser<'tokens, ParserInput<'tokens, 'src>, O, ParserErr<'tokens, 'src>> + Clone,
+{
+}

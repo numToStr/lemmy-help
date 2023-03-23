@@ -18,7 +18,7 @@ impl Visitor for VimDoc {
 
     fn module(&self, n: &Module, s: &Self::S) -> Self::R {
         let mut doc = String::new();
-        let desc = n.desc.as_deref().unwrap_or_default();
+        let desc = n.desc.unwrap_or_default();
         doc.push_str(&self.divider(&Divider('='), s));
         doc.push_str(desc);
         doc.push_str(&format!(
@@ -60,15 +60,23 @@ impl Visitor for VimDoc {
                 .join(", ");
             format!(
                 "{}{}({args})",
-                n.prefix.left.as_deref().unwrap_or_default(),
-                n.op
+                n.prefix.left.unwrap_or_default(),
+                n.op.iter().map(|x| x.to_string()).collect::<String>()
             )
         } else {
-            format!("{}{}()", n.prefix.left.as_deref().unwrap_or_default(), n.op)
+            format!(
+                "{}{}()",
+                n.prefix.left.unwrap_or_default(),
+                n.op.iter().map(|x| x.to_string()).collect::<String>()
+            )
         };
         doc.push_str(&header(
             &name_with_param,
-            &format!("{}{}", n.prefix.right.as_deref().unwrap_or_default(), n.op),
+            &format!(
+                "{}{}",
+                n.prefix.right.unwrap_or_default(),
+                n.op.iter().map(|x| x.to_string()).collect::<String>()
+            ),
         ));
         if !n.desc.is_empty() {
             doc.push_str(&description(&n.desc.join("\n"), s.indent_width))
@@ -132,7 +140,7 @@ impl Visitor for VimDoc {
                     "({}) {}",
                     entry.ty,
                     if entry.desc.is_empty() {
-                        entry.name.clone().unwrap_or_default()
+                        entry.name.unwrap_or_default().to_owned()
                     } else {
                         entry.desc.join(&format!("\n{}", " ".repeat(n as usize)))
                     }
@@ -141,7 +149,7 @@ impl Visitor for VimDoc {
                 table.add_row([
                     format!("({})", entry.ty),
                     if entry.desc.is_empty() {
-                        entry.name.clone().unwrap_or_default()
+                        entry.name.unwrap_or_default().to_owned()
                     } else {
                         entry.desc.join("\n")
                     },
@@ -163,7 +171,7 @@ impl Visitor for VimDoc {
         if let Some(prefix) = &n.prefix.right {
             doc.push_str(&header(&name, &format!("{prefix}.{}", n.name)));
         } else {
-            doc.push_str(&header(&name, &n.name));
+            doc.push_str(&header(&name, n.name));
         }
         if !n.desc.is_empty() {
             doc.push_str(&description(&n.desc.join("\n"), s.indent_width));
@@ -216,9 +224,9 @@ impl Visitor for VimDoc {
     fn alias(&self, n: &crate::parser::Alias, s: &Self::S) -> Self::R {
         let mut doc = String::new();
         if let Some(prefix) = &n.prefix.right {
-            doc.push_str(&header(&n.name, &format!("{prefix}.{}", n.name)));
+            doc.push_str(&header(n.name, &format!("{prefix}.{}", n.name)));
         } else {
-            doc.push_str(&header(&n.name, &n.name));
+            doc.push_str(&header(n.name, n.name));
         }
         if !n.desc.is_empty() {
             doc.push_str(&description(&n.desc.join("\n"), s.indent_width));
@@ -247,8 +255,16 @@ impl Visitor for VimDoc {
     fn r#type(&self, n: &crate::parser::Type, s: &Self::S) -> Self::R {
         let mut doc = String::new();
         doc.push_str(&header(
-            &format!("{}{}", n.prefix.left.as_deref().unwrap_or_default(), n.op),
-            &format!("{}{}", n.prefix.right.as_deref().unwrap_or_default(), n.op),
+            &format!(
+                "{}{}",
+                n.prefix.left.unwrap_or_default(),
+                n.op.iter().map(|x| x.to_string()).collect::<String>()
+            ),
+            &format!(
+                "{}{}",
+                n.prefix.right.unwrap_or_default(),
+                n.op.iter().map(|x| x.to_string()).collect::<String>()
+            ),
         ));
         let (extract, desc) = &n.desc;
         if !extract.is_empty() {
@@ -284,10 +300,10 @@ impl Visitor for VimDoc {
         let mut doc = String::new();
         doc.push_str(&description("Usage: ~", s.indent_width));
         doc.push('>');
-        doc.push_str(n.lang.as_deref().unwrap_or("lua"));
+        doc.push_str(n.lang.unwrap_or("lua"));
         doc.push('\n');
         doc.push_str(&textwrap::indent(
-            &n.code,
+            &n.code.to_string(),
             &(" ").repeat(s.indent_width * 2),
         ));
         doc.push_str("\n<\n\n");
@@ -298,8 +314,8 @@ impl Visitor for VimDoc {
         let mut doc = String::new();
         let module = self.module(
             &Module {
-                name: n.to_string(),
-                desc: Some("Table of Contents".into()),
+                name: n,
+                desc: Some("Table of Contents"),
             },
             s,
         );
@@ -307,7 +323,7 @@ impl Visitor for VimDoc {
         doc.push('\n');
         for nod in nodes {
             if let Node::Module(x) = nod {
-                let desc = x.desc.as_deref().unwrap_or_default();
+                let desc = x.desc.unwrap_or_default();
                 doc.push_str(&format!(
                     "{desc} {:·>w$}\n",
                     format!(" |{}|", x.name),
@@ -319,9 +335,9 @@ impl Visitor for VimDoc {
     }
 }
 
-impl FromEmmy for VimDoc {
+impl<'src> FromEmmy<'src> for VimDoc {
     type Settings = Settings;
-    fn from_emmy(t: &impl crate::Nodes, s: &Self::Settings) -> Self {
+    fn from_emmy(t: &'src impl crate::Nodes<'src>, s: &Self::Settings) -> Self {
         let mut shelf = Self(String::new());
         let nodes = t.nodes();
         for node in nodes {

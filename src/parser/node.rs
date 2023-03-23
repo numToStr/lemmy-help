@@ -1,51 +1,53 @@
 use chumsky::{
-    prelude::{any, choice, Simple},
-    select, Parser, Stream,
+    prelude::choice,
+    primitive::{any, end},
+    recovery::skip_then_retry_until,
+    select, Parser,
 };
 
 use crate::{
-    lexer::{Lexer, TagType},
-    parser::{Alias, Brief, Class, Divider, Func, Module, Tag, Type},
+    parser::{Alias, Brief, Class, Divider, Func, Module, Token, Type},
     Accept, Visitor,
 };
 
-use super::impl_parse;
+use super::{
+    alias_parser, brief_parser, class_parser, divider_parser, func_parser, mod_parser, tag_parser,
+    type_parser, LemmyParser, Tag,
+};
 
 #[derive(Debug, Clone)]
-pub enum Node {
-    Module(Module),
+pub enum Node<'src> {
+    Module(Module<'src>),
     Divider(Divider),
-    Brief(Brief),
-    Tag(Tag),
-    Func(Func),
-    Class(Class),
-    Alias(Alias),
-    Type(Type),
-    Export(String),
-    Toc(String),
+    Brief(Brief<'src>),
+    Tag(Tag<'src>),
+    Func(Func<'src>),
+    Class(Class<'src>),
+    Alias(Alias<'src>),
+    Type(Type<'src>),
+    Export(&'src str),
+    Toc(&'src str),
 }
 
-impl_parse!(Node, Option<Self>, {
+pub fn node_parser<'tokens, 'src: 'tokens>() -> impl LemmyParser<'tokens, 'src, Node<'src>> {
     choice((
-        Module::parse().map(Self::Module),
-        Divider::parse().map(Self::Divider),
-        Brief::parse().map(Self::Brief),
-        Tag::parse().map(Self::Tag),
-        Func::parse().map(Self::Func),
-        Class::parse().map(Self::Class),
-        Alias::parse().map(Self::Alias),
-        Type::parse().map(Self::Type),
+        mod_parser(),
+        divider_parser(),
+        brief_parser(),
+        tag_parser(),
+        func_parser(),
+        class_parser(),
+        alias_parser(),
+        type_parser(),
         select! {
-            TagType::Export(x) => Self::Export(x),
-            TagType::Toc(x) => Self::Toc(x),
+            Token::Export(x) => Node::Export(x),
+            Token::Toc(x) => Node::Toc(x),
         },
     ))
-    .map(Some)
-    // Skip useless nodes
-    .or(any().to(None))
-});
+    .recover_with(skip_then_retry_until(any().ignored(), end()))
+}
 
-impl<T: Visitor> Accept<T> for Node {
+impl<'src, T: Visitor> Accept<T> for Node<'src> {
     fn accept(&self, n: &T, s: &T::S) -> T::R {
         match self {
             Self::Brief(x) => x.accept(n, s),
@@ -61,34 +63,34 @@ impl<T: Visitor> Accept<T> for Node {
     }
 }
 
-impl Node {
-    fn init() -> impl Parser<TagType, Vec<Node>, Error = Simple<TagType>> {
-        Node::parse().repeated().flatten()
-    }
-
-    /// Creates stream of AST nodes from emmylua
-    ///
-    /// ```
-    /// let src = r#"
-    /// local U = {}
-    ///
-    /// ---Add two integar and print it
-    /// ---@param this number First number
-    /// ---@param that number Second number
-    /// function U.sum(this, that)
-    ///     print(this + that)
-    /// end
-    ///
-    /// return U
-    /// "#;
-    ///
-    /// let nodes = lemmy_help::parser::Node::new(src).unwrap();
-    /// assert!(!nodes.is_empty());
-    /// ```
-    pub fn new(src: &str) -> Result<Vec<Node>, Vec<Simple<TagType>>> {
-        let tokens = Lexer::init().parse(src).unwrap();
-        let stream = Stream::from_iter(src.len()..src.len() + 1, tokens.into_iter());
-
-        Node::init().parse(stream)
-    }
-}
+// impl Node<'_> {
+//     /// Creates stream of AST nodes from emmylua
+//     ///
+//     /// ```
+//     /// let src = r#"
+//     /// local U = {}
+//     ///
+//     /// ---Add two integar and print it
+//     /// ---@param this number First number
+//     /// ---@param that number Second number
+//     /// function U.sum(this, that)
+//     ///     print(this + that)
+//     /// end
+//     ///
+//     /// return U
+//     /// "#;
+//     ///
+//     /// let nodes = lemmy_help::parser::Node::new(src).unwrap();
+//     /// assert!(!nodes.is_empty());
+//     /// ```
+//     pub fn init<'src>(src: &'src str) -> Result<Vec<Node<'src>>, Vec<Rich<'src, Token<'src>>>> {
+//         let tokens = Lexer::init().parse(src).into_output().unwrap().as_slice();
+//         //     return Err(vec![])
+//         // };
+//         Node::parse()
+//             .repeated()
+//             .collect::<Vec<Node<'src>>>()
+//             .parse(tokens.spanned((src.len()..src.len()).into()))
+//             .into_result()
+//     }
+// }

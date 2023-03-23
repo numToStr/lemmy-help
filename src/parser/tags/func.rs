@@ -1,104 +1,108 @@
-use chumsky::{select, Parser};
+use chumsky::{select, IterParser, Parser};
 
 use crate::{
-    lexer::{Name, Op, TagType, Ty},
-    parser::{impl_parse, Prefix, See},
+    lexer::{Name, Op, Token, Ty},
+    parser::{LemmyParser, Node, Prefix, See},
     Accept, Visitor,
 };
 
-use super::Usage;
+use super::{see_parser, usage_parser, Usage};
 
 #[derive(Debug, Clone)]
-pub struct Param {
-    pub name: Name,
-    pub ty: Ty,
-    pub desc: Vec<String>,
+pub struct Param<'src> {
+    pub name: Name<'src>,
+    pub ty: Ty<'src>,
+    pub desc: Vec<&'src str>,
 }
 
-impl_parse!(Param, {
-    select! {
-        TagType::Param(name, ty, desc) => (name, ty, desc)
-    }
-    .then(select! { TagType::Comment(x) => x }.repeated())
-    .map(|((name, ty, desc), extra)| {
-        let desc = match desc {
-            Some(d) => {
-                let mut new_desc = Vec::with_capacity(extra.len() + 1);
-                new_desc.push(d);
-                new_desc.extend(extra);
-                new_desc
-            }
-            None => extra,
-        };
-        Self { name, ty, desc }
-    })
-});
+fn param_parser<'tokens, 'src: 'tokens>() -> impl LemmyParser<'tokens, 'src, Param<'src>> {
+    select! { Token::Param(name,ty,desc) => (name,ty,desc) }
+        .then(
+            select! { Token::Comment(x) => x }
+                .repeated()
+                .collect::<Vec<&'src str>>(),
+        )
+        .map(|((name, ty, desc), extra)| {
+            let desc = match desc {
+                Some(d) => {
+                    let mut new_desc = Vec::with_capacity(extra.len() + 1);
+                    new_desc.push(d);
+                    new_desc.extend(extra);
+                    new_desc
+                }
+                None => extra,
+            };
+            Param { name, ty, desc }
+        })
+}
 
 #[derive(Debug, Clone)]
-pub struct Return {
-    pub ty: Ty,
-    pub name: Option<String>,
-    pub desc: Vec<String>,
+pub struct Return<'src> {
+    pub ty: Ty<'src>,
+    pub name: Option<&'src str>,
+    pub desc: Vec<&'src str>,
 }
 
-impl_parse!(Return, {
-    select! {
-        TagType::Return(ty, name, desc) => (ty, name, desc)
-    }
-    .then(select! { TagType::Comment(x) => x }.repeated())
-    .map(|((ty, name, desc), extra)| {
-        let desc = match desc {
-            Some(d) => {
-                let mut new_desc = Vec::with_capacity(extra.len() + 1);
-                new_desc.push(d);
-                new_desc.extend(extra);
-                new_desc
-            }
-            None => extra,
-        };
-
-        Self { name, ty, desc }
-    })
-});
+fn return_parser<'tokens, 'src: 'tokens>() -> impl LemmyParser<'tokens, 'src, Return<'src>> {
+    select! { Token::Return(ty,name,desc) => (ty,name,desc) }
+        .then(
+            select! { Token::Comment(x) => x }
+                .repeated()
+                .collect::<Vec<&'src str>>(),
+        )
+        .map(|((ty, name, desc), extra)| {
+            let desc = match desc {
+                Some(d) => {
+                    let mut new_desc = Vec::with_capacity(extra.len() + 1);
+                    new_desc.push(d);
+                    new_desc.extend(extra);
+                    new_desc
+                }
+                None => extra,
+            };
+            Return { name, ty, desc }
+        })
+}
 
 #[derive(Debug, Clone)]
-pub struct Func {
-    pub op: Op,
-    pub prefix: Prefix,
-    pub desc: Vec<String>,
-    pub params: Vec<Param>,
-    pub returns: Vec<Return>,
-    pub see: See,
-    pub usage: Option<Usage>,
+pub struct Func<'src> {
+    pub prefix: Prefix<'src>,
+    pub op: Vec<Op<'src>>,
+    pub desc: Vec<&'src str>,
+    pub params: Vec<Param<'src>>,
+    pub returns: Vec<Return<'src>>,
+    pub see: See<'src>,
+    pub usage: Option<Usage<'src>>,
 }
 
-impl_parse!(Func, {
-    select! {
-        TagType::Comment(x) => x,
-    }
-    .repeated()
-    .then(Param::parse().repeated())
-    .then(Return::parse().repeated())
-    .then(See::parse())
-    .then(Usage::parse().or_not())
-    .then(select! { TagType::Func(prefix, op) => (prefix, op) })
-    .map(
-        |(((((desc, params), returns), see), usage), (prefix, op))| Self {
-            op,
-            prefix: Prefix {
-                left: Some(prefix.clone()),
-                right: Some(prefix),
+pub fn func_parser<'tokens, 'src: 'tokens>() -> impl LemmyParser<'tokens, 'src, Node<'src>> {
+    select! { Token::Comment(x) => x }
+        .repeated()
+        .collect()
+        .then(param_parser().repeated().collect())
+        .then(return_parser().repeated().collect())
+        .then(see_parser())
+        .then(usage_parser().or_not())
+        .then(select! { Token::Func(prefix,op) => (prefix,op) })
+        .map(
+            |(((((desc, params), returns), see), usage), (prefix, op))| {
+                Node::Func(Func {
+                    prefix: Prefix {
+                        left: Some(prefix),
+                        right: Some(prefix),
+                    },
+                    op,
+                    desc,
+                    params,
+                    returns,
+                    see,
+                    usage,
+                })
             },
-            desc,
-            params,
-            returns,
-            see,
-            usage,
-        },
-    )
-});
+        )
+}
 
-impl<T: Visitor> Accept<T> for Func {
+impl<'src, T: Visitor> Accept<T> for Func<'src> {
     fn accept(&self, n: &T, s: &T::S) -> T::R {
         n.func(self, s)
     }

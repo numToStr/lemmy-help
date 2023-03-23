@@ -1,18 +1,24 @@
 use chumsky::select;
 
-use crate::{lexer::TagType, parser::impl_parse, Accept, Visitor};
+use crate::{
+    lexer::Token,
+    parser::{LemmyParser, Node},
+    Accept, Visitor,
+};
 
 #[derive(Debug, Clone)]
-pub struct Module {
-    pub name: String,
-    pub desc: Option<String>,
+pub struct Module<'src> {
+    pub name: &'src str,
+    pub desc: Option<&'src str>,
 }
 
-impl_parse!(Module, {
-    select! { TagType::Module(name, desc) => Self { name, desc } }
-});
+pub fn mod_parser<'tokens, 'src: 'tokens>() -> impl LemmyParser<'tokens, 'src, Node<'src>> {
+    select! {
+        Token::Module(name,desc) => Node::Module(Module { name,desc })
+    }
+}
 
-impl<T: Visitor> Accept<T> for Module {
+impl<'src, T: Visitor> Accept<T> for Module<'src> {
     fn accept(&self, n: &T, s: &T::S) -> T::R {
         n.module(self, s)
     }
