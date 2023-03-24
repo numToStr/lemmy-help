@@ -1,14 +1,18 @@
-use lemmy_help::{vimdoc::VimDoc, FromEmmy, LemmyHelp, Settings};
+use lemmy_help::{parser, vimdoc::VimDoc, FromEmmy, Settings};
 
 macro_rules! lemmy {
-    ($($src: expr),*) => {{
-        let mut lemmy = LemmyHelp::default();
+    ($src: expr) => {{
         let s = Settings::default();
-        $(
-            lemmy.for_help($src, &s).unwrap();
-        )*
-        VimDoc::from_emmy(&lemmy, &s).to_string()
-    }};
+        let ast = parser($src, &s);
+        VimDoc::from_emmy(&ast, &s).to_string()
+    }}; // ($($src: expr),*) => {{
+        //     let mut lemmy = LemmyHelp::default();
+        //     let s = Settings::default();
+        //     $(
+        //         lemmy.for_help($src, &s).unwrap();
+        //     )*
+        //     VimDoc::from_emmy(&lemmy, &s).to_string()
+        // }};
 }
 
 #[test]
@@ -467,8 +471,10 @@ fn module() {
     return U
     "#;
 
+    let docs = String::from_iter([lemmy!(src), lemmy!(src2)]);
+
     assert_eq!(
-        lemmy!(src, src2),
+        docs,
         "\
 ==============================================================================
 Introduction                                                         *mod.intro*
@@ -536,8 +542,18 @@ fn table_of_contents() {
     return U
     ";
 
+    let src2 = r#"
+    ---@mod outside.module Outside Module
+
+    local U = {}
+
+    return U
+    "#;
+
+    let docs = String::from_iter([lemmy!(src), lemmy!(src2)]);
+
     assert_eq!(
-        lemmy!(src),
+        docs,
         "\
 ==============================================================================
 Table of Contents                                           *my-plugin.contents*
@@ -545,6 +561,7 @@ Table of Contents                                           *my-plugin.contents*
 First Module ···················································· |first.module|
 Second Module ·················································· |second.module|
 Third Module ···················································· |third.module|
+Outside Module ················································ |outside.module|
 
 ==============================================================================
 First Module                                                      *first.module*

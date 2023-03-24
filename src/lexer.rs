@@ -184,11 +184,16 @@ pub fn lexer<'src>(
     // ---@param <name[?]|...> <type[|type]> [description]
     let param_tag = keyword("param")
         .then(space)
-        .ignore_then(ident().then(optional))
+        .ignore_then(
+            ident()
+                .then(optional)
+                .map(|(name, o)| o(name))
+                .or(just("...").map(Name::Req)),
+        )
         .then_ignore(space)
         .then(ty.clone())
         .then(desc)
-        .map(|(((name, op), typ), desc)| Token::Param(op(name), typ, desc));
+        .map(|((name, typ), desc)| Token::Param(name, typ, desc));
 
     // ---@return <type> [<name> [comment] | [name] #<comment>]
     let return_tag = keyword("return")

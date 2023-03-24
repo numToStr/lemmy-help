@@ -141,6 +141,8 @@ impl<'src, T: FromEmmy<'src>> AsDoc<'src, T> for Document<'src> {
 /// Parse given lua source code to generate AST representation
 ///
 /// ```
+/// use lemmy_help::{parser, Nodes, Settings};
+///
 /// let src = r#"
 /// local U = {}
 ///
@@ -153,8 +155,8 @@ impl<'src, T: FromEmmy<'src>> AsDoc<'src, T> for Document<'src> {
 ///
 /// return U
 /// "#;
-///
-/// let ast = lemmy_help::parse(&src).unwrap();
+/// let settings = Settings::default();
+/// let ast = lemmy_help::parser(&src, &settings);
 /// assert!(!ast.nodes().is_empty());
 /// ```
 pub fn parser<'src>(src: &'src str, settings: &'src Settings) -> Document<'src> {

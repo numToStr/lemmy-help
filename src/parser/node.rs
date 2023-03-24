@@ -62,35 +62,3 @@ impl<'src, T: Visitor> Accept<T> for Node<'src> {
         }
     }
 }
-
-// impl Node<'_> {
-//     /// Creates stream of AST nodes from emmylua
-//     ///
-//     /// ```
-//     /// let src = r#"
-//     /// local U = {}
-//     ///
-//     /// ---Add two integar and print it
-//     /// ---@param this number First number
-//     /// ---@param that number Second number
-//     /// function U.sum(this, that)
-//     ///     print(this + that)
-//     /// end
-//     ///
-//     /// return U
-//     /// "#;
-//     ///
-//     /// let nodes = lemmy_help::parser::Node::new(src).unwrap();
-//     /// assert!(!nodes.is_empty());
-//     /// ```
-//     pub fn init<'src>(src: &'src str) -> Result<Vec<Node<'src>>, Vec<Rich<'src, Token<'src>>>> {
-//         let tokens = Lexer::init().parse(src).into_output().unwrap().as_slice();
-//         //     return Err(vec![])
-//         // };
-//         Node::parse()
-//             .repeated()
-//             .collect::<Vec<Node<'src>>>()
-//             .parse(tokens.spanned((src.len()..src.len()).into()))
-//             .into_result()
-//     }
-// }
