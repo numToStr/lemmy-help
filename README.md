@@ -9,6 +9,8 @@
 
 ### Installation
 
+[![Packaging status](https://repology.org/badge/vertical-allrepos/lemmy-help.svg)](https://repology.org/project/lemmy-help/versions)
+
 - Using `cargo`
 
 ```bash
