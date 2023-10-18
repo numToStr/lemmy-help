@@ -32,6 +32,7 @@ impl Lexer {
             .to(Scope::Private)
             .or(keyword("protected").to(Scope::Protected))
             .or(keyword("package").to(Scope::Package));
+        let exact_attr = just("(exact)");
 
         let hidden = private
             .clone()
@@ -224,7 +225,7 @@ impl Lexer {
                 )))
                 .map(|(ty, (name, desc))| TagType::Return(ty, name, desc)),
             just("class")
-                .ignore_then(space)
+                .ignore_then(space.ignore_then((exact_attr.ignore_then(space)).or_not()))
                 .ignore_then(name)
                 .then(just(':').padded().ignore_then(ident()).or_not())
                 .map(|(name, parent)| TagType::Class(name, parent)),
