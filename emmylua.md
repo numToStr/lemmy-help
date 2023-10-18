@@ -448,7 +448,7 @@ Classes can be used to better structure your code and can be referenced as an ar
 
 ```lua
 ---@comment
----@class <name>[: <parent>]
+---@class [(exact)] <name>[: <parent>]
 ---@comment
 ---@field [public|protected|private] <name[?]> <type> [desc]
 ---@see <ref>

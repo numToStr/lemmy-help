@@ -135,6 +135,9 @@ fn classes() {
     ---@class XMen : Homosapien
     ---@field power number Power quantifier
 
+    ---@class (exact) XactMen
+    ---@field power number Power quantifier
+
     return U
     ";
 
@@ -176,6 +179,12 @@ CommentConfig                                                    *CommentConfig*
 
 
 XMen : Homosapien                                                         *XMen*
+
+    Fields: ~
+        {power}  (number)  Power quantifier
+
+
+XactMen                                                                *XactMen*
 
     Fields: ~
         {power}  (number)  Power quantifier
