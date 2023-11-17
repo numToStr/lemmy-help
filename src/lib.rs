@@ -159,12 +159,12 @@ impl<'src, T: FromEmmy<'src>> AsDoc<'src, T> for Document<'src> {
 /// let ast = lemmy_help::parser(&src, &settings);
 /// assert!(!ast.nodes().is_empty());
 /// ```
-pub fn parser<'src>(src: &'src str, settings: &'src Settings) -> Document<'src> {
+pub fn parser(src: &str) -> Document<'_> {
     let Some(tokens) = lexer().parse(src).into_output() else {
         return Document::default()
     };
 
-    let Some(mut emmynode) = node_parser()
+    let Some(nodes) = node_parser()
             .repeated()
             .collect::<Vec<_>>()
             .parse(tokens.as_slice().spanned((src.len()..src.len()).into()))
@@ -172,52 +172,6 @@ pub fn parser<'src>(src: &'src str, settings: &'src Settings) -> Document<'src> 
     else {
         return Document::default()
     };
-
-    let Some(Node::Export(export)) = emmynode.pop() else {
-        return Document::default()
-    };
-
-    let mut nodes = vec![];
-
-    let module = match emmynode.iter().rev().find(|x| matches!(x, Node::Module(_))) {
-        Some(Node::Module(m)) => m.name,
-        _ => export,
-    };
-
-    for ele in emmynode {
-        match ele {
-            Node::Export(..) => {}
-            Node::Func(mut func) => {
-                if func.prefix.left == Some(export) {
-                    if settings.prefix_func {
-                        func.prefix.right = Some(module);
-                    }
-                    nodes.push(Node::Func(func));
-                }
-            }
-            Node::Type(mut typ) => {
-                if typ.prefix.left == Some(export) {
-                    if settings.prefix_type {
-                        typ.prefix.right = Some(module);
-                    }
-                    nodes.push(Node::Type(typ));
-                }
-            }
-            Node::Alias(mut alias) => {
-                if settings.prefix_alias {
-                    alias.prefix.right = Some(module);
-                }
-                nodes.push(Node::Alias(alias))
-            }
-            Node::Class(mut class) => {
-                if settings.prefix_class {
-                    class.prefix.right = Some(module);
-                }
-                nodes.push(Node::Class(class))
-            }
-            x => nodes.push(x),
-        }
-    }
 
     Document { nodes }
 }

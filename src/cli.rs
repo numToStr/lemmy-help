@@ -81,7 +81,7 @@ impl Cli {
         // FIXME: toc entries
         for f in self.files {
             let source = read_to_string(f).unwrap();
-            let ast = parser(&source, &self.settings);
+            let ast = parser(&source);
             let doc = VimDoc::from_emmy(&ast, &self.settings);
             help_doc.push_str(&doc.to_string());
         }

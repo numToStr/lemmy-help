@@ -9,10 +9,10 @@ use crate::{
 /// Text Width
 const TW: usize = 80;
 
-#[derive(Debug)]
-pub struct VimDoc(String);
+#[derive(Debug, Default)]
+pub struct VimDoc<'src>(Vec<Node<'src>>);
 
-impl Visitor for VimDoc {
+impl Visitor for VimDoc<'_> {
     type R = String;
     type S = Settings;
 
@@ -335,26 +335,80 @@ impl Visitor for VimDoc {
     }
 }
 
-impl<'src> FromEmmy<'src> for VimDoc {
+impl<'src> FromEmmy<'src> for VimDoc<'src> {
     type Settings = Settings;
-    fn from_emmy(t: &'src impl crate::Nodes<'src>, s: &Self::Settings) -> Self {
-        let mut shelf = Self(String::new());
-        let nodes = t.nodes();
-        for node in nodes {
-            if let Node::Toc(x) = node {
-                shelf.0.push_str(&shelf.toc(x, nodes, s));
-            } else {
-                shelf.0.push_str(&node.accept(&shelf, s));
+    fn from_emmy(t: &'src impl crate::Nodes<'src>, setting: &Self::Settings) -> Self {
+        let mut emmynodes = t.nodes();
+
+        let Some(Node::Export(export)) = emmynodes.pop() else {
+            return Self::default()
+        };
+
+        let mut nodes = vec![];
+
+        let module = match emmynodes
+            .iter()
+            .rev()
+            .find(|x| matches!(x, Node::Module(_)))
+        {
+            Some(Node::Module(m)) => m.name,
+            _ => export,
+        };
+
+        for ele in emmynodes {
+            match ele {
+                Node::Export(..) => {}
+                Node::Func(mut func) => {
+                    if func.prefix.left == Some(export) {
+                        if setting.prefix_func {
+                            func.prefix.right = Some(module);
+                        }
+                        nodes.push(Node::Func(func));
+                    }
+                }
+                Node::Type(mut typ) => {
+                    if typ.prefix.left == Some(export) {
+                        if setting.prefix_type {
+                            typ.prefix.right = Some(module);
+                        }
+                        nodes.push(Node::Type(typ));
+                    }
+                }
+                Node::Alias(mut alias) => {
+                    if setting.prefix_alias {
+                        alias.prefix.right = Some(module);
+                    }
+                    nodes.push(Node::Alias(alias))
+                }
+                Node::Class(mut class) => {
+                    if setting.prefix_class {
+                        class.prefix.right = Some(module);
+                    }
+                    nodes.push(Node::Class(class))
+                }
+                x => nodes.push(x),
             }
-            shelf.0.push('\n');
         }
-        shelf
+
+        // let mut shelf = String::new();
+        // let nodes = t.nodes();
+        // for node in nodes {
+        //     if let Node::Toc(x) = node {
+        //         shelf.push_str(&shelf.toc(x, nodes, s));
+        //     } else {
+        //         shelf.push_str(&node.accept(&shelf, s));
+        //     }
+        //     shelf.push('\n');
+        // }
+        // shelf
+
+        Self(nodes)
     }
 }
 
-impl Display for VimDoc {
+impl Display for VimDoc<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.0.as_str())
+        todo!()
     }
 }
 
