@@ -1,4 +1,4 @@
-use lemmy_help::{vimdoc::VimDoc, FromEmmy, LemmyHelp, Settings};
+use lemmy_help::{parser, vimdoc::VimDoc, FromEmmy, Settings};
 
 const CODE: &str = r#"
 local U = {}
@@ -26,7 +26,6 @@ return U
 
 #[test]
 fn rename_with_return() {
-    let mut lemmy = LemmyHelp::new();
     let s = Settings {
         prefix_func: true,
         prefix_alias: true,
@@ -34,11 +33,10 @@ fn rename_with_return() {
         prefix_type: true,
         ..Default::default()
     };
-
-    lemmy.for_help(CODE, &s).unwrap();
+    let ast = parser(CODE, &s);
 
     assert_eq!(
-        VimDoc::from_emmy(&lemmy, &s).to_string(),
+        VimDoc::from_emmy(&ast, &s).to_string(),
         "\
 ID                                                                        *U.ID*
 
@@ -81,7 +79,6 @@ U:create()                                                            *U:create*
 fn rename_with_mod() {
     let src = format!("---@mod awesome This is working {CODE}");
 
-    let mut lemmy = LemmyHelp::new();
     let s = Settings {
         prefix_func: true,
         prefix_alias: true,
@@ -90,7 +87,7 @@ fn rename_with_mod() {
         ..Default::default()
     };
 
-    lemmy.for_help(&src, &s).unwrap();
+    let lemmy = parser(&src, &s);
 
     assert_eq!(
         VimDoc::from_emmy(&lemmy, &s).to_string(),
@@ -155,13 +152,12 @@ end
 return M
 ";
 
-    let mut lemmy = LemmyHelp::new();
     let s = Settings {
         expand_opt: true,
         ..Default::default()
     };
 
-    lemmy.for_help(src, &s).unwrap();
+    let lemmy = parser(src, &s);
 
     assert_eq!(
         VimDoc::from_emmy(&lemmy, &s).to_string(),

@@ -1,22 +1,25 @@
-use chumsky::{prelude::just, select, Parser};
+use chumsky::{primitive::just, select, IterParser, Parser};
 
-use crate::{lexer::TagType, parser::impl_parse, Accept, Visitor};
+use crate::{
+    lexer::Token,
+    parser::{LemmyParser, Node},
+    Accept, Visitor,
+};
 
 #[derive(Debug, Clone)]
-pub struct Brief {
-    pub desc: Vec<String>,
+pub struct Brief<'src> {
+    pub desc: Vec<&'src str>,
 }
 
-impl_parse!(Brief, {
-    select! {
-        TagType::Comment(x) => x,
-    }
-    .repeated()
-    .delimited_by(just(TagType::BriefStart), just(TagType::BriefEnd))
-    .map(|desc| Self { desc })
-});
+pub fn brief_parser<'tokens, 'src: 'tokens>() -> impl LemmyParser<'tokens, 'src, Node<'src>> {
+    select! { Token::Comment(x) => x }
+        .repeated()
+        .collect()
+        .delimited_by(just(Token::BriefStart), just(Token::BriefEnd))
+        .map(|desc| Node::Brief(Brief { desc }))
+}
 
-impl<T: Visitor> Accept<T> for Brief {
+impl<'src, T: Visitor> Accept<T> for Brief<'src> {
     fn accept(&self, n: &T, s: &T::S) -> T::R {
         n.brief(self, s)
     }

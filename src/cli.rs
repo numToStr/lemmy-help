@@ -1,10 +1,10 @@
-use lemmy_help::{vimdoc::VimDoc, FromEmmy, Layout, LemmyHelp, Settings};
+use lemmy_help::{parser, vimdoc::VimDoc, FromEmmy, Layout, Settings};
 
 use lexopt::{
     Arg::{Long, Short, Value},
     Parser, ValueExt,
 };
-use std::{ffi::OsString, fs::read_to_string, path::PathBuf, str::FromStr};
+use std::{fs::read_to_string, path::PathBuf, str::FromStr};
 
 pub const NAME: &str = env!("CARGO_PKG_NAME");
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -43,16 +43,11 @@ impl Cli {
                     std::process::exit(0);
                 }
                 Short('l') | Long("layout") => {
-                    let layout = parser.value()?;
-                    let Some(l) = layout.to_str() else {
-                        return Err(lexopt::Error::MissingValue {
-                            option: Some("layout".into()),
-                        });
-                    };
+                    let layout = parser.value()?.string()?;
                     c.settings.layout =
-                        Layout::from_str(l).map_err(|_| lexopt::Error::UnexpectedValue {
+                        Layout::from_str(&layout).map_err(|_| lexopt::Error::UnexpectedValue {
                             option: "layout".into(),
-                            value: l.into(),
+                            value: layout.into(),
                         })?;
                 }
                 Short('i') | Long("indent") => {
@@ -67,10 +62,9 @@ impl Cli {
                 Value(val) => {
                     let file = PathBuf::from(&val);
                     if !file.is_file() {
-                        return Err(lexopt::Error::UnexpectedArgument(OsString::from(format!(
-                            "{} is not a file!",
-                            file.display()
-                        ))));
+                        return Err(lexopt::Error::UnexpectedArgument(
+                            format!("{} is not a file!", file.display()).into(),
+                        ));
                     }
                     c.files.push(file)
                 }
@@ -82,14 +76,17 @@ impl Cli {
     }
 
     pub fn run(self) {
-        let mut lemmy = LemmyHelp::new();
+        let mut help_doc = String::new();
 
+        // FIXME: toc entries
         for f in self.files {
             let source = read_to_string(f).unwrap();
-            lemmy.for_help(&source, &self.settings).unwrap();
+            let ast = parser(&source);
+            let doc = VimDoc::from_emmy(&ast, &self.settings);
+            help_doc.push_str(&doc.to_string());
         }
 
-        print!("{}", VimDoc::from_emmy(&lemmy, &self.settings));
+        print!("{help_doc}");
 
         if self.modeline {
             println!("vim:tw=78:ts=8:noet:ft=help:norl:");

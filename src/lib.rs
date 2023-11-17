@@ -6,13 +6,12 @@ pub mod parser;
 
 use std::{fmt::Display, str::FromStr};
 
-use chumsky::prelude::Simple;
-
+use chumsky::{prelude::Input, IterParser, Parser};
 use parser::{
     Alias, Brief, Class, Divider, Field, Func, Module, Node, Param, Return, See, Tag, Type, Usage,
 };
 
-use crate::lexer::TagType;
+use crate::{lexer::lexer, parser::node_parser};
 
 pub trait Visitor {
     type R;
@@ -37,17 +36,18 @@ pub trait Accept<T: Visitor> {
     fn accept(&self, n: &T, s: &T::S) -> T::R;
 }
 
-pub trait Nodes {
-    fn nodes(&self) -> &Vec<Node>;
+pub trait Nodes<'src> {
+    fn nodes(&'src self) -> &'src [Node<'src>];
+    fn into_nodes(self) -> Vec<Node<'src>>;
 }
 
-pub trait FromEmmy: Display {
+pub trait FromEmmy<'src>: Display {
     type Settings;
-    fn from_emmy(t: &impl Nodes, s: &Self::Settings) -> Self;
+    fn from_emmy(t: &'src impl Nodes<'src>, s: &Self::Settings) -> Self;
 }
 
-pub trait AsDoc<T: FromEmmy> {
-    fn as_doc(&self, s: &T::Settings) -> T;
+pub trait AsDoc<'src, T: FromEmmy<'src>> {
+    fn as_doc(&'src self, s: &T::Settings) -> T;
 }
 
 #[derive(Debug, Default, PartialEq, Eq)]
@@ -112,112 +112,66 @@ impl Default for Settings {
 }
 
 #[derive(Debug, Default)]
-pub struct LemmyHelp {
-    nodes: Vec<Node>,
+pub struct Document<'src> {
+    nodes: Vec<Node<'src>>,
 }
 
-impl Nodes for LemmyHelp {
-    fn nodes(&self) -> &Vec<Node> {
-        &self.nodes
+impl<'src> Document<'src> {
+    pub fn new(nodes: Vec<Node<'src>>) -> Self {
+        Self { nodes }
     }
 }
 
-impl<T: FromEmmy> AsDoc<T> for LemmyHelp {
-    fn as_doc(&self, s: &T::Settings) -> T {
+impl<'src> Nodes<'src> for Document<'src> {
+    fn nodes(&'src self) -> &[Node<'src>] {
+        self.nodes.as_ref()
+    }
+
+    fn into_nodes(self) -> Vec<Node<'src>> {
+        self.nodes
+    }
+}
+
+impl<'src, T: FromEmmy<'src>> AsDoc<'src, T> for Document<'src> {
+    fn as_doc(&'src self, s: &T::Settings) -> T {
         T::from_emmy(self, s)
     }
 }
 
-impl LemmyHelp {
-    /// Creates a new parser instance
-    ///
-    /// ```
-    /// use lemmy_help::LemmyHelp;
-    ///
-    /// LemmyHelp::new();
-    /// ```
-    pub fn new() -> Self {
-        Self { nodes: vec![] }
-    }
+/// Parse given lua source code to generate AST representation
+///
+/// ```
+/// use lemmy_help::{parser, Nodes, Settings};
+///
+/// let src = r#"
+/// local U = {}
+///
+/// ---Add two integar and print it
+/// ---@param this number First number
+/// ---@param that number Second number
+/// function U.sum(this, that)
+///     print(this + that)
+/// end
+///
+/// return U
+/// "#;
+/// let settings = Settings::default();
+/// let ast = lemmy_help::parser(&src, &settings);
+/// assert!(!ast.nodes().is_empty());
+/// ```
+pub fn parser(src: &str) -> Document<'_> {
+    let Some(tokens) = lexer().parse(src).into_output() else {
+        return Document::default()
+    };
 
-    /// Parse given lua source code to generate AST representation
-    ///
-    /// ```
-    /// use lemmy_help::{LemmyHelp, Nodes};
-    ///
-    /// let mut lemmy = LemmyHelp::default();
-    /// let src = r#"
-    /// local U = {}
-    ///
-    /// ---Add two integar and print it
-    /// ---@param this number First number
-    /// ---@param that number Second number
-    /// function U.sum(this, that)
-    ///     print(this + that)
-    /// end
-    ///
-    /// return U
-    /// "#;
-    ///
-    /// let ast = lemmy.parse(&src).unwrap();
-    /// assert!(!ast.nodes().is_empty());
-    /// ```
-    pub fn parse(&mut self, src: &str) -> Result<&Self, Vec<Simple<TagType>>> {
-        self.nodes.append(&mut Node::new(src)?);
+    let Some(nodes) = node_parser()
+            .repeated()
+            .collect::<Vec<_>>()
+            .parse(tokens.as_slice().spanned((src.len()..src.len()).into()))
+            .into_output()
+    else {
+        return Document::default()
+    };
 
-        Ok(self)
-    }
-
-    /// Similar to [`LemmyHelp::parse`], but specifically used for generating vimdoc
-    pub fn for_help(
-        &mut self,
-        src: &str,
-        settings: &Settings,
-    ) -> Result<&Self, Vec<Simple<TagType>>> {
-        let mut nodes = Node::new(src)?;
-
-        if let Some(Node::Export(export)) = nodes.pop() {
-            let module = match nodes.iter().rev().find(|x| matches!(x, Node::Module(_))) {
-                Some(Node::Module(m)) => m.name.to_owned(),
-                _ => export.to_owned(),
-            };
-
-            for ele in nodes {
-                match ele {
-                    Node::Export(..) => {}
-                    Node::Func(mut func) => {
-                        if func.prefix.left.as_deref() == Some(&export) {
-                            if settings.prefix_func {
-                                func.prefix.right = Some(module.to_owned());
-                            }
-                            self.nodes.push(Node::Func(func));
-                        }
-                    }
-                    Node::Type(mut typ) => {
-                        if typ.prefix.left.as_deref() == Some(&export) {
-                            if settings.prefix_type {
-                                typ.prefix.right = Some(module.to_owned());
-                            }
-                            self.nodes.push(Node::Type(typ));
-                        }
-                    }
-                    Node::Alias(mut alias) => {
-                        if settings.prefix_alias {
-                            alias.prefix.right = Some(module.to_owned());
-                        }
-                        self.nodes.push(Node::Alias(alias))
-                    }
-                    Node::Class(mut class) => {
-                        if settings.prefix_class {
-                            class.prefix.right = Some(module.to_owned());
-                        }
-                        self.nodes.push(Node::Class(class))
-                    }
-                    _ => self.nodes.push(ele),
-                }
-            }
-        };
-
-        Ok(self)
-    }
+    Document { nodes }
 }

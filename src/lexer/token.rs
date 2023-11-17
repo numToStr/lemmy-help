@@ -1,12 +1,12 @@
 use std::fmt::Display;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Member {
-    Literal(String),
-    Ident(String),
+pub enum Member<'m> {
+    Literal(&'m str),
+    Ident(&'m str),
 }
 
-impl Display for Member {
+impl Display for Member<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Literal(lit) => f.write_str(&format!(
@@ -19,15 +19,15 @@ impl Display for Member {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum TagType {
+pub enum Token<'tt> {
     /// ```lua
     /// ---@toc <name>
     /// ```
-    Toc(String),
+    Toc(&'tt str),
     /// ```lua
     /// ---@mod <name> [desc]
     /// ```
-    Module(String, Option<String>),
+    Module(&'tt str, Option<&'tt str>),
     /// ```lua
     /// ---@divider <char>
     /// ```
@@ -36,18 +36,18 @@ pub enum TagType {
     /// function one.two() end
     /// one.two = function() end
     /// ```
-    Func(String, Op),
+    Func(&'tt str, Vec<Op<'tt>>),
     /// ```lua
     /// one = 1
     /// one.two = 12
     /// ```
-    Expr(String, Op),
+    Expr(&'tt str, Vec<Op<'tt>>),
     /// ```lua
     /// ---@export <module>
     /// or
     /// return <module>\eof
     /// ```
-    Export(String),
+    Export(&'tt str),
     /// ```lua
     /// ---@brief [[
     /// ```
@@ -59,19 +59,19 @@ pub enum TagType {
     /// ```lua
     /// ---@param <name[?]> <type[|type...]> [description]
     /// ```
-    Param(Name, Ty, Option<String>),
+    Param(Name<'tt>, Ty<'tt>, Option<&'tt str>),
     /// ```lua
     /// ---@return <type> [<name> [comment] | [name] #<comment>]
     /// ```
-    Return(Ty, Option<String>, Option<String>),
+    Return(Ty<'tt>, Option<&'tt str>, Option<&'tt str>),
     /// ```lua
     /// ---@class <name>[: <parent>]
     /// ```
-    Class(String, Option<String>),
+    Class(&'tt str, Option<&'tt str>),
     /// ```lua
     /// ---@field [public|private|protected] <name[?]> <type> [description]
     /// ```
-    Field(Scope, Name, Ty, Option<String>),
+    Field(Scope, Name<'tt>, Ty<'tt>, Option<&'tt str>),
     /// ```lua
     /// -- Simple Alias
     /// ---@alias <name> <type>
@@ -79,7 +79,7 @@ pub enum TagType {
     /// -- Enum alias
     /// ---@alias <name>
     /// ```
-    Alias(String, Option<Ty>),
+    Alias(&'tt str, Option<Ty<'tt>>),
     /// ```lua
     /// ---| '<literal>' [# description]
     ///
@@ -87,27 +87,27 @@ pub enum TagType {
     ///
     /// ---| `<ident>` [# description]
     /// ```
-    Variant(Member, Option<String>),
+    Variant(Member<'tt>, Option<&'tt str>),
     /// ```lua
     /// ---@type <type> [desc]
     /// ```
-    Type(Ty, Option<String>),
+    Type(Ty<'tt>, Option<&'tt str>),
     /// ```lua
     /// ---@tag <name>
     /// ```
-    Tag(String),
+    Tag(&'tt str),
     /// ```lua
     /// ---@see <name>
     /// ```
-    See(String),
+    See(&'tt str),
     /// ```lua
     /// ---@usage [lang] `<code>`
     /// ```
-    Usage(Option<String>, String),
+    Usage(Option<&'tt str>, &'tt str),
     /// ```lua
     /// ---@usage [lang] [[
     /// ```
-    UsageStart(Option<String>),
+    UsageStart(Option<&'tt str>),
     /// ```lua
     /// ---@usage ]]
     /// ```
@@ -115,27 +115,20 @@ pub enum TagType {
     /// ```lua
     /// ---TEXT
     /// ```
-    Comment(String),
+    Comment(&'tt str),
     /// Text nodes which are not needed
     Skip,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Op {
-    Deep(Vec<Op>),
-    Dot(String),
-    Colon(String),
+pub enum Op<'op> {
+    Dot(&'op str),
+    Colon(&'op str),
 }
 
-impl Display for Op {
+impl Display for Op<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Deep(mixed) => {
-                for mix in mixed {
-                    mix.fmt(f)?;
-                }
-                Ok(())
-            }
             Self::Dot(dot) => {
                 f.write_str(".")?;
                 f.write_str(dot)
@@ -157,12 +150,12 @@ pub enum Scope {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Name {
-    Req(String),
-    Opt(String),
+pub enum Name<'nm> {
+    Req(&'nm str),
+    Opt(&'nm str),
 }
 
-impl Display for Name {
+impl Display for Name<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Req(n) => f.write_str(n),
@@ -176,7 +169,7 @@ impl Display for Name {
 
 // Source: https://github.com/sumneko/lua-language-server/wiki/Annotations#documenting-types
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Ty {
+pub enum Ty<'ty> {
     Nil,
     Any,
     Unknown,
@@ -188,16 +181,16 @@ pub enum Ty {
     Thread,
     Userdata,
     Lightuserdata,
-    Ref(String),
-    Member(Member),
-    Array(Box<Ty>),
-    Table(Option<(Box<Ty>, Box<Ty>)>),
-    Fun(Vec<(Name, Ty)>, Option<Vec<Ty>>),
-    Dict(Vec<(Name, Ty)>),
-    Union(Box<Ty>, Box<Ty>),
+    Ref(&'ty str),
+    Member(Member<'ty>),
+    Array(Box<Ty<'ty>>),
+    Table(Option<(Box<Ty<'ty>>, Box<Ty<'ty>>)>),
+    Fun(Vec<(Name<'ty>, Ty<'ty>)>, Option<Vec<Ty<'ty>>>),
+    Dict(Vec<(Name<'ty>, Ty<'ty>)>),
+    Union(Box<Ty<'ty>>, Box<Ty<'ty>>),
 }
 
-impl Display for Ty {
+impl Display for Ty<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         fn list_like(args: &[(Name, Ty)]) -> String {
             args.iter()

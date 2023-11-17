@@ -1,74 +1,75 @@
-use chumsky::{select, Parser};
+use chumsky::{select, IterParser, Parser};
 
 use crate::{
-    lexer::{Name, Scope, TagType, Ty},
-    parser::{impl_parse, Prefix, See},
+    lexer::{Name, Scope, Token, Ty},
+    parser::{LemmyParser, Node, Prefix, See},
     Accept, Visitor,
 };
 
+use super::see_parser;
+
 #[derive(Debug, Clone)]
-pub struct Field {
+pub struct Field<'src> {
     pub scope: Scope,
-    pub name: Name,
-    pub ty: Ty,
-    pub desc: Vec<String>,
+    pub name: Name<'src>,
+    pub ty: Ty<'src>,
+    pub desc: Vec<&'src str>,
 }
 
-impl_parse!(Field, {
-    select! {
-        TagType::Comment(x) => x,
-    }
-    .repeated()
-    .then(select! {
-        TagType::Field(scope, name, ty, desc) => (scope, name, ty, desc)
-    })
-    .map(|(header, (scope, name, ty, desc))| {
-        let desc = match desc {
-            Some(d) => {
-                let mut new_desc = Vec::with_capacity(header.len() + 1);
-                new_desc.push(d);
-                new_desc.extend(header);
-                new_desc
+pub fn field_parser<'tokens, 'src: 'tokens>() -> impl LemmyParser<'tokens, 'src, Field<'src>> {
+    select! { Token::Comment(x) => x }
+        .repeated()
+        .collect::<Vec<&'src str>>()
+        .then(select! { Token::Field(scope,name,ty,desc) => (scope,name,ty,desc) })
+        .map(|(header, (scope, name, ty, desc))| {
+            let desc = match desc {
+                Some(d) => {
+                    let mut new_desc = Vec::with_capacity(header.len() + 1);
+                    new_desc.push(d);
+                    new_desc.extend(header);
+                    new_desc
+                }
+                None => header,
+            };
+            Field {
+                scope,
+                name,
+                ty,
+                desc,
             }
-            None => header,
-        };
-
-        Self {
-            scope,
-            name,
-            ty,
-            desc,
-        }
-    })
-});
+        })
+}
 
 #[derive(Debug, Clone)]
-pub struct Class {
-    pub name: String,
-    pub parent: Option<String>,
-    pub desc: Vec<String>,
-    pub fields: Vec<Field>,
-    pub see: See,
-    pub prefix: Prefix,
+pub struct Class<'src> {
+    pub name: &'src str,
+    pub parent: Option<&'src str>,
+    pub desc: Vec<&'src str>,
+    pub fields: Vec<Field<'src>>,
+    pub see: See<'src>,
+    pub prefix: Prefix<'src>,
 }
 
-impl_parse!(Class, {
-    select! { TagType::Comment(c) => c }
+pub fn class_parser<'tokens, 'src: 'tokens>() -> impl LemmyParser<'tokens, 'src, Node<'src>> {
+    select! { Token::Comment(c) => c }
         .repeated()
-        .then(select! { TagType::Class(name, parent) => (name, parent) })
-        .then(Field::parse().repeated())
-        .then(See::parse())
-        .map(|(((desc, (name, parent)), fields), see)| Self {
-            name,
-            parent,
-            desc,
-            fields,
-            see,
-            prefix: Prefix::default(),
+        .collect()
+        .then(select! { Token::Class(name, parent) => (name,parent) })
+        .then(field_parser().repeated().collect())
+        .then(see_parser())
+        .map(|(((desc, (name, parent)), fields), see)| {
+            Node::Class(Class {
+                name,
+                parent,
+                desc,
+                fields,
+                see,
+                prefix: Prefix::default(),
+            })
         })
-});
+}
 
-impl<T: Visitor> Accept<T> for Class {
+impl<'src, T: Visitor> Accept<T> for Class<'src> {
     fn accept(&self, n: &T, s: &T::S) -> T::R {
         n.class(self, s)
     }
